@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from './auth/AuthContext';
 import { I18nProvider, useI18n } from './i18n';
@@ -6,8 +6,8 @@ import Button from './ui/Button';
 import Badge from './ui/Badge';
 
 const navItems = [
-  { path: '/', label: 'Übersicht', icon: '📊' },
-  { path: '/orders', label: 'Bestellungen', icon: '📦' }
+  { path: '/', label: 'Übersicht' },
+  { path: '/orders', label: 'Bestellungen' }
 ];
 
 const pageTitleMap: Record<string, string> = {
@@ -26,6 +26,16 @@ const InnerApp: React.FC = () => {
   const location = useLocation();
   const auth = useAuth();
   const { t, lang, setLang } = useI18n();
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    if (typeof localStorage === 'undefined') return 'dark';
+    const stored = localStorage.getItem('theme');
+    return stored === 'light' ? 'light' : 'dark';
+  });
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem('theme', theme);
+  }, [theme]);
 
   const pageTitle =
     pageTitleMap[location.pathname] ||
@@ -48,7 +58,6 @@ const InnerApp: React.FC = () => {
               to={item.path}
               className={({ isActive }) => ['sidebar-link', isActive ? 'active' : ''].join(' ')}
             >
-              <span aria-hidden className="sidebar-link-icon">{item.icon}</span>
               <span className="sidebar-link-label">{item.label}</span>
             </NavLink>
           ))}
@@ -96,6 +105,14 @@ const InnerApp: React.FC = () => {
               <option value="en">English</option>
               <option value="pl">Polski</option>
             </select>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))}
+              aria-label="Theme umschalten"
+            >
+              {theme === 'dark' ? 'Light' : 'Dark'}
+            </Button>
             {auth?.session ? (
               <div
                 style={{

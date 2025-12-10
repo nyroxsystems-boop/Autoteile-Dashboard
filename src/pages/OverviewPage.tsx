@@ -18,6 +18,7 @@ const OverviewPage = () => {
   const [step, setStep] = useState<number>(0);
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [settingsLoaded, setSettingsLoaded] = useState(false);
+  const [showSettings, setShowSettings] = useState(true);
   const auth = useAuth();
 
   // a small default list of known shops (can be replaced by a real backend list later)
@@ -63,6 +64,7 @@ const OverviewPage = () => {
         if (s) {
           setSelectedShops(s.selectedShops ?? []);
           setDefaultMargin(s.marginPercent ?? null);
+          setShowSettings(false);
         }
       } catch (err) {
         console.error('[OverviewPage] Fehler beim Laden der Merchant-Settings', err);
@@ -117,6 +119,7 @@ const OverviewPage = () => {
       });
       setError(null);
       setStep(0);
+      setShowSettings(false);
       console.log('[OverviewPage] Merchant settings saved');
     } catch (err) {
       console.error('[OverviewPage] Fehler beim Speichern der Merchant-Settings', err);
@@ -226,51 +229,65 @@ const OverviewPage = () => {
         title="Onboarding & Grundeinstellungen"
         subtitle="Shops auswählen und Standard-Marge festlegen."
       >
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-          <Badge variant={step === 0 ? 'success' : 'neutral'}>Schritt 1</Badge>
-          <Badge variant={step === 1 ? 'success' : 'neutral'}>Schritt 2</Badge>
-        </div>
-        {step === 0 ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div style={{ color: 'var(--muted)' }}>Wähle die Shops aus, die bei der Angebotssuche berücksichtigt werden sollen.</div>
-            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-              {KNOWN_SHOPS.map((s) => (
-                <label key={s} style={{ display: 'flex', gap: 8, alignItems: 'center', padding: 10, borderRadius: 10, border: '1px solid var(--border)' }}>
-                  <input type="checkbox" checked={selectedShops.includes(s)} onChange={() => handleToggleShop(s)} />
-                  <div style={{ fontWeight: 700 }}>{s}</div>
-                </label>
-              ))}
+        {!showSettings && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+            <div style={{ color: 'var(--muted)' }}>
+              Einstellungen hinterlegt. Shops: {selectedShops.join(', ') || '–'} · Standard-Marge: {defaultMargin ?? '–'}%
             </div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <Button variant="primary" onClick={() => setStep(1)} disabled={selectedShops.length === 0}>
-                Weiter
-              </Button>
-              <Button variant="ghost" onClick={() => setSelectedShops([])}>
-                Zurücksetzen
-              </Button>
-            </div>
+            <Button size="sm" variant="secondary" onClick={() => setShowSettings(true)}>
+              Einstellungen bearbeiten
+            </Button>
           </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div style={{ color: 'var(--muted)' }}>Diese Marge wird prozentual auf den Teilepreis aufgeschlagen.</div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 200px)', gap: 12 }}>
-              <Input
-                label="Standard-Marge (%)"
-                type="number"
-                value={defaultMargin ?? ''}
-                placeholder="z.B. 20"
-                onChange={(e) => handleMarginChange(e.target.value)}
-              />
+        )}
+        {showSettings && (
+          <>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+              <Badge variant={step === 0 ? 'success' : 'neutral'}>Schritt 1</Badge>
+              <Badge variant={step === 1 ? 'success' : 'neutral'}>Schritt 2</Badge>
             </div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <Button variant="primary" onClick={handleSaveSettings} disabled={isSavingSettings}>
-                {isSavingSettings ? 'Speichert…' : 'Speichern & Abschließen'}
-              </Button>
-              <Button variant="ghost" onClick={() => setStep(0)}>
-                Zurück
-              </Button>
-            </div>
-          </div>
+            {step === 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div style={{ color: 'var(--muted)' }}>Wähle die Shops aus, die bei der Angebotssuche berücksichtigt werden sollen.</div>
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                  {KNOWN_SHOPS.map((s) => (
+                    <label key={s} style={{ display: 'flex', gap: 8, alignItems: 'center', padding: 10, borderRadius: 10, border: '1px solid var(--border)' }}>
+                      <input type="checkbox" checked={selectedShops.includes(s)} onChange={() => handleToggleShop(s)} />
+                      <div style={{ fontWeight: 700 }}>{s}</div>
+                    </label>
+                  ))}
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <Button variant="primary" onClick={() => setStep(1)} disabled={selectedShops.length === 0}>
+                    Weiter
+                  </Button>
+                  <Button variant="ghost" onClick={() => setSelectedShops([])}>
+                    Zurücksetzen
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div style={{ color: 'var(--muted)' }}>Diese Marge wird prozentual auf den Teilepreis aufgeschlagen.</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 200px)', gap: 12 }}>
+                  <Input
+                    label="Standard-Marge (%)"
+                    type="number"
+                    value={defaultMargin ?? ''}
+                    placeholder="z.B. 20"
+                    onChange={(e) => handleMarginChange(e.target.value)}
+                  />
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <Button variant="primary" onClick={handleSaveSettings} disabled={isSavingSettings}>
+                    {isSavingSettings ? 'Speichert…' : 'Speichern & Abschließen'}
+                  </Button>
+                  <Button variant="ghost" onClick={() => setStep(0)}>
+                    Zurück
+                  </Button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </Card>
 
