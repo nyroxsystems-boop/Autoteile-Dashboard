@@ -4,7 +4,7 @@ import OrderDetailPage from './pages/OrderDetailPage';
 import OrdersListPage from './pages/OrdersListPage';
 import OverviewPage from './pages/OverviewPage';
 import AuthPage from './pages/AuthPage';
-import { AuthProvider, RequireAuth } from './auth/AuthContext';
+import { RequireAuth } from './auth/AuthContext';
 
 const routes = [
   {
@@ -14,11 +14,9 @@ const routes = [
   {
     path: '/',
     element: (
-      <AuthProvider>
-        <RequireAuth>
-          <App />
-        </RequireAuth>
-      </AuthProvider>
+      <RequireAuth>
+        <App />
+      </RequireAuth>
     ),
     children: [
       { index: true, element: <OverviewPage /> },
