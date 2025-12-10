@@ -1,0 +1,125 @@
+import React from 'react';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { useAuth } from './auth/AuthContext';
+import { I18nProvider, useI18n } from './i18n';
+import Button from './ui/Button';
+import Badge from './ui/Badge';
+
+const navItems = [
+  { path: '/', label: 'Übersicht', icon: '📊' },
+  { path: '/orders', label: 'Bestellungen', icon: '📦' }
+];
+
+const pageTitleMap: Record<string, string> = {
+  '/': 'Übersicht',
+  '/orders': 'Bestellungen',
+  '/orders/': 'Bestellungen'
+};
+
+const App: React.FC = () => (
+  <I18nProvider>
+    <InnerApp />
+  </I18nProvider>
+);
+
+const InnerApp: React.FC = () => {
+  const location = useLocation();
+  const auth = useAuth();
+  const { t, lang, setLang } = useI18n();
+
+  const pageTitle =
+    pageTitleMap[location.pathname] ||
+    (location.pathname.startsWith('/orders/') ? 'Bestelldetails' : t('brandTitle'));
+
+  return (
+    <div className="app-shell">
+      <aside className="sidebar">
+        <div className="sidebar-logo">
+          <div className="sidebar-logo-icon" />
+          <div>
+            <div style={{ fontWeight: 800, letterSpacing: 0.3 }}>PartsBot Dashboard</div>
+            <div style={{ color: 'var(--muted)', fontSize: 12 }}>{t('brandSubtitle')}</div>
+          </div>
+        </div>
+        <nav className="sidebar-nav">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              className={({ isActive }) => ['sidebar-link', isActive ? 'active' : ''].join(' ')}
+            >
+              <span aria-hidden className="sidebar-link-icon">{item.icon}</span>
+              <span className="sidebar-link-label">{item.label}</span>
+            </NavLink>
+          ))}
+        </nav>
+        {auth?.session ? (
+          <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 10, border: '1px solid var(--border)' }}>
+              <div
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 12,
+                  background: 'linear-gradient(135deg,#2563eb,#06b6d4)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 800
+                }}
+              >
+                {auth.session.merchantId?.slice(0, 2).toUpperCase()}
+              </div>
+              <div>
+                <div style={{ fontWeight: 700 }}>{auth.session.merchantId}</div>
+                <Badge variant="neutral">Session aktiv</Badge>
+              </div>
+            </div>
+            <Button variant="ghost" onClick={() => auth.logout()}>
+              {t('logout')}
+            </Button>
+          </div>
+        ) : null}
+      </aside>
+
+      <div className="main-area">
+        <div className="topbar">
+          <div className="topbar-title">{pageTitle}</div>
+          <div className="topbar-actions">
+            <select
+              value={lang}
+              onChange={(e) => setLang(e.target.value as any)}
+              className="topbar-select"
+              aria-label="language"
+            >
+              <option value="de">Deutsch</option>
+              <option value="en">English</option>
+              <option value="pl">Polski</option>
+            </select>
+            {auth?.session ? (
+              <div
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 12,
+                  background: 'rgba(255,255,255,0.06)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 800
+                }}
+              >
+                {auth.session.merchantId?.slice(0, 2).toUpperCase()}
+              </div>
+            ) : null}
+          </div>
+        </div>
+        <main className="page">
+          <Outlet />
+        </main>
+      </div>
+    </div>
+  );
+};
+
+export default App;
