@@ -19,11 +19,12 @@ const OverviewPage = () => {
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [settingsLoaded, setSettingsLoaded] = useState(false);
   const auth = useAuth();
-  const isStatsLoading = !stats && !error;
 
   // a small default list of known shops (can be replaced by a real backend list later)
   const KNOWN_SHOPS = ['Autodoc', 'Stahlgruber', 'Mister Auto'];
   const [error, setError] = useState<string | null>(null);
+
+  const isStatsLoading = !stats && !error;
 
   useEffect(() => {
     const loadStats = async () => {
