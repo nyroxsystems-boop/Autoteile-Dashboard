@@ -12,6 +12,10 @@ const routes = [
     element: <AuthPage />
   },
   {
+    path: '*',
+    element: <Navigate to="/auth" replace />
+  },
+  {
     path: '/',
     element: (
       <RequireAuth>
