@@ -366,11 +366,11 @@ const styles: Record<string, CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    color: 'var(--muted)' // Schriftfarbe für Breadcrumbs aufgehellt
+    color: '#cbd5e1' // Schriftfarbe für Breadcrumbs aufgehellt (lesbar auf dunkel)
   },
   routeInfo: {
     fontSize: 12,
-    color: 'var(--muted)' // Schriftfarbe angepasst
+    color: '#94a3b8' // Route-Info ebenfalls heller
   },
   errorBox: {
     padding: 12,
@@ -404,13 +404,13 @@ const styles: Record<string, CSSProperties> = {
   },
   subtitle: {
     margin: 0,
-    color: 'var(--muted)', // Labels leicht abgedunkelt, aber lesbar
+    color: '#a0aec0', // Labels leicht abgedunkelt, aber lesbar
     fontSize: 14
   },
   title: {
     margin: 0,
     fontSize: 20,
-    color: 'var(--text)'
+    color: '#ffffff' // Titel in weiß für maximale Lesbarkeit
   },
   badge: {
     padding: '6px 10px',
@@ -446,11 +446,11 @@ const styles: Record<string, CSSProperties> = {
     gap: 12
   },
   label: {
-    color: 'var(--muted)', // Beschriftung in dezenter, aber heller Farbe
+    color: '#a0aec0', // Beschriftung in dezenter, aber heller Farbe
     fontSize: 13
   },
   value: {
-    color: 'var(--text)', // Werte klar lesbar auf dunklem Hintergrund
+    color: '#ffffff', // Werte klar lesbar auf dunklem Hintergrund
     fontSize: 15,
     fontWeight: 600
   },
@@ -479,13 +479,14 @@ const styles: Record<string, CSSProperties> = {
     fontSize: 12,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    color: 'var(--muted)'
+    color: '#a0aec0' // Tabellen-Header gut lesbar
   },
   td: {
     padding: '10px 12px',
     borderBottom: '1px solid var(--border)',
     fontSize: 14,
-    verticalAlign: 'middle'
+    verticalAlign: 'middle',
+    color: '#ffffff' // Tabellenwerte klar sichtbar
   },
   tr: {
     backgroundColor: 'transparent'
