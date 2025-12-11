@@ -7,13 +7,15 @@ import Badge from './ui/Badge';
 
 const navItems = [
   { path: '/', label: 'Übersicht' },
-  { path: '/orders', label: 'Bestellungen' }
+  { path: '/orders', label: 'Bestellungen' },
+  { path: '/wws', label: 'Warenwirtschaftssystem' }
 ];
 
 const pageTitleMap: Record<string, string> = {
   '/': 'Übersicht',
   '/orders': 'Bestellungen',
-  '/orders/': 'Bestellungen'
+  '/orders/': 'Bestellungen',
+  '/wws': 'Warenwirtschaftssystem'
 };
 
 const App: React.FC = () => (
@@ -63,30 +65,33 @@ const InnerApp: React.FC = () => {
           ))}
         </nav>
         {auth?.session ? (
-          <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 10, border: '1px solid var(--border)' }}>
-              <div
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 12,
-                  background: 'linear-gradient(135deg,#2563eb,#06b6d4)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontWeight: 800
-                }}
-              >
+          <div className="account-card">
+            <div className="account-header">
+              <div className="account-avatar">
                 {auth.session.merchantId?.slice(0, 2).toUpperCase()}
               </div>
-              <div>
-                <div style={{ fontWeight: 700 }}>{auth.session.merchantId}</div>
-                <Badge variant="neutral">Session aktiv</Badge>
+              <div className="account-meta">
+                <div className="account-name">{auth.session.merchantId}</div>
+                <Badge variant="success">Plan aktiv</Badge>
               </div>
             </div>
-            <Button variant="ghost" onClick={() => auth.logout()}>
-              {t('logout')}
-            </Button>
+            <details className="account-settings">
+              <summary>Settings</summary>
+              <div className="settings-list">
+                <Button variant="ghost" size="sm" fullWidth>
+                  Marge & Shops
+                </Button>
+                <Button variant="ghost" size="sm" fullWidth>
+                  Billing & Konto
+                </Button>
+                <Button variant="ghost" size="sm" fullWidth>
+                  Mitarbeiteraccounts
+                </Button>
+                <Button variant="ghost" size="sm" fullWidth onClick={() => auth.logout()}>
+                  {t('logout')}
+                </Button>
+              </div>
+            </details>
           </div>
         ) : null}
       </aside>

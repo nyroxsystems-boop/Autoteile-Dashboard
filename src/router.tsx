@@ -5,6 +5,7 @@ import OrdersListPage from './pages/OrdersListPage';
 import OverviewPage from './pages/OverviewPage';
 import AuthPage from './pages/AuthPage';
 import { AuthProvider, RequireAuth } from './auth/AuthContext';
+import WwsPage from './features/wws/WwsPage';
 
 const Providers = () => (
   <AuthProvider>
@@ -28,6 +29,7 @@ const routes = [
           { index: true, element: <OverviewPage /> },
           { path: 'orders', element: <OrdersListPage /> },
           { path: 'orders/:id', element: <OrderDetailPage /> },
+          { path: 'wws', element: <WwsPage /> },
           { path: '*', element: <Navigate to='/' replace /> }
         ]
       },
