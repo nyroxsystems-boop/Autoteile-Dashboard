@@ -89,15 +89,58 @@ const OverviewPage = () => {
     return Number.isFinite(n) ? n : 0;
   };
 
-  const orderSeries = useMemo(() => buildOrderSeries(timeRange, orders), [timeRange, orders]);
-  const baseSeriesValues = useMemo(() => orderSeries.map((p) => p.value), [orderSeries]);
-  const deriveSeries = (multiplier: number, jitter = 0) => {
-    const base = baseSeriesValues.length ? baseSeriesValues : [normalize(stats?.ordersInPeriod)];
-    return base.map((v, idx) => {
-      const noise = jitter ? ((idx % 2 === 0 ? 1 : -1) * jitter * (idx + 1)) : 0;
-      return Math.max(0, v * multiplier + noise);
-    });
-  };
+  const buckets = useMemo(() => buildOrderBuckets(timeRange, orders), [timeRange, orders]);
+  const ordersSeries = useMemo(() => buckets.map((b) => b.orders.length), [buckets]);
+  const oemSeries = useMemo(
+    () =>
+      buckets.map((b) =>
+        b.orders.filter((o) => ['not_found', 'multiple_matches'].includes((o.part as any)?.oemStatus)).length
+      ),
+    [buckets]
+  );
+  const abortedSeries = useMemo(
+    () =>
+      buckets.map((b) =>
+        b.orders.filter((o) => {
+          const s = String(o.status ?? '').toLowerCase();
+          return s.includes('fail') || s.includes('error') || s.includes('abort');
+        }).length
+      ),
+    [buckets]
+  );
+  const doneSeries = useMemo(
+    () =>
+      buckets.map((b) =>
+        b.orders.filter((o) => {
+          const s = String(o.status ?? '').toLowerCase();
+          return s.includes('done') || s.includes('show_offers') || s.includes('complete');
+        }).length
+      ),
+    [buckets]
+  );
+  const conversionSeries = useMemo(
+    () =>
+      buckets.map((_, idx) => {
+        const done = doneSeries[idx] ?? 0;
+        const total = (ordersSeries[idx] ?? 0) || 1;
+        return Math.round((done / total) * 100);
+      }),
+    [doneSeries, ordersSeries]
+  );
+  const incomingSeries = useMemo(() => {
+    const totalMsgs = normalize(stats?.incomingMessages);
+    const totalOrders = Math.max(1, ordersSeries.reduce((a, b) => a + b, 0));
+    if (totalMsgs === 0) return ordersSeries;
+    return ordersSeries.map((count) => Math.max(0, Math.round((count / totalOrders) * totalMsgs)));
+  }, [ordersSeries, stats?.incomingMessages]);
+  const marginSeries = useMemo(() => {
+    const avg = normalize(stats?.averageMargin);
+    return buckets.map(() => avg || 0.1);
+  }, [buckets, stats?.averageMargin]);
+  const basketSeries = useMemo(() => {
+    const avg = normalize(stats?.averageBasket);
+    return buckets.map(() => avg || 0.1);
+  }, [buckets, stats?.averageBasket]);
 
   const handleRangeChange = (value: 'Heute' | 'Diese Woche' | 'Dieser Monat') => {
     console.log('[OverviewPage] Zeitraum geändert:', value);
@@ -211,50 +254,50 @@ const OverviewPage = () => {
                   title="Bestellungen im Zeitraum"
                   value={stats?.ordersInPeriod ?? '–'}
                   description="Alle neu gestarteten Bestellungen im gewählten Zeitraum."
-                  accent="#2563eb"
-                  series={deriveSeries(1)}
+                  accent="#4f8bff"
+                  series={ordersSeries}
                 />
                 <KpiCard
                   title="Offene Bestellungen (OEM)"
                   value={oemIssuesCount}
                   description="Bestellungen mit offener oder problematischer OEM-Ermittlung."
-                  accent="#f97316"
-                  series={deriveSeries(0.4, 0.2)}
+                  accent="#4f8bff"
+                  series={oemSeries}
                 />
                 <KpiCard
                   title="Empfangene Nachrichten"
                   value={stats?.incomingMessages ?? '–'}
                   description="Eingehende WhatsApp-Nachrichten im Zeitraum."
-                  accent="#22c55e"
-                  series={deriveSeries(1.2, 0.3)}
+                  accent="#4f8bff"
+                  series={incomingSeries}
                 />
                 <KpiCard
                   title="Abgebrochene Bestellungen"
                   value={stats?.abortedOrders ?? '–'}
                   description="Begonnene, aber nicht abgeschlossene Vorgänge."
-                  accent="#f97316"
-                  series={deriveSeries(0.25, 0.15)}
+                  accent="#4f8bff"
+                  series={abortedSeries}
                 />
                 <KpiCard
                   title="Konversionsrate"
                   value={`${stats?.conversionRate ?? '–'}%`}
                   description="Abschlussrate gegenüber gestarteten Anfragen."
-                  accent="#a855f7"
-                  series={deriveSeries(0.6, 0.1)}
+                  accent="#4f8bff"
+                  series={conversionSeries}
                 />
                 <KpiCard
                   title="Ø Marge"
                   value={`${stats?.averageMargin ?? '–'}%`}
                   description="Mittelwert der angewendeten Marge pro Bestellung."
-                  accent="#3b82f6"
-                  series={deriveSeries(0.5, 0.05)}
+                  accent="#4f8bff"
+                  series={marginSeries}
                 />
                 <KpiCard
                   title="Ø Warenkorb"
                   value={stats?.averageBasket ? `€ ${stats.averageBasket}` : '–'}
                   description="Durchschnittlicher Endpreis pro Bestellung."
-                  accent="#10b981"
-                  series={deriveSeries(0.8, 0.1)}
+                  accent="#4f8bff"
+                  series={basketSeries}
                 />
               </>
             )}
@@ -347,9 +390,8 @@ type KpiCardProps = {
 };
 
 const KpiCard = ({ title, value, description, accent = '#3b82f6', series }: KpiCardProps) => {
-  const numericSeed = toNumberish(value ?? 0);
   const sparkId = `${title.replace(/\s+/g, '-').toLowerCase()}-spark`;
-  const points = series && series.length ? normalizeSeries(series) : createSparkPoints(numericSeed);
+  const points = normalizeSeries(series && series.length ? series : [toNumberish(value ?? 0)]);
   const { linePath, areaPath } = buildSparkPaths(points, 180, 70);
 
   return (
@@ -405,17 +447,6 @@ const toNumberish = (value: unknown) => {
   return Number.isFinite(num) ? num : 0;
 };
 
-const createSparkPoints = (seed: number, length = 8): number[] => {
-  let x = Math.max(1, Math.abs(Math.floor(seed * 97)) % 9973);
-  const pts: number[] = [];
-  for (let i = 0; i < length; i++) {
-    x = (x * 16807) % 2147483647;
-    const v = (x % 1000) / 1000;
-    pts.push(0.35 + v * 0.55); // range ~0.35-0.9
-  }
-  return pts;
-};
-
 const buildSparkPaths = (points: number[], width: number, height: number) => {
   if (!points.length) return { linePath: '', areaPath: '' };
   const step = width / Math.max(1, points.length - 1);
@@ -433,77 +464,78 @@ const buildSparkPaths = (points: number[], width: number, height: number) => {
 };
 
 const normalizeSeries = (values: number[]) => {
-  const max = Math.max(1, ...values);
   if (!values.length) return [];
-  return values.map((v) => Math.max(0.05, Math.min(0.95, v / max)));
+  const max = Math.max(1, ...values);
+  return values.map((v) => {
+    const n = max === 0 ? 0 : v / max;
+    return Math.max(0.08, Math.min(0.92, n));
+  });
 };
 
-const buildOrderSeries = (
+type OrderBucket = { label: string; orders: Order[] };
+
+const buildOrderBuckets = (
   range: 'Heute' | 'Diese Woche' | 'Dieser Monat' | 'Dieses Jahr',
   orders: Order[]
-): SeriesPoint[] => {
+): OrderBucket[] => {
   const now = new Date();
   const getDate = (o: Order) => new Date((o as any)?.created_at ?? (o as any)?.createdAt ?? Date.now());
 
   if (range === 'Heute') {
     // 8 buckets à 3 Stunden
-    const buckets = Array.from({ length: 8 }).map((_, idx) => {
+    return Array.from({ length: 8 }).map((_, idx) => {
       const start = new Date(now);
       start.setHours(idx * 3, 0, 0, 0);
       const end = new Date(start);
       end.setHours(start.getHours() + 3);
-      const value = orders.filter((o) => {
+      const bucketOrders = orders.filter((o) => {
         const d = getDate(o);
         return d >= start && d < end;
-      }).length;
-      return { label: `${start.getHours()}h`, value };
+      });
+      return { label: `${start.getHours()}h`, orders: bucketOrders };
     });
-    return buckets;
   }
 
   if (range === 'Diese Woche') {
-    const buckets = Array.from({ length: 7 }).map((_, idx) => {
+    return Array.from({ length: 7 }).map((_, idx) => {
       const d = new Date(now);
       d.setDate(now.getDate() - (6 - idx));
       d.setHours(0, 0, 0, 0);
       const next = new Date(d);
       next.setDate(d.getDate() + 1);
-      const value = orders.filter((o) => {
+      const bucketOrders = orders.filter((o) => {
         const od = getDate(o);
         return od >= d && od < next;
-      }).length;
-      return { label: d.toLocaleDateString(undefined, { weekday: 'short' }), value };
+      });
+      return { label: d.toLocaleDateString(undefined, { weekday: 'short' }), orders: bucketOrders };
     });
-    return buckets;
   }
 
   if (range === 'Dieser Monat') {
     // 4 Wochen-Buckets
-    const buckets = Array.from({ length: 4 }).map((_, idx) => {
+    return Array.from({ length: 4 }).map((_, idx) => {
       const start = new Date(now);
       start.setDate(1 + idx * 7);
       start.setHours(0, 0, 0, 0);
       const end = new Date(start);
       end.setDate(start.getDate() + 7);
-      const value = orders.filter((o) => {
+      const bucketOrders = orders.filter((o) => {
         const od = getDate(o);
         return od >= start && od < end;
-      }).length;
-      return { label: `${idx + 1}. Woche`, value };
+      });
+      return { label: `${idx + 1}. Woche`, orders: bucketOrders };
     });
-    return buckets;
   }
 
   // Dieses Jahr: 12 Monats-Buckets
-  const buckets = Array.from({ length: 12 }).map((_, idx) => {
+  return Array.from({ length: 12 }).map((_, idx) => {
     const start = new Date(now.getFullYear(), idx, 1);
     const end = new Date(now.getFullYear(), idx + 1, 1);
-    const value = orders.filter((o) => {
+    const bucketOrders = orders.filter((o) => {
       const od = getDate(o);
       return od >= start && od < end;
-    }).length;
-    return { label: start.toLocaleDateString(undefined, { month: 'short' }), value };
+    });
+    return { label: start.toLocaleDateString(undefined, { month: 'short' }), orders: bucketOrders };
   });
-  return buckets;
 };
 export default OverviewPage;
