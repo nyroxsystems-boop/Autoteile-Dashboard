@@ -468,11 +468,15 @@ const OrderLineChart = ({ data }: { data: SeriesPoint[] }) => {
 };
 
 const toNiceMax = (value: number) => {
-  const order = Math.pow(10, Math.floor(Math.log10(value || 1)));
+  const safe = Math.max(1, value || 1);
+  const order = Math.pow(10, Math.floor(Math.log10(safe)));
   const normalized = value / order;
   const rounded = normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10;
   return rounded * order;
 };
+
+const formatNumber = (value: number) =>
+  new Intl.NumberFormat('de-DE', { maximumFractionDigits: 0 }).format(Math.round(value));
 
 const toNumberish = (value: unknown) => {
   if (typeof value === 'number') return value;
