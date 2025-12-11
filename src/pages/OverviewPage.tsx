@@ -10,7 +10,7 @@ import Badge from '../ui/Badge';
 import Input from '../ui/Input';
 
 const OverviewPage = () => {
-  const [timeRange, setTimeRange] = useState<'Heute' | 'Diese Woche' | 'Dieser Monat'>('Heute');
+  const [timeRange, setTimeRange] = useState<'Heute' | 'Diese Woche' | 'Dieser Monat' | 'Dieses Jahr'>('Heute');
   const [stats, setStats] = useState<OverviewStats | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [defaultMargin, setDefaultMargin] = useState<number | null>(null);
@@ -89,15 +89,7 @@ const OverviewPage = () => {
     return Number.isFinite(n) ? n : 0;
   };
 
-  const makeBars = (value: number) => {
-    const base = Math.max(0, value);
-    const factor = Math.max(10, base || 10);
-    return [
-      0.35 + (base % 5) / 20,
-      0.45 + (base % 7) / 22,
-      0.55 + (base % 9) / 24
-    ].map((v) => Math.min(1, Math.max(0.2, v * (base ? Math.min(1, base / factor + 0.2) : 0.6))));
-  };
+  const orderSeries = useMemo(() => buildOrderSeries(timeRange, orders), [timeRange, orders]);
 
   const handleRangeChange = (value: 'Heute' | 'Diese Woche' | 'Dieser Monat') => {
     console.log('[OverviewPage] Zeitraum geändert:', value);
@@ -171,6 +163,13 @@ const OverviewPage = () => {
               size="sm"
             >
               Dieser Monat
+            </Button>
+            <Button
+              variant={timeRange === 'Dieses Jahr' ? 'primary' : 'secondary'}
+              onClick={() => handleRangeChange('Dieses Jahr')}
+              size="sm"
+            >
+              Dieses Jahr
             </Button>
           </div>
         }
@@ -252,6 +251,10 @@ const OverviewPage = () => {
               </>
             )}
         </div>
+      </Card>
+
+      <Card title="Bestellungen im Verlauf" subtitle={`Verlauf (${timeRange})`}>
+        <OrderLineChart data={orderSeries} />
       </Card>
 
       <Card
@@ -388,6 +391,89 @@ const KpiCard = ({ title, value, description, accent = '#3b82f6', sparkSeed }: K
   );
 };
 
+type SeriesPoint = { label: string; value: number };
+
+const OrderLineChart = ({ data }: { data: SeriesPoint[] }) => {
+  const width = 620;
+  const height = 200;
+  const maxVal = Math.max(1, ...data.map((d) => d.value));
+  const niceMax = toNiceMax(maxVal);
+  const ticks = [0, niceMax / 2, niceMax];
+  const step = data.length > 1 ? width / (data.length - 1) : width;
+
+  const points = data.map((d, idx) => ({
+    x: idx * step,
+    y: height - (d.value / niceMax) * (height - 20)
+  }));
+
+  const linePath = points.reduce(
+    (acc, p, idx) => (idx === 0 ? `M ${p.x} ${p.y}` : `${acc} L ${p.x} ${p.y}`),
+    ''
+  );
+  const areaPath = `${linePath} L ${width} ${height} L 0 ${height} Z`;
+
+  return (
+    <div style={{ width: '100%', overflowX: 'auto' }}>
+      <div style={{ minWidth: width, position: 'relative' }}>
+        <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Bestellungen Verlauf">
+          <defs>
+            <linearGradient id="orders-stroke" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#2563eb" stopOpacity="0.9" />
+              <stop offset="100%" stopColor="#22c55e" stopOpacity="0.9" />
+            </linearGradient>
+            <linearGradient id="orders-fill" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#2563eb" stopOpacity="0.18" />
+              <stop offset="100%" stopColor="#22c55e" stopOpacity="0.02" />
+            </linearGradient>
+          </defs>
+
+          {/* Grid + Y ticks */}
+          {ticks.map((t, idx) => {
+            const y = height - (t / niceMax) * (height - 20);
+            return (
+              <g key={idx}>
+                <line x1={0} x2={width} y1={y} y2={y} stroke="var(--border)" strokeDasharray="4 4" />
+                <text x={0} y={y - 4} fill="var(--muted)" fontSize={11}>{formatNumber(t)}</text>
+              </g>
+            );
+          })}
+
+          {/* Area + line */}
+          <path d={areaPath} fill="url(#orders-fill)" stroke="none" />
+          <path
+            d={linePath}
+            fill="none"
+            stroke="url(#orders-stroke)"
+            strokeWidth={3}
+            strokeLinejoin="round"
+            strokeLinecap="round"
+          />
+
+          {/* Points */}
+          {points.map((p, idx) => (
+            <circle key={idx} cx={p.x} cy={p.y} r={3.5} fill="#ffffff" stroke="#2563eb" strokeWidth={2} />
+          ))}
+        </svg>
+
+        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${data.length}, 1fr)`, marginTop: 8, gap: 4 }}>
+          {data.map((d, idx) => (
+            <div key={idx} style={{ textAlign: 'center', color: 'var(--muted)', fontSize: 11 }}>
+              {d.label}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const toNiceMax = (value: number) => {
+  const order = Math.pow(10, Math.floor(Math.log10(value || 1)));
+  const normalized = value / order;
+  const rounded = normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10;
+  return rounded * order;
+};
+
 const toNumberish = (value: unknown) => {
   if (typeof value === 'number') return value;
   if (value === null || value === undefined) return 0;
@@ -421,5 +507,74 @@ const buildSparkPaths = (points: number[], width: number, height: number) => {
   );
   const areaPath = `${linePath} L ${width} ${height} L 0 ${height} Z`;
   return { linePath, areaPath };
+};
+
+const buildOrderSeries = (
+  range: 'Heute' | 'Diese Woche' | 'Dieser Monat' | 'Dieses Jahr',
+  orders: Order[]
+): SeriesPoint[] => {
+  const now = new Date();
+  const getDate = (o: Order) => new Date((o as any)?.created_at ?? (o as any)?.createdAt ?? Date.now());
+
+  if (range === 'Heute') {
+    // 8 buckets à 3 Stunden
+    const buckets = Array.from({ length: 8 }).map((_, idx) => {
+      const start = new Date(now);
+      start.setHours(idx * 3, 0, 0, 0);
+      const end = new Date(start);
+      end.setHours(start.getHours() + 3);
+      const value = orders.filter((o) => {
+        const d = getDate(o);
+        return d >= start && d < end;
+      }).length;
+      return { label: `${start.getHours()}h`, value };
+    });
+    return buckets;
+  }
+
+  if (range === 'Diese Woche') {
+    const buckets = Array.from({ length: 7 }).map((_, idx) => {
+      const d = new Date(now);
+      d.setDate(now.getDate() - (6 - idx));
+      d.setHours(0, 0, 0, 0);
+      const next = new Date(d);
+      next.setDate(d.getDate() + 1);
+      const value = orders.filter((o) => {
+        const od = getDate(o);
+        return od >= d && od < next;
+      }).length;
+      return { label: d.toLocaleDateString(undefined, { weekday: 'short' }), value };
+    });
+    return buckets;
+  }
+
+  if (range === 'Dieser Monat') {
+    // 4 Wochen-Buckets
+    const buckets = Array.from({ length: 4 }).map((_, idx) => {
+      const start = new Date(now);
+      start.setDate(1 + idx * 7);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(start);
+      end.setDate(start.getDate() + 7);
+      const value = orders.filter((o) => {
+        const od = getDate(o);
+        return od >= start && od < end;
+      }).length;
+      return { label: `${idx + 1}. Woche`, value };
+    });
+    return buckets;
+  }
+
+  // Dieses Jahr: 12 Monats-Buckets
+  const buckets = Array.from({ length: 12 }).map((_, idx) => {
+    const start = new Date(now.getFullYear(), idx, 1);
+    const end = new Date(now.getFullYear(), idx + 1, 1);
+    const value = orders.filter((o) => {
+      const od = getDate(o);
+      return od >= start && od < end;
+    }).length;
+    return { label: start.toLocaleDateString(undefined, { month: 'short' }), value };
+  });
+  return buckets;
 };
 export default OverviewPage;
