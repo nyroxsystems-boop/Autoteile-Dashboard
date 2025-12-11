@@ -34,6 +34,8 @@ const InnerApp: React.FC = () => {
     const stored = localStorage.getItem('theme');
     return stored === 'light' ? 'light' : 'dark';
   });
+  const [langSearch, setLangSearch] = useState('');
+  const [showLangMenu, setShowLangMenu] = useState(false);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -71,16 +73,81 @@ const InnerApp: React.FC = () => {
         <div className="topbar">
           <div className="topbar-title">{pageTitle}</div>
           <div className="topbar-actions">
-            <select
-              value={lang}
-              onChange={(e) => setLang(e.target.value as any)}
-              className="topbar-select"
-              aria-label="language"
-            >
-              <option value="de">Deutsch</option>
-              <option value="en">English</option>
-              <option value="pl">Polski</option>
-            </select>
+            <div style={{ position: 'relative' }}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowLangMenu((v) => !v)}
+                aria-label="Sprache wählen"
+                style={{ minWidth: 120, justifyContent: 'space-between', display: 'inline-flex' }}
+              >
+                {languageOptions.find((l) => l.code === lang)?.label ?? 'Sprache'}
+                <span style={{ marginLeft: 6, opacity: 0.7 }}>▾</span>
+              </Button>
+              {showLangMenu ? (
+                <div
+                  style={{
+                    position: 'absolute',
+                    right: 0,
+                    top: 42,
+                    width: 220,
+                    background: 'var(--bg-panel)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 12,
+                    boxShadow: '0 18px 40px rgba(0,0,0,0.35)',
+                    padding: 10,
+                    zIndex: 20,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 8
+                  }}
+                >
+                  <input
+                    value={langSearch}
+                    onChange={(e) => setLangSearch(e.target.value)}
+                    placeholder="Sprache suchen..."
+                    style={{
+                      width: '100%',
+                      borderRadius: 10,
+                      border: '1px solid var(--border)',
+                      padding: '8px 10px',
+                      background: 'rgba(255,255,255,0.03)',
+                      color: 'var(--text)'
+                    }}
+                  />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 220, overflowY: 'auto' }}>
+                    {languageOptions
+                      .filter((l) =>
+                        (l.label + l.code)
+                          .toLowerCase()
+                          .includes(langSearch.trim().toLowerCase())
+                      )
+                      .map((l) => (
+                        <button
+                          key={l.code}
+                          type="button"
+                          onClick={() => {
+                            setLang(l.code as any);
+                            setShowLangMenu(false);
+                            setLangSearch('');
+                          }}
+                          style={{
+                            textAlign: 'left',
+                            border: '1px solid var(--border)',
+                            borderRadius: 10,
+                            padding: '8px 10px',
+                            background: l.code === lang ? 'rgba(79,139,255,0.12)' : 'transparent',
+                            color: 'var(--text)',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          {l.label}
+                        </button>
+                      ))}
+                  </div>
+                </div>
+              ) : null}
+            </div>
             <Button
               variant="ghost"
               size="sm"
@@ -153,5 +220,16 @@ const InnerApp: React.FC = () => {
     </div>
   );
 };
+
+const languageOptions = [
+  { code: 'de', label: 'Deutsch' },
+  { code: 'en', label: 'English' },
+  { code: 'pl', label: 'Polski' },
+  { code: 'fr', label: 'Français' },
+  { code: 'es', label: 'Español' },
+  { code: 'it', label: 'Italiano' },
+  { code: 'nl', label: 'Nederlands' },
+  { code: 'tr', label: 'Türkçe' }
+];
 
 export default App;
