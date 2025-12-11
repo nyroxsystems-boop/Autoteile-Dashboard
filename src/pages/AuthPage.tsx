@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
+import { languageOptions, useI18n } from '../i18n';
 
 const AuthPage = () => {
   const [isRegister, setIsRegister] = useState(false);
@@ -12,6 +13,9 @@ const AuthPage = () => {
   const [error, setError] = useState<string | null>(null);
   const auth = useAuth();
   const navigate = useNavigate();
+  const { lang, setLang } = useI18n();
+  const [showLangMenu, setShowLangMenu] = useState(false);
+  const [langSearch, setLangSearch] = useState('');
 
   // Erzwinge das helle Theme auf der Login-Seite, damit Farben/Buttons wie im Mock bleiben
   useEffect(() => {
@@ -60,6 +64,84 @@ const AuthPage = () => {
           '#e9f2f9'
       }}
     >
+      <div style={{ position: 'absolute', top: 16, right: 16 }}>
+        <div style={{ position: 'relative' }}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowLangMenu((v) => !v)}
+            aria-label="Sprache wählen"
+            style={{ minWidth: 120, justifyContent: 'space-between', display: 'inline-flex' }}
+          >
+            {languageOptions.find((l) => l.code === lang)?.label ?? 'Sprache'}
+            <span style={{ marginLeft: 6, opacity: 0.7 }}>▾</span>
+          </Button>
+          {showLangMenu ? (
+            <div
+              style={{
+                position: 'absolute',
+                right: 0,
+                top: 42,
+                width: 220,
+                background: '#ffffff',
+                border: '1px solid #d1d9e6',
+                borderRadius: 12,
+                boxShadow: '0 18px 40px rgba(0,0,0,0.25)',
+                padding: 10,
+                zIndex: 20,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 8
+              }}
+            >
+              <input
+                value={langSearch}
+                onChange={(e) => setLangSearch(e.target.value)}
+                placeholder="Sprache suchen..."
+                style={{
+                  width: '100%',
+                  borderRadius: 10,
+                  border: '1px solid #d1d9e6',
+                  padding: '8px 10px',
+                  background: '#f8fbff',
+                  color: '#0f172a'
+                }}
+              />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 220, overflowY: 'auto' }}>
+                {languageOptions
+                  .filter((l) =>
+                    (l.label + l.code)
+                      .toLowerCase()
+                      .includes(langSearch.trim().toLowerCase())
+                  )
+                  .map((l) => (
+                    <button
+                      key={l.code}
+                      type="button"
+                      onClick={() => {
+                        setLang(l.code as any);
+                        setShowLangMenu(false);
+                        setLangSearch('');
+                      }}
+                      style={{
+                        textAlign: 'left',
+                        border: '1px solid #d1d9e6',
+                        borderRadius: 10,
+                        padding: '8px 10px',
+                        background: l.code === lang ? 'rgba(79,139,255,0.14)' : 'transparent',
+                        color: '#0f172a',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {l.label}
+                    </button>
+                  ))}
+              </div>
+            </div>
+          ) : null}
+        </div>
+      </div>
+
       <div style={{ maxWidth: 480, width: '100%' }}>
         <Card
           title="Anmelden im PartsBot-Dashboard"
