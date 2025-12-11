@@ -84,6 +84,17 @@ const TRANSLATIONS: Record<Lang, Record<string, string>> = {
 
 const KEY = 'dashboard_lang';
 
+export const languageOptions: Array<{ code: Lang; label: string }> = [
+  { code: 'de', label: 'Deutsch' },
+  { code: 'en', label: 'English' },
+  { code: 'pl', label: 'Polski' },
+  { code: 'fr', label: 'Français' },
+  { code: 'es', label: 'Español' },
+  { code: 'it', label: 'Italiano' },
+  { code: 'nl', label: 'Nederlands' },
+  { code: 'tr', label: 'Türkçe' }
+];
+
 const I18nContext = createContext<{
   lang: Lang;
   setLang: (l: Lang) => void;

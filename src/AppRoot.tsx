@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from './auth/AuthContext';
-import { I18nProvider, useI18n } from './i18n';
+import { I18nProvider, useI18n, languageOptions } from './i18n';
 import Button from './ui/Button';
 import Badge from './ui/Badge';
 
@@ -220,16 +220,5 @@ const InnerApp: React.FC = () => {
     </div>
   );
 };
-
-const languageOptions = [
-  { code: 'de', label: 'Deutsch' },
-  { code: 'en', label: 'English' },
-  { code: 'pl', label: 'Polski' },
-  { code: 'fr', label: 'Français' },
-  { code: 'es', label: 'Español' },
-  { code: 'it', label: 'Italiano' },
-  { code: 'nl', label: 'Nederlands' },
-  { code: 'tr', label: 'Türkçe' }
-];
 
 export default App;
