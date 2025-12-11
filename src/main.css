@@ -19,8 +19,8 @@
   --border: #1e293b;
   --text: #e2e8f0;
   --muted: #94a3b8;
-  --primary: #2563eb;
-  --primary-2: #3b82f6;
+  --primary: #2f80ff;   /* satteres Blau für Buttons wie im Mock */
+  --primary-2: #559dff;
   --success: #22c55e;
   --warning: #f59e0b;
   --danger: #ef4444;
@@ -40,8 +40,8 @@
   --border: #d1d9e6;
   --text: #0f172a;
   --muted: #5b6678;
-  --primary: #2563eb;
-  --primary-2: #3b82f6;
+  --primary: #2f80ff;   /* identische Primärfarbe auch im Light-Theme */
+  --primary-2: #559dff;
   --success: #16a34a;
   --warning: #d97706;
   --danger: #dc2626;
