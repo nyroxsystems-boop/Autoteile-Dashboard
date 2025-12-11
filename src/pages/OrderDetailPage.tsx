@@ -465,7 +465,8 @@ const styles: Record<string, CSSProperties> = {
   tableWrapper: {
     overflowX: 'auto',
     borderRadius: 10,
-    border: '1px solid var(--border)'
+    border: '1px solid var(--border)',
+    background: 'var(--bg-panel)' // leichter Panel-Hintergrund für Tabelle
   },
   table: {
     width: '100%',
