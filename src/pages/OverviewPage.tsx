@@ -90,6 +90,14 @@ const OverviewPage = () => {
   };
 
   const orderSeries = useMemo(() => buildOrderSeries(timeRange, orders), [timeRange, orders]);
+  const baseSeriesValues = useMemo(() => orderSeries.map((p) => p.value), [orderSeries]);
+  const deriveSeries = (multiplier: number, jitter = 0) => {
+    const base = baseSeriesValues.length ? baseSeriesValues : [normalize(stats?.ordersInPeriod)];
+    return base.map((v, idx) => {
+      const noise = jitter ? ((idx % 2 === 0 ? 1 : -1) * jitter * (idx + 1)) : 0;
+      return Math.max(0, v * multiplier + noise);
+    });
+  };
 
   const handleRangeChange = (value: 'Heute' | 'Diese Woche' | 'Dieser Monat') => {
     console.log('[OverviewPage] Zeitraum geändert:', value);
@@ -204,57 +212,53 @@ const OverviewPage = () => {
                   value={stats?.ordersInPeriod ?? '–'}
                   description="Alle neu gestarteten Bestellungen im gewählten Zeitraum."
                   accent="#2563eb"
-                  sparkSeed={normalize(stats?.ordersInPeriod)}
+                  series={deriveSeries(1)}
                 />
                 <KpiCard
                   title="Offene Bestellungen (OEM)"
                   value={oemIssuesCount}
                   description="Bestellungen mit offener oder problematischer OEM-Ermittlung."
                   accent="#f97316"
-                  sparkSeed={oemIssuesCount}
+                  series={deriveSeries(0.4, 0.2)}
                 />
                 <KpiCard
                   title="Empfangene Nachrichten"
                   value={stats?.incomingMessages ?? '–'}
                   description="Eingehende WhatsApp-Nachrichten im Zeitraum."
                   accent="#22c55e"
-                  sparkSeed={normalize(stats?.incomingMessages)}
+                  series={deriveSeries(1.2, 0.3)}
                 />
                 <KpiCard
                   title="Abgebrochene Bestellungen"
                   value={stats?.abortedOrders ?? '–'}
                   description="Begonnene, aber nicht abgeschlossene Vorgänge."
                   accent="#f97316"
-                  sparkSeed={normalize(stats?.abortedOrders)}
+                  series={deriveSeries(0.25, 0.15)}
                 />
                 <KpiCard
                   title="Konversionsrate"
                   value={`${stats?.conversionRate ?? '–'}%`}
                   description="Abschlussrate gegenüber gestarteten Anfragen."
                   accent="#a855f7"
-                  sparkSeed={normalize(stats?.conversionRate)}
+                  series={deriveSeries(0.6, 0.1)}
                 />
                 <KpiCard
                   title="Ø Marge"
                   value={`${stats?.averageMargin ?? '–'}%`}
                   description="Mittelwert der angewendeten Marge pro Bestellung."
                   accent="#3b82f6"
-                  sparkSeed={normalize(stats?.averageMargin)}
+                  series={deriveSeries(0.5, 0.05)}
                 />
                 <KpiCard
                   title="Ø Warenkorb"
                   value={stats?.averageBasket ? `€ ${stats.averageBasket}` : '–'}
                   description="Durchschnittlicher Endpreis pro Bestellung."
                   accent="#10b981"
-                  sparkSeed={normalize(stats?.averageBasket)}
+                  series={deriveSeries(0.8, 0.1)}
                 />
               </>
             )}
         </div>
-      </Card>
-
-      <Card title="Bestellungen im Verlauf" subtitle={`Verlauf (${timeRange})`}>
-        <OrderLineChart data={orderSeries} />
       </Card>
 
       <Card
@@ -339,13 +343,13 @@ type KpiCardProps = {
   value: string | number;
   description: string;
   accent?: string;
-  sparkSeed?: number;
+  series?: number[];
 };
 
-const KpiCard = ({ title, value, description, accent = '#3b82f6', sparkSeed }: KpiCardProps) => {
-  const numericSeed = toNumberish(value ?? sparkSeed ?? 0);
+const KpiCard = ({ title, value, description, accent = '#3b82f6', series }: KpiCardProps) => {
+  const numericSeed = toNumberish(value ?? 0);
   const sparkId = `${title.replace(/\s+/g, '-').toLowerCase()}-spark`;
-  const points = createSparkPoints(numericSeed);
+  const points = series && series.length ? normalizeSeries(series) : createSparkPoints(numericSeed);
   const { linePath, areaPath } = buildSparkPaths(points, 180, 70);
 
   return (
@@ -393,91 +397,6 @@ const KpiCard = ({ title, value, description, accent = '#3b82f6', sparkSeed }: K
 
 type SeriesPoint = { label: string; value: number };
 
-const OrderLineChart = ({ data }: { data: SeriesPoint[] }) => {
-  const width = 620;
-  const height = 200;
-  const maxVal = Math.max(1, ...data.map((d) => d.value));
-  const niceMax = toNiceMax(maxVal);
-  const ticks = [0, niceMax / 2, niceMax];
-  const step = data.length > 1 ? width / (data.length - 1) : width;
-
-  const points = data.map((d, idx) => ({
-    x: idx * step,
-    y: height - (d.value / niceMax) * (height - 20)
-  }));
-
-  const linePath = points.reduce(
-    (acc, p, idx) => (idx === 0 ? `M ${p.x} ${p.y}` : `${acc} L ${p.x} ${p.y}`),
-    ''
-  );
-  const areaPath = `${linePath} L ${width} ${height} L 0 ${height} Z`;
-
-  return (
-    <div style={{ width: '100%', overflowX: 'auto' }}>
-      <div style={{ minWidth: width, position: 'relative' }}>
-        <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Bestellungen Verlauf">
-          <defs>
-            <linearGradient id="orders-stroke" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#2563eb" stopOpacity="0.9" />
-              <stop offset="100%" stopColor="#22c55e" stopOpacity="0.9" />
-            </linearGradient>
-            <linearGradient id="orders-fill" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#2563eb" stopOpacity="0.18" />
-              <stop offset="100%" stopColor="#22c55e" stopOpacity="0.02" />
-            </linearGradient>
-          </defs>
-
-          {/* Grid + Y ticks */}
-          {ticks.map((t, idx) => {
-            const y = height - (t / niceMax) * (height - 20);
-            return (
-              <g key={idx}>
-                <line x1={0} x2={width} y1={y} y2={y} stroke="var(--border)" strokeDasharray="4 4" />
-                <text x={0} y={y - 4} fill="var(--muted)" fontSize={11}>{formatNumber(t)}</text>
-              </g>
-            );
-          })}
-
-          {/* Area + line */}
-          <path d={areaPath} fill="url(#orders-fill)" stroke="none" />
-          <path
-            d={linePath}
-            fill="none"
-            stroke="url(#orders-stroke)"
-            strokeWidth={3}
-            strokeLinejoin="round"
-            strokeLinecap="round"
-          />
-
-          {/* Points */}
-          {points.map((p, idx) => (
-            <circle key={idx} cx={p.x} cy={p.y} r={3.5} fill="#ffffff" stroke="#2563eb" strokeWidth={2} />
-          ))}
-        </svg>
-
-        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${data.length}, 1fr)`, marginTop: 8, gap: 4 }}>
-          {data.map((d, idx) => (
-            <div key={idx} style={{ textAlign: 'center', color: 'var(--muted)', fontSize: 11 }}>
-              {d.label}
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const toNiceMax = (value: number) => {
-  const safe = Math.max(1, value || 1);
-  const order = Math.pow(10, Math.floor(Math.log10(safe)));
-  const normalized = value / order;
-  const rounded = normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10;
-  return rounded * order;
-};
-
-const formatNumber = (value: number) =>
-  new Intl.NumberFormat('de-DE', { maximumFractionDigits: 0 }).format(Math.round(value));
-
 const toNumberish = (value: unknown) => {
   if (typeof value === 'number') return value;
   if (value === null || value === undefined) return 0;
@@ -511,6 +430,12 @@ const buildSparkPaths = (points: number[], width: number, height: number) => {
   );
   const areaPath = `${linePath} L ${width} ${height} L 0 ${height} Z`;
   return { linePath, areaPath };
+};
+
+const normalizeSeries = (values: number[]) => {
+  const max = Math.max(1, ...values);
+  if (!values.length) return [];
+  return values.map((v) => Math.max(0.05, Math.min(0.95, v / max)));
 };
 
 const buildOrderSeries = (
