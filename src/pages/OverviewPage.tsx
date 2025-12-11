@@ -204,48 +204,50 @@ const OverviewPage = () => {
                   title="Bestellungen im Zeitraum"
                   value={stats?.ordersInPeriod ?? '–'}
                   description="Alle neu gestarteten Bestellungen im gewählten Zeitraum."
+                  accent="#2563eb"
+                  sparkSeed={normalize(stats?.ordersInPeriod)}
                 />
                 <KpiCard
                   title="Offene Bestellungen (OEM)"
                   value={oemIssuesCount}
                   description="Bestellungen mit offener oder problematischer OEM-Ermittlung."
                   accent="#f97316"
-                  bars={makeBars(oemIssuesCount)}
+                  sparkSeed={oemIssuesCount}
                 />
                 <KpiCard
                   title="Empfangene Nachrichten"
                   value={stats?.incomingMessages ?? '–'}
                   description="Eingehende WhatsApp-Nachrichten im Zeitraum."
                   accent="#22c55e"
-                  bars={makeBars(normalize(stats?.incomingMessages))}
+                  sparkSeed={normalize(stats?.incomingMessages)}
                 />
                 <KpiCard
                   title="Abgebrochene Bestellungen"
                   value={stats?.abortedOrders ?? '–'}
                   description="Begonnene, aber nicht abgeschlossene Vorgänge."
                   accent="#f97316"
-                  bars={makeBars(normalize(stats?.abortedOrders))}
+                  sparkSeed={normalize(stats?.abortedOrders)}
                 />
                 <KpiCard
                   title="Konversionsrate"
                   value={`${stats?.conversionRate ?? '–'}%`}
                   description="Abschlussrate gegenüber gestarteten Anfragen."
                   accent="#a855f7"
-                  bars={makeBars(normalize(stats?.conversionRate))}
+                  sparkSeed={normalize(stats?.conversionRate)}
                 />
                 <KpiCard
                   title="Ø Marge"
                   value={`${stats?.averageMargin ?? '–'}%`}
                   description="Mittelwert der angewendeten Marge pro Bestellung."
                   accent="#3b82f6"
-                  bars={makeBars(normalize(stats?.averageMargin))}
+                  sparkSeed={normalize(stats?.averageMargin)}
                 />
                 <KpiCard
                   title="Ø Warenkorb"
                   value={stats?.averageBasket ? `€ ${stats.averageBasket}` : '–'}
                   description="Durchschnittlicher Endpreis pro Bestellung."
                   accent="#10b981"
-                  bars={makeBars(normalize(stats?.averageBasket))}
+                  sparkSeed={normalize(stats?.averageBasket)}
                 />
               </>
             )}
@@ -334,10 +336,15 @@ type KpiCardProps = {
   value: string | number;
   description: string;
   accent?: string;
-  bars?: number[];
+  sparkSeed?: number;
 };
 
-const KpiCard = ({ title, value, description, accent = '#3b82f6', bars }: KpiCardProps) => {
+const KpiCard = ({ title, value, description, accent = '#3b82f6', sparkSeed }: KpiCardProps) => {
+  const numericSeed = toNumberish(value ?? sparkSeed ?? 0);
+  const sparkId = `${title.replace(/\s+/g, '-').toLowerCase()}-spark`;
+  const points = createSparkPoints(numericSeed);
+  const { linePath, areaPath } = buildSparkPaths(points, 180, 70);
+
   return (
     <Card
       className="kpi-card"
@@ -346,23 +353,73 @@ const KpiCard = ({ title, value, description, accent = '#3b82f6', bars }: KpiCar
       <div style={{ color: 'var(--muted)', fontSize: 13, fontWeight: 700 }}>{title}</div>
       <div style={{ fontSize: 26, fontWeight: 800, color: 'var(--text-strong)' }}>{value}</div>
       <div style={{ color: 'var(--muted)', fontSize: 13 }}>{description}</div>
-      {bars && bars.length ? (
-        <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end', marginTop: 8 }}>
-          {bars.map((b, idx) => (
-            <div
-              key={idx}
-              style={{
-                width: 12,
-                height: `${Math.round(b * 36)}px`,
-                borderRadius: 8,
-                background: accent,
-                boxShadow: `0 8px 24px ${accent}33`
-              }}
-            />
-          ))}
-        </div>
-      ) : null}
+      <div
+        style={{
+          marginTop: 10,
+          padding: '8px 6px 4px 6px',
+          background: 'rgba(255,255,255,0.04)',
+          borderRadius: 12,
+          border: '1px solid var(--border)'
+        }}
+      >
+        <svg width="100%" height="70" viewBox="0 0 180 70" preserveAspectRatio="none" role="img" aria-label={`${title} Trend`}>
+          <defs>
+            <linearGradient id={`${sparkId}-stroke`} x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor={accent} stopOpacity="0.85" />
+              <stop offset="100%" stopColor={accent} stopOpacity="0.35" />
+            </linearGradient>
+            <linearGradient id={`${sparkId}-fill`} x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor={accent} stopOpacity="0.18" />
+              <stop offset="100%" stopColor={accent} stopOpacity="0.01" />
+            </linearGradient>
+          </defs>
+          <path d={areaPath} fill={`url(#${sparkId}-fill)`} stroke="none" />
+          <path
+            d={linePath}
+            fill="none"
+            stroke={`url(#${sparkId}-stroke)`}
+            strokeWidth={3}
+            strokeLinejoin="round"
+            strokeLinecap="round"
+          />
+        </svg>
+      </div>
     </Card>
   );
+};
+
+const toNumberish = (value: unknown) => {
+  if (typeof value === 'number') return value;
+  if (value === null || value === undefined) return 0;
+  const cleaned = String(value).replace(/[^0-9.-]+/g, '');
+  const num = Number(cleaned);
+  return Number.isFinite(num) ? num : 0;
+};
+
+const createSparkPoints = (seed: number, length = 8): number[] => {
+  let x = Math.max(1, Math.abs(Math.floor(seed * 97)) % 9973);
+  const pts: number[] = [];
+  for (let i = 0; i < length; i++) {
+    x = (x * 16807) % 2147483647;
+    const v = (x % 1000) / 1000;
+    pts.push(0.35 + v * 0.55); // range ~0.35-0.9
+  }
+  return pts;
+};
+
+const buildSparkPaths = (points: number[], width: number, height: number) => {
+  if (!points.length) return { linePath: '', areaPath: '' };
+  const step = width / Math.max(1, points.length - 1);
+  const scaleY = (v: number) => {
+    const clamped = Math.min(1, Math.max(0, v));
+    return height - clamped * (height - 8); // leave small padding top/bottom
+  };
+  const coords = points.map((p, idx) => [idx * step, scaleY(p)] as const);
+  const linePath = coords.reduce(
+    (acc, [x, y], idx) => (idx === 0 ? `M ${x} ${y}` : `${acc} L ${x} ${y}`),
+    ''
+  );
+  const areaPath = `${linePath} L ${width} ${height} L 0 ${height} Z`;
+  return { linePath, areaPath };
 };
 export default OverviewPage;
