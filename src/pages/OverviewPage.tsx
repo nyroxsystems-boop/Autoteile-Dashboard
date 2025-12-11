@@ -222,11 +222,6 @@ const OverviewPage = () => {
             : (
               <>
                 <KpiCard
-                  title="Bestellungen im Zeitraum"
-                  value={stats?.ordersInPeriod ?? '–'}
-                  description="Alle neu gestarteten Bestellungen im gewählten Zeitraum."
-                />
-                <KpiCard
                   title="Offene Bestellungen (OEM)"
                   value={oemIssuesCount}
                   description="Bestellungen mit offener oder problematischer OEM-Ermittlung."
@@ -242,19 +237,9 @@ const OverviewPage = () => {
                   description="Begonnene, aber nicht abgeschlossene Vorgänge."
                 />
                 <KpiCard
-                  title="Konversionsrate"
-                  value={`${stats?.conversionRate ?? '–'}%`}
-                  description="Abschlussrate gegenüber gestarteten Anfragen."
-                />
-                <KpiCard
                   title="Ø Marge"
                   value={`${stats?.averageMargin ?? '–'}%`}
                   description="Mittelwert der angewendeten Marge pro Bestellung."
-                />
-                <KpiCard
-                  title="Ø Warenkorb"
-                  value={stats?.averageBasket ? `€ ${stats.averageBasket}` : '–'}
-                  description="Durchschnittlicher Endpreis pro Bestellung."
                 />
               </>
             )}
@@ -268,13 +253,13 @@ const OverviewPage = () => {
           gap: 14
         }}
       >
-        <Card title="Bestellungen im Zeitraum" subtitle={`Verlauf (${timeRange})`} padded>
+        <Card title="Bestellungen im Zeitraum" subtitle="Alle neu gestarteten Bestellungen im gewählten Zeitraum." padded>
           <OrdersOverTimeChart data={buckets.map((b, idx) => ({ date: b.label, value: ordersSeries[idx] ?? 0 }))} />
         </Card>
-        <Card title="Ø Warenkorb" subtitle={`Verlauf (${timeRange})`} padded>
+        <Card title="Ø Warenkorb" subtitle="Durchschnittlicher Endpreis pro Bestellung." padded>
           <AverageBasketChart data={buckets.map((b) => ({ date: b.label, value: normalize(stats?.averageBasket) || 0 }))} />
         </Card>
-        <Card title="Konversionsrate" subtitle={`Verlauf (${timeRange})`} padded>
+        <Card title="Konversionsrate" subtitle="Abschlussrate gegenüber gestarteten Anfragen." padded>
           <ConversionRateChart data={buckets.map((b, idx) => ({ date: b.label, value: conversionSeries[idx] ?? 0 }))} />
         </Card>
       </div>
