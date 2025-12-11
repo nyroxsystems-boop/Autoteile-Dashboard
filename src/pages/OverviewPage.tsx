@@ -84,6 +84,21 @@ const OverviewPage = () => {
     [orders]
   );
 
+  const normalize = (value: string | number | null | undefined) => {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : 0;
+  };
+
+  const makeBars = (value: number) => {
+    const base = Math.max(0, value);
+    const factor = Math.max(10, base || 10);
+    return [
+      0.35 + (base % 5) / 20,
+      0.45 + (base % 7) / 22,
+      0.55 + (base % 9) / 24
+    ].map((v) => Math.min(1, Math.max(0.2, v * (base ? Math.min(1, base / factor + 0.2) : 0.6))));
+  };
+
   const handleRangeChange = (value: 'Heute' | 'Diese Woche' | 'Dieser Monat') => {
     console.log('[OverviewPage] Zeitraum geändert:', value);
     setTimeRange(value);
@@ -194,31 +209,43 @@ const OverviewPage = () => {
                   title="Offene Bestellungen (OEM)"
                   value={oemIssuesCount}
                   description="Bestellungen mit offener oder problematischer OEM-Ermittlung."
+                  accent="#f97316"
+                  bars={makeBars(oemIssuesCount)}
                 />
                 <KpiCard
                   title="Empfangene Nachrichten"
                   value={stats?.incomingMessages ?? '–'}
                   description="Eingehende WhatsApp-Nachrichten im Zeitraum."
+                  accent="#22c55e"
+                  bars={makeBars(normalize(stats?.incomingMessages))}
                 />
                 <KpiCard
                   title="Abgebrochene Bestellungen"
                   value={stats?.abortedOrders ?? '–'}
                   description="Begonnene, aber nicht abgeschlossene Vorgänge."
+                  accent="#f97316"
+                  bars={makeBars(normalize(stats?.abortedOrders))}
                 />
                 <KpiCard
                   title="Konversionsrate"
                   value={`${stats?.conversionRate ?? '–'}%`}
                   description="Abschlussrate gegenüber gestarteten Anfragen."
+                  accent="#a855f7"
+                  bars={makeBars(normalize(stats?.conversionRate))}
                 />
                 <KpiCard
                   title="Ø Marge"
                   value={`${stats?.averageMargin ?? '–'}%`}
                   description="Mittelwert der angewendeten Marge pro Bestellung."
+                  accent="#3b82f6"
+                  bars={makeBars(normalize(stats?.averageMargin))}
                 />
                 <KpiCard
                   title="Ø Warenkorb"
                   value={stats?.averageBasket ? `€ ${stats.averageBasket}` : '–'}
                   description="Durchschnittlicher Endpreis pro Bestellung."
+                  accent="#10b981"
+                  bars={makeBars(normalize(stats?.averageBasket))}
                 />
               </>
             )}
@@ -306,14 +333,35 @@ type KpiCardProps = {
   title: string;
   value: string | number;
   description: string;
+  accent?: string;
+  bars?: number[];
 };
 
-const KpiCard = ({ title, value, description }: KpiCardProps) => {
+const KpiCard = ({ title, value, description, accent = '#3b82f6', bars }: KpiCardProps) => {
   return (
-    <Card>
+    <Card
+      className="kpi-card"
+      padded
+    >
       <div style={{ color: 'var(--muted)', fontSize: 13, fontWeight: 700 }}>{title}</div>
-      <div style={{ fontSize: 26, fontWeight: 800 }}>{value}</div>
+      <div style={{ fontSize: 26, fontWeight: 800, color: '#fff' }}>{value}</div>
       <div style={{ color: 'var(--muted)', fontSize: 13 }}>{description}</div>
+      {bars && bars.length ? (
+        <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end', marginTop: 8 }}>
+          {bars.map((b, idx) => (
+            <div
+              key={idx}
+              style={{
+                width: 12,
+                height: `${Math.round(b * 36)}px`,
+                borderRadius: 8,
+                background: accent,
+                boxShadow: `0 8px 24px ${accent}33`
+              }}
+            />
+          ))}
+        </div>
+      ) : null}
     </Card>
   );
 };

@@ -28,6 +28,7 @@ const InnerApp: React.FC = () => {
   const location = useLocation();
   const auth = useAuth();
   const { t, lang, setLang } = useI18n();
+  const [showProfileMenu, setShowProfileMenu] = useState(false); // Top-right Profilmenü statt Sidebar
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     if (typeof localStorage === 'undefined') return 'dark';
     const stored = localStorage.getItem('theme');
@@ -64,36 +65,6 @@ const InnerApp: React.FC = () => {
             </NavLink>
           ))}
         </nav>
-        {auth?.session ? (
-          <div className="account-card">
-            <div className="account-header">
-              <div className="account-avatar">
-                {auth.session.merchantId?.slice(0, 2).toUpperCase()}
-              </div>
-              <div className="account-meta">
-                <div className="account-name">{auth.session.merchantId}</div>
-                <Badge variant="success">Plan aktiv</Badge>
-              </div>
-            </div>
-            <details className="account-settings">
-              <summary>Settings</summary>
-              <div className="settings-list">
-                <Button variant="ghost" size="sm" fullWidth>
-                  Marge & Shops
-                </Button>
-                <Button variant="ghost" size="sm" fullWidth>
-                  Billing & Konto
-                </Button>
-                <Button variant="ghost" size="sm" fullWidth>
-                  Mitarbeiteraccounts
-                </Button>
-                <Button variant="ghost" size="sm" fullWidth onClick={() => auth.logout()}>
-                  {t('logout')}
-                </Button>
-              </div>
-            </details>
-          </div>
-        ) : null}
       </aside>
 
       <div className="main-area">
@@ -116,22 +87,61 @@ const InnerApp: React.FC = () => {
               onClick={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))}
               aria-label="Theme umschalten"
             >
-              {theme === 'dark' ? 'Light' : 'Dark'}
+              {theme === 'dark' ? 'Hell' : 'Dunkel'}
             </Button>
             {auth?.session ? (
-              <div
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 12,
-                  background: 'rgba(255,255,255,0.06)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontWeight: 800
-                }}
-              >
-                {auth.session.merchantId?.slice(0, 2).toUpperCase()}
+              <div style={{ position: 'relative' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowProfileMenu((v) => !v)}
+                  style={{
+                    width: 38,
+                    height: 38,
+                    borderRadius: 14,
+                    background: 'linear-gradient(135deg, #334155, #1e293b)',
+                    border: '1px solid var(--border)',
+                    color: '#e2e8f0',
+                    fontWeight: 800,
+                    cursor: 'pointer'
+                  }}
+                  aria-label="Profilmenü öffnen"
+                >
+                  {auth.session.merchantId?.slice(0, 2).toUpperCase()}
+                </button>
+                {showProfileMenu ? (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      right: 0,
+                      top: 46,
+                      minWidth: 200,
+                      background: 'var(--bg-panel)',
+                      border: '1px solid var(--border)',
+                      borderRadius: 12,
+                      boxShadow: '0 14px 40px rgba(0,0,0,0.3)',
+                      padding: 10,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 6,
+                      zIndex: 15
+                    }}
+                  >
+                    <div style={{ fontWeight: 800 }}>{auth.session.merchantId}</div>
+                    <Badge variant="success">Plan aktiv</Badge>
+                    <Button variant="ghost" size="sm" fullWidth>
+                      Marge & Shops
+                    </Button>
+                    <Button variant="ghost" size="sm" fullWidth>
+                      Billing & Konto
+                    </Button>
+                    <Button variant="ghost" size="sm" fullWidth>
+                      Mitarbeiteraccounts
+                    </Button>
+                    <Button variant="ghost" size="sm" fullWidth onClick={() => auth.logout()}>
+                      {t('logout')}
+                    </Button>
+                  </div>
+                ) : null}
               </div>
             ) : null}
           </div>
