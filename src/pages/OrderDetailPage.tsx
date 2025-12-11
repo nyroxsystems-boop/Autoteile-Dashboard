@@ -73,6 +73,46 @@ const OrderDetailPage = () => {
     [offers, selectedOfferId]
   );
 
+  // Normalize common Felder, damit Daten nicht wegen anderer Keys fehlen
+  const createdAt = order?.created_at ?? (order as any)?.createdAt ?? null;
+  const updatedAt = order?.updated_at ?? (order as any)?.updatedAt ?? null;
+  const customerName =
+    (order as any)?.customerName ?? (order as any)?.customer_name ?? order?.customerId ?? '—';
+  const customerContact =
+    (order as any)?.customerPhone ??
+    order?.customerPhone ??
+    (order as any)?.customerContact ??
+    (order as any)?.customer_contact ??
+    (order as any)?.contact ??
+    '—';
+  const partName =
+    (order as any)?.requestedPartName ??
+    (order as any)?.requested_part ??
+    orderData?.partDescription ??
+    (order as any)?.partDescription ??
+    (order?.part as any)?.partText ??
+    (order?.part as any)?.partCategory ??
+    '—';
+  const conversationStatus =
+    (orderData as any)?.conversationStatus ??
+    (orderData as any)?.conversation_status ??
+    (order as any)?.conversationStatus ??
+    (order as any)?.conversation_status ??
+    '—';
+  const vehicle = (order as any)?.vehicle ?? null;
+  const vehicleFromParts = [vehicle?.make, vehicle?.model, vehicle?.year].filter(Boolean).join(' ').trim();
+  const vehicleFallback =
+    vehicleFromParts ||
+    vehicle?.vin ||
+    [vehicle?.hsn, vehicle?.tsn].filter(Boolean).join('/').trim() ||
+    vehicle?.engine ||
+    null;
+  const vehicleInfo =
+    orderData?.vehicleDescription ??
+    (orderData as any)?.vehicle_description ??
+    vehicleFallback ??
+    '—';
+
   const selectedCardOffer: any = selectedOffer ?? (selectedOfferSummary
     ? {
         shopName: selectedOfferSummary.shopName ?? '—',
@@ -118,16 +158,16 @@ const OrderDetailPage = () => {
           <div>
             <div style={styles.label}>Erstellt am</div>
             <div style={styles.value}>
-              {order?.created_at
-                ? new Date(order.created_at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })
+              {createdAt
+                ? new Date(createdAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })
                 : '—'}
             </div>
           </div>
           <div>
             <div style={styles.label}>Aktualisiert am</div>
             <div style={styles.value}>
-              {order?.updated_at
-                ? new Date(order.updated_at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })
+              {updatedAt
+                ? new Date(updatedAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })
                 : '—'}
             </div>
           </div>
@@ -137,7 +177,7 @@ const OrderDetailPage = () => {
           </div>
           <div>
             <div style={styles.label}>Dialog-Status</div>
-            <div style={styles.value}>{orderData?.conversationStatus ?? '—'}</div>
+            <div style={styles.value}>{conversationStatus}</div>
           </div>
         </div>
       </Card>
@@ -146,15 +186,15 @@ const OrderDetailPage = () => {
         <div style={styles.rowGrid}>
           <div>
             <div style={styles.label}>Kunde</div>
-            <div style={styles.value}>{(order as any)?.customerName ?? '—'}</div>
+            <div style={styles.value}>{customerName}</div>
           </div>
           <div>
             <div style={styles.label}>Kontakt</div>
-            <div style={styles.value}>{(order as any)?.customerPhone ?? (order as any)?.customerContact ?? '—'}</div>
+            <div style={styles.value}>{customerContact}</div>
           </div>
           <div>
             <div style={styles.label}>Angefragtes Teil</div>
-            <div style={styles.value}>{(order as any)?.requestedPartName ?? orderData?.partDescription ?? '—'}</div>
+            <div style={styles.value}>{partName}</div>
           </div>
           <div>
             <div style={styles.label}>Sprache</div>
@@ -163,7 +203,7 @@ const OrderDetailPage = () => {
         </div>
         <div style={styles.detailBox}>
           <div style={styles.label}>Fahrzeug (Beschreibung)</div>
-          <div style={styles.value}>{orderData?.vehicleDescription ?? '—'}</div>
+          <div style={styles.value}>{vehicleInfo}</div>
         </div>
       </Card>
 
@@ -326,11 +366,11 @@ const styles: Record<string, CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    color: '#475569'
+    color: 'var(--muted)' // Schriftfarbe für Breadcrumbs aufgehellt
   },
   routeInfo: {
     fontSize: 12,
-    color: '#94a3b8'
+    color: 'var(--muted)' // Schriftfarbe angepasst
   },
   errorBox: {
     padding: 12,
@@ -342,13 +382,13 @@ const styles: Record<string, CSSProperties> = {
   emptyBox: {
     padding: 12,
     borderRadius: 10,
-    backgroundColor: '#f1f5f9',
-    color: '#475569',
-    border: '1px solid #e2e8f0'
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    color: 'var(--muted)',
+    border: '1px solid var(--border)'
   },
   card: {
-    backgroundColor: '#ffffff',
-    border: '1px solid #e2e8f0',
+    backgroundColor: 'var(--bg-panel)',
+    border: '1px solid var(--border)',
     borderRadius: 12,
     padding: 18,
     display: 'flex',
@@ -364,17 +404,17 @@ const styles: Record<string, CSSProperties> = {
   },
   subtitle: {
     margin: 0,
-    color: '#475569',
+    color: 'var(--muted)', // Labels leicht abgedunkelt, aber lesbar
     fontSize: 14
   },
   title: {
     margin: 0,
     fontSize: 20,
-    color: '#0f172a'
+    color: 'var(--text)'
   },
   badge: {
     padding: '6px 10px',
-    backgroundColor: '#e2e8f0',
+    backgroundColor: 'rgba(255,255,255,0.08)',
     borderRadius: 8,
     fontWeight: 700
   },
@@ -398,7 +438,7 @@ const styles: Record<string, CSSProperties> = {
     fontWeight: 700
   },
   selectedRow: {
-    backgroundColor: '#f8fafc'
+    backgroundColor: 'rgba(255,255,255,0.04)'
   },
   rowGrid: {
     display: 'grid',
@@ -406,11 +446,11 @@ const styles: Record<string, CSSProperties> = {
     gap: 12
   },
   label: {
-    color: '#475569',
+    color: 'var(--muted)', // Beschriftung in dezenter, aber heller Farbe
     fontSize: 13
   },
   value: {
-    color: '#0f172a',
+    color: 'var(--text)', // Werte klar lesbar auf dunklem Hintergrund
     fontSize: 15,
     fontWeight: 600
   },
@@ -425,7 +465,7 @@ const styles: Record<string, CSSProperties> = {
   tableWrapper: {
     overflowX: 'auto',
     borderRadius: 10,
-    border: '1px solid #e2e8f0'
+    border: '1px solid var(--border)'
   },
   table: {
     width: '100%',
@@ -434,36 +474,36 @@ const styles: Record<string, CSSProperties> = {
   th: {
     textAlign: 'left',
     padding: '10px 12px',
-    borderBottom: '1px solid #e2e8f0',
+    borderBottom: '1px solid var(--border)',
     fontSize: 12,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    color: '#475569'
+    color: 'var(--muted)'
   },
   td: {
     padding: '10px 12px',
-    borderBottom: '1px solid #e2e8f0',
+    borderBottom: '1px solid var(--border)',
     fontSize: 14,
     verticalAlign: 'middle'
   },
   tr: {
-    backgroundColor: '#ffffff'
+    backgroundColor: 'transparent'
   },
   loading: {
     padding: 10,
     borderRadius: 8,
-    backgroundColor: '#e0f2fe',
-    color: '#075985',
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    color: 'var(--text)',
     fontWeight: 600
   },
   link: {
-    color: '#1d4ed8',
+    color: 'var(--primary)', // Linkfarbe an Theme angepasst
     fontWeight: 700
   },
   linkButton: {
     display: 'inline-block',
     padding: '10px 12px',
-    backgroundColor: '#1d4ed8',
+    backgroundColor: 'var(--primary)',
     color: '#ffffff',
     borderRadius: 10,
     textDecoration: 'none',
