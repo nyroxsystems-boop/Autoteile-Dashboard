@@ -6,10 +6,13 @@ import OverviewPage from './pages/OverviewPage';
 import AuthPage from './pages/AuthPage';
 import { AuthProvider, RequireAuth } from './auth/AuthContext';
 import WwsPage from './features/wws/WwsPage';
+import { I18nProvider } from './i18n';
 
 const Providers = () => (
   <AuthProvider>
-    <Outlet />
+    <I18nProvider>
+      <Outlet />
+    </I18nProvider>
   </AuthProvider>
 );
 
