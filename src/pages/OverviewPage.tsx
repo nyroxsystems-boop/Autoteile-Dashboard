@@ -8,6 +8,9 @@ import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Badge from '../ui/Badge';
 import Input from '../ui/Input';
+import OrdersOverTimeChart from '../features/overview/components/OrdersOverTimeChart';
+import AverageBasketChart from '../features/overview/components/AverageBasketChart';
+import ConversionRateChart from '../features/overview/components/ConversionRateChart';
 
 const OverviewPage = () => {
   const [timeRange, setTimeRange] = useState<'Heute' | 'Diese Woche' | 'Dieser Monat' | 'Dieses Jahr'>('Heute');
@@ -91,23 +94,6 @@ const OverviewPage = () => {
 
   const buckets = useMemo(() => buildOrderBuckets(timeRange, orders), [timeRange, orders]);
   const ordersSeries = useMemo(() => buckets.map((b) => b.orders.length), [buckets]);
-  const oemSeries = useMemo(
-    () =>
-      buckets.map((b) =>
-        b.orders.filter((o) => ['not_found', 'multiple_matches'].includes((o.part as any)?.oemStatus)).length
-      ),
-    [buckets]
-  );
-  const abortedSeries = useMemo(
-    () =>
-      buckets.map((b) =>
-        b.orders.filter((o) => {
-          const s = String(o.status ?? '').toLowerCase();
-          return s.includes('fail') || s.includes('error') || s.includes('abort');
-        }).length
-      ),
-    [buckets]
-  );
   const doneSeries = useMemo(
     () =>
       buckets.map((b) =>
@@ -127,23 +113,8 @@ const OverviewPage = () => {
       }),
     [doneSeries, ordersSeries]
   );
-  const incomingSeries = useMemo(() => {
-    const totalMsgs = normalize(stats?.incomingMessages);
-    const totalOrders = Math.max(1, ordersSeries.reduce((a, b) => a + b, 0));
-    if (totalMsgs === 0) return ordersSeries;
-    return ordersSeries.map((count) => Math.max(0, Math.round((count / totalOrders) * totalMsgs)));
-  }, [ordersSeries, stats?.incomingMessages]);
-  const marginSeries = useMemo(() => {
-    const avg = normalize(stats?.averageMargin);
-    return buckets.map(() => avg || 0.1);
-  }, [buckets, stats?.averageMargin]);
-  const basketSeries = useMemo(() => {
-    const avg = normalize(stats?.averageBasket);
-    return buckets.map(() => avg || 0.1);
-  }, [buckets, stats?.averageBasket]);
 
-  const handleRangeChange = (value: 'Heute' | 'Diese Woche' | 'Dieser Monat') => {
-    console.log('[OverviewPage] Zeitraum geändert:', value);
+  const handleRangeChange = (value: 'Heute' | 'Diese Woche' | 'Dieser Monat' | 'Dieses Jahr') => {
     setTimeRange(value);
   };
 
@@ -254,55 +225,59 @@ const OverviewPage = () => {
                   title="Bestellungen im Zeitraum"
                   value={stats?.ordersInPeriod ?? '–'}
                   description="Alle neu gestarteten Bestellungen im gewählten Zeitraum."
-                  accent="#4f8bff"
-                  series={ordersSeries}
                 />
                 <KpiCard
                   title="Offene Bestellungen (OEM)"
                   value={oemIssuesCount}
                   description="Bestellungen mit offener oder problematischer OEM-Ermittlung."
-                  accent="#4f8bff"
-                  series={oemSeries}
                 />
                 <KpiCard
                   title="Empfangene Nachrichten"
                   value={stats?.incomingMessages ?? '–'}
                   description="Eingehende WhatsApp-Nachrichten im Zeitraum."
-                  accent="#4f8bff"
-                  series={incomingSeries}
                 />
                 <KpiCard
                   title="Abgebrochene Bestellungen"
                   value={stats?.abortedOrders ?? '–'}
                   description="Begonnene, aber nicht abgeschlossene Vorgänge."
-                  accent="#4f8bff"
-                  series={abortedSeries}
                 />
                 <KpiCard
                   title="Konversionsrate"
                   value={`${stats?.conversionRate ?? '–'}%`}
                   description="Abschlussrate gegenüber gestarteten Anfragen."
-                  accent="#4f8bff"
-                  series={conversionSeries}
                 />
                 <KpiCard
                   title="Ø Marge"
                   value={`${stats?.averageMargin ?? '–'}%`}
                   description="Mittelwert der angewendeten Marge pro Bestellung."
-                  accent="#4f8bff"
-                  series={marginSeries}
                 />
                 <KpiCard
                   title="Ø Warenkorb"
                   value={stats?.averageBasket ? `€ ${stats.averageBasket}` : '–'}
                   description="Durchschnittlicher Endpreis pro Bestellung."
-                  accent="#4f8bff"
-                  series={basketSeries}
                 />
               </>
             )}
         </div>
       </Card>
+
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+          gap: 14
+        }}
+      >
+        <Card title="Bestellungen im Zeitraum" subtitle={`Verlauf (${timeRange})`} padded>
+          <OrdersOverTimeChart data={buckets.map((b, idx) => ({ date: b.label, value: ordersSeries[idx] ?? 0 }))} />
+        </Card>
+        <Card title="Ø Warenkorb" subtitle={`Verlauf (${timeRange})`} padded>
+          <AverageBasketChart data={buckets.map((b) => ({ date: b.label, value: normalize(stats?.averageBasket) || 0 }))} />
+        </Card>
+        <Card title="Konversionsrate" subtitle={`Verlauf (${timeRange})`} padded>
+          <ConversionRateChart data={buckets.map((b, idx) => ({ date: b.label, value: conversionSeries[idx] ?? 0 }))} />
+        </Card>
+      </div>
 
       <Card
         title="Onboarding & Grundeinstellungen"
@@ -385,15 +360,10 @@ type KpiCardProps = {
   title: string;
   value: string | number;
   description: string;
-  accent?: string;
-  series?: number[];
+  trendLabel?: string;
 };
 
-const KpiCard = ({ title, value, description, accent = '#3b82f6', series }: KpiCardProps) => {
-  const sparkId = `${title.replace(/\s+/g, '-').toLowerCase()}-spark`;
-  const points = normalizeSeries(series && series.length ? series : [toNumberish(value ?? 0)]);
-  const { linePath, areaPath } = buildSparkPaths(points, 180, 70);
-
+const KpiCard = ({ title, value, description, trendLabel }: KpiCardProps) => {
   return (
     <Card
       className="kpi-card"
@@ -402,76 +372,12 @@ const KpiCard = ({ title, value, description, accent = '#3b82f6', series }: KpiC
       <div style={{ color: 'var(--muted)', fontSize: 13, fontWeight: 700 }}>{title}</div>
       <div style={{ fontSize: 26, fontWeight: 800, color: 'var(--text-strong)' }}>{value}</div>
       <div style={{ color: 'var(--muted)', fontSize: 13 }}>{description}</div>
-      <div
-        style={{
-          marginTop: 10,
-          padding: '8px 6px 4px 6px',
-          background: 'rgba(255,255,255,0.04)',
-          borderRadius: 12,
-          border: '1px solid var(--border)'
-        }}
-      >
-        <svg width="100%" height="70" viewBox="0 0 180 70" preserveAspectRatio="none" role="img" aria-label={`${title} Trend`}>
-          <defs>
-            <linearGradient id={`${sparkId}-stroke`} x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor={accent} stopOpacity="0.85" />
-              <stop offset="100%" stopColor={accent} stopOpacity="0.35" />
-            </linearGradient>
-            <linearGradient id={`${sparkId}-fill`} x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor={accent} stopOpacity="0.18" />
-              <stop offset="100%" stopColor={accent} stopOpacity="0.01" />
-            </linearGradient>
-          </defs>
-          <path d={areaPath} fill={`url(#${sparkId}-fill)`} stroke="none" />
-          <path
-            d={linePath}
-            fill="none"
-            stroke={`url(#${sparkId}-stroke)`}
-            strokeWidth={3}
-            strokeLinejoin="round"
-            strokeLinecap="round"
-          />
-        </svg>
-      </div>
+      {trendLabel ? <div style={{ color: 'var(--muted)', marginTop: 6, fontSize: 12 }}>{trendLabel}</div> : null}
     </Card>
   );
 };
 
 type SeriesPoint = { label: string; value: number };
-
-const toNumberish = (value: unknown) => {
-  if (typeof value === 'number') return value;
-  if (value === null || value === undefined) return 0;
-  const cleaned = String(value).replace(/[^0-9.-]+/g, '');
-  const num = Number(cleaned);
-  return Number.isFinite(num) ? num : 0;
-};
-
-const buildSparkPaths = (points: number[], width: number, height: number) => {
-  if (!points.length) return { linePath: '', areaPath: '' };
-  const step = width / Math.max(1, points.length - 1);
-  const scaleY = (v: number) => {
-    const clamped = Math.min(1, Math.max(0, v));
-    return height - clamped * (height - 8); // leave small padding top/bottom
-  };
-  const coords = points.map((p, idx) => [idx * step, scaleY(p)] as const);
-  const linePath = coords.reduce(
-    (acc, [x, y], idx) => (idx === 0 ? `M ${x} ${y}` : `${acc} L ${x} ${y}`),
-    ''
-  );
-  const areaPath = `${linePath} L ${width} ${height} L 0 ${height} Z`;
-  return { linePath, areaPath };
-};
-
-const normalizeSeries = (values: number[]) => {
-  if (!values.length) return [];
-  const max = Math.max(1, ...values);
-  return values.map((v) => {
-    const n = max === 0 ? 0 : v / max;
-    return Math.max(0.08, Math.min(0.92, n));
-  });
-};
-
 type OrderBucket = { label: string; orders: Order[] };
 
 const buildOrderBuckets = (
