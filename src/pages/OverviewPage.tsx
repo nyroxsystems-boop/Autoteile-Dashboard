@@ -344,7 +344,7 @@ const KpiCard = ({ title, value, description, accent = '#3b82f6', bars }: KpiCar
       padded
     >
       <div style={{ color: 'var(--muted)', fontSize: 13, fontWeight: 700 }}>{title}</div>
-      <div style={{ fontSize: 26, fontWeight: 800, color: '#fff' }}>{value}</div>
+      <div style={{ fontSize: 26, fontWeight: 800, color: 'var(--text-strong)' }}>{value}</div>
       <div style={{ color: 'var(--muted)', fontSize: 13 }}>{description}</div>
       {bars && bars.length ? (
         <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end', marginTop: 8 }}>
