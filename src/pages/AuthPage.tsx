@@ -36,7 +36,21 @@ const AuthPage = () => {
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+    <div
+      style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 24,
+        // Festes, ruhiges Gradient-Backdrop wie im gewünschten Preview
+        background:
+          'radial-gradient(circle at 20% 20%, rgba(59,130,246,0.12), transparent 34%), ' +
+          'radial-gradient(circle at 80% 10%, rgba(16,185,129,0.12), transparent 30%), ' +
+          'radial-gradient(circle at 50% 90%, rgba(79,139,255,0.08), transparent 38%), ' +
+          '#e9f2f9'
+      }}
+    >
       <div style={{ maxWidth: 480, width: '100%' }}>
         <Card
           title="Anmelden im PartsBot-Dashboard"
