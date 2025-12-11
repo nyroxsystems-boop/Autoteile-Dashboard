@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import Card from '../ui/Card';
@@ -12,6 +12,15 @@ const AuthPage = () => {
   const [error, setError] = useState<string | null>(null);
   const auth = useAuth();
   const navigate = useNavigate();
+
+  // Erzwinge das helle Theme auf der Login-Seite, damit Farben/Buttons wie im Mock bleiben
+  useEffect(() => {
+    const prevTheme = document.documentElement.dataset.theme;
+    document.documentElement.dataset.theme = 'light';
+    return () => {
+      if (prevTheme) document.documentElement.dataset.theme = prevTheme;
+    };
+  }, []);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
