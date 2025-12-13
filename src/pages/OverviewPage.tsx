@@ -17,7 +17,10 @@ const OverviewPage = () => {
   const [timeRange, setTimeRange] = useState<'Heute' | 'Diese Woche' | 'Dieser Monat' | 'Dieses Jahr'>('Heute');
   const [stats, setStats] = useState<OverviewStats | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
-  const [defaultMargin, setDefaultMargin] = useState<number | null>(null);
+  const [defaultMargin, setDefaultMargin] = useState<number | null>(
+    defaultPriceProfiles.find((p) => p.isDefault)?.margin ? defaultPriceProfiles.find((p) => p.isDefault)!.margin * 100 : null
+  );
+  const [priceProfiles, setPriceProfiles] = useState<PriceProfile[]>(defaultPriceProfiles);
   const [selectedShops, setSelectedShops] = useState<string[]>([]);
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [settingsLoaded, setSettingsLoaded] = useState(false);
@@ -158,6 +161,7 @@ const OverviewPage = () => {
         selectedShops,
         marginPercent: defaultMargin ?? 0
       });
+      // TODO: priceProfiles persistieren, sobald API dafür vorhanden ist
       setError(null);
       setShowSettings(false);
       console.log('[OverviewPage] Merchant settings saved');
@@ -280,25 +284,25 @@ const OverviewPage = () => {
         subtitle="Shops auswählen und Standard-Marge festlegen."
       >
         {!showSettings && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <div style={{ display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
-              <div style={{ color: 'var(--muted)' }}>
-                Einstellungen hinterlegt. Shops: {selectedShops.join(', ') || '–'}
-              </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                <div style={{ color: 'var(--muted)' }}>
+                  Einstellungen hinterlegt. Shops: {selectedShops.join(', ') || '–'}
+                </div>
               <Button size="sm" variant="secondary" onClick={() => setShowSettings(true)}>
                 Einstellungen bearbeiten
               </Button>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <div style={{ color: 'var(--muted)', fontSize: 13, fontWeight: 700 }}>Preisprofile:</div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                {defaultPriceProfiles.map((profile) => (
-                  <PriceProfilePill key={profile.id} profile={profile} />
-                ))}
+                <div style={{ color: 'var(--muted)', fontSize: 13, fontWeight: 700 }}>Preisprofile:</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  {priceProfiles.map((profile) => (
+                    <PriceProfilePill key={profile.id} profile={profile} />
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
         )}
         {showSettings && (
           <>
@@ -374,6 +378,62 @@ const OverviewPage = () => {
                   placeholder="z.B. 20"
                   onChange={(e) => handleMarginChange(e.target.value)}
                 />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div style={{ color: 'var(--muted)', fontSize: 13, fontWeight: 700 }}>Preisprofile bearbeiten:</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
+                  {priceProfiles.map((profile, idx) => (
+                    <div
+                      key={profile.id}
+                      style={{
+                        border: '1px solid var(--border)',
+                        borderRadius: 12,
+                        padding: 12,
+                        background: 'rgba(255,255,255,0.03)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 8
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                        <div style={{ fontWeight: 700 }}>{profile.name}</div>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--muted)' }}>
+                          <input
+                            type="radio"
+                            name="defaultProfile"
+                            checked={profile.isDefault === true}
+                            onChange={() => {
+                              setPriceProfiles((prev) =>
+                                prev.map((p, pIdx) => ({
+                                  ...p,
+                                  isDefault: idx === pIdx
+                                }))
+                              );
+                              setDefaultMargin(profile.margin * 100);
+                            }}
+                          />
+                          Standard
+                        </label>
+                      </div>
+                      <div style={{ color: 'var(--muted)', fontSize: 12 }}>{profile.description}</div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 6 }}>
+                        <Input
+                          label="Marge (%)"
+                          type="number"
+                          value={Math.round(profile.margin * 10000) / 100}
+                          placeholder="z.B. 28"
+                          onChange={(e) => {
+                            const val = Number(e.target.value);
+                            if (Number.isNaN(val)) return;
+                            setPriceProfiles((prev) =>
+                              prev.map((p, pIdx) => (pIdx === idx ? { ...p, margin: val / 100 } : p))
+                            );
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
                 <Button variant="primary" onClick={handleSaveSettings} disabled={isSavingSettings}>
