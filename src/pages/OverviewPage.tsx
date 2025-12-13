@@ -87,7 +87,10 @@ const OverviewPage = () => {
         if (s) {
           setSelectedShops(s.selectedShops ?? []);
           setDefaultMargin(s.marginPercent ?? null);
-          setShowSettings(false);
+          if (s.priceProfiles && s.priceProfiles.length) {
+            setPriceProfiles(s.priceProfiles);
+            setMarginInputs(buildMarginInputs(s.priceProfiles));
+          }
         }
       } catch (err) {
         console.error('[OverviewPage] Fehler beim Laden der Merchant-Settings', err);
@@ -163,7 +166,8 @@ const OverviewPage = () => {
     try {
       await saveMerchantSettings(auth.session.merchantId, {
         selectedShops,
-        marginPercent: defaultMargin ?? 0
+        marginPercent: defaultMargin ?? 0,
+        priceProfiles
       });
       // TODO: priceProfiles persistieren, sobald API dafür vorhanden ist
       setError(null);
@@ -544,6 +548,10 @@ function formatMarginValue(margin: number | null | undefined): string {
   if (margin === null || margin === undefined) return '';
   const percent = Math.round(margin * 10000) / 100;
   return Number.isFinite(percent) ? String(percent) : '';
+}
+
+function buildMarginInputs(profiles: PriceProfile[]) {
+  return Object.fromEntries(profiles.map((p) => [p.id, formatMarginValue(p.margin)]));
 }
 type OrderBucket = { label: string; orders: Order[] };
 
