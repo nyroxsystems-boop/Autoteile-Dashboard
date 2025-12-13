@@ -23,6 +23,9 @@ const OverviewPage = () => {
       : null
   );
   const [priceProfiles, setPriceProfiles] = useState<PriceProfile[]>(defaultPriceProfiles);
+  const [marginInputs, setMarginInputs] = useState<Record<string, string>>(
+    Object.fromEntries(defaultPriceProfiles.map((p) => [p.id, formatMarginValue(p.margin)]))
+  );
   const [selectedShops, setSelectedShops] = useState<string[]>([]);
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [settingsLoaded, setSettingsLoaded] = useState(false);
@@ -359,11 +362,11 @@ const OverviewPage = () => {
             </div>
           </div>
 
-          <div style={{ color: 'var(--muted)', fontSize: 13, fontWeight: 700, marginTop: 6 }}>Preisprofile bearbeiten:</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 12 }}>
-            {priceProfiles.map((profile, idx) => (
-              <div
-                key={profile.id}
+              <div style={{ color: 'var(--muted)', fontSize: 13, fontWeight: 700, marginTop: 6 }}>Preisprofile bearbeiten:</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 12 }}>
+                {priceProfiles.map((profile, idx) => (
+                  <div
+                    key={profile.id}
                 style={{
                   border: '1px solid var(--border)',
                   borderRadius: 14,
@@ -373,11 +376,11 @@ const OverviewPage = () => {
                   flexDirection: 'column',
                   gap: 8
                 }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-                  <div style={{ fontWeight: 800 }}>{profile.name}</div>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--muted)' }}>
-                    <input
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                        <div style={{ fontWeight: 800 }}>{profile.name}</div>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--muted)' }}>
+                          <input
                       type="radio"
                       name="defaultProfile"
                       checked={profile.isDefault === true}
@@ -396,58 +399,57 @@ const OverviewPage = () => {
                 </div>
                 <div style={{ color: 'var(--muted)', fontSize: 12 }}>{profile.description}</div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 6 }}>
-                  <Input
-                    label="Marge (%)"
-                    type="number"
-                    value={
-                      profile.margin === null || profile.margin === undefined
-                        ? ''
-                        : profile.margin === 0
-                        ? '0'
-                        : Math.round(profile.margin * 10000) / 100
-                    }
-                    placeholder="z.B. 28"
-                    onChange={(e) => {
-                      const raw = e.target.value;
-                      if (raw === '') {
-                        setPriceProfiles((prev) =>
-                          prev.map((p, pIdx) => (pIdx === idx ? { ...p, margin: 0 } : p))
-                        );
-                        if (profile.isDefault) setDefaultMargin(null);
-                        return;
-                      }
-                      const val = Number(raw);
-                      if (Number.isNaN(val)) return;
-                      // wenn bisher 0 angezeigt wurde und der Nutzer neu tippt, ersetze komplett
-                      const newMargin = val / 100;
-                      setPriceProfiles((prev) =>
-                        prev.map((p, pIdx) => (pIdx === idx ? { ...p, margin: newMargin } : p))
-                      );
-                      if (profile.isDefault) {
-                        setDefaultMargin(val);
-                      }
-                    }}
-                  />
-                </div>
-              </div>
-            ))}
+                        <Input
+                          label="Marge (%)"
+                          type="text"
+                          inputMode="decimal"
+                          value={marginInputs[profile.id] ?? ''}
+                          placeholder="z.B. 28"
+                          onChange={(e) => {
+                            const raw = e.target.value;
+                            const cleaned = raw.replace(/^0+(?=\d)/, ''); // führende Nullen entfernen, aber einzelne 0 erlauben
+                            setMarginInputs((prev) => ({ ...prev, [profile.id]: cleaned }));
+
+                            if (cleaned === '') {
+                              setPriceProfiles((prev) =>
+                                prev.map((p, pIdx) => (pIdx === idx ? { ...p, margin: 0 } : p))
+                              );
+                              if (profile.isDefault) setDefaultMargin(null);
+                              return;
+                            }
+
+                            const val = Number(cleaned);
+                            if (Number.isNaN(val)) return;
+                            const newMargin = val / 100;
+                            setPriceProfiles((prev) =>
+                              prev.map((p, pIdx) => (pIdx === idx ? { ...p, margin: newMargin } : p))
+                            );
+                            if (profile.isDefault) {
+                              setDefaultMargin(val);
+                            }
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ))}
           </div>
 
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 6 }}>
-            <Button variant="primary" onClick={handleSaveSettings} disabled={isSavingSettings}>
-              {isSavingSettings ? 'Speichert…' : 'Speichern'}
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={() => {
-                setPriceProfiles(defaultPriceProfiles);
-                const def = defaultPriceProfiles.find((p) => p.isDefault);
-                setDefaultMargin(def ? def.margin * 100 : null);
-              }}
-            >
-              Zurücksetzen
-            </Button>
-          </div>
+                <Button variant="primary" onClick={handleSaveSettings} disabled={isSavingSettings}>
+                  {isSavingSettings ? 'Speichert…' : 'Speichern'}
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    setPriceProfiles(defaultPriceProfiles);
+                    const def = defaultPriceProfiles.find((p) => p.isDefault);
+                    setDefaultMargin(def ? def.margin * 100 : null);
+                    setMarginInputs(Object.fromEntries(defaultPriceProfiles.map((p) => [p.id, formatMarginValue(p.margin)])));
+                  }}
+                >
+                  Zurücksetzen
+                </Button>
+              </div>
         </div>
       </Card>
 
@@ -521,6 +523,12 @@ const PriceProfilePill = ({ profile }: { profile: PriceProfile }) => {
 };
 
 type SeriesPoint = { label: string; value: number };
+
+function formatMarginValue(margin: number | null | undefined): string {
+  if (margin === null || margin === undefined) return '';
+  const percent = Math.round(margin * 10000) / 100;
+  return Number.isFinite(percent) ? String(percent) : '';
+}
 type OrderBucket = { label: string; orders: Order[] };
 
 const buildOrderBuckets = (
