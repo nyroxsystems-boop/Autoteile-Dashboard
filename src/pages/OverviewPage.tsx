@@ -4,6 +4,7 @@ import { fetchOverviewStats, type OverviewStats } from '../api/stats';
 import type { Order } from '../api/types';
 import { useAuth } from '../auth/AuthContext';
 import { fetchMerchantSettings, saveMerchantSettings, type MerchantSettings } from '../api/merchant';
+import { defaultPriceProfiles, type PriceProfile } from '../features/settings/types';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Badge from '../ui/Badge';
@@ -269,13 +270,24 @@ const OverviewPage = () => {
         subtitle="Shops auswählen und Standard-Marge festlegen."
       >
         {!showSettings && (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-            <div style={{ color: 'var(--muted)' }}>
-              Einstellungen hinterlegt. Shops: {selectedShops.join(', ') || '–'} · Standard-Marge: {defaultMargin ?? '–'}%
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+              <div style={{ color: 'var(--muted)' }}>
+                Einstellungen hinterlegt. Shops: {selectedShops.join(', ') || '–'}
+              </div>
+              <Button size="sm" variant="secondary" onClick={() => setShowSettings(true)}>
+                Einstellungen bearbeiten
+              </Button>
             </div>
-            <Button size="sm" variant="secondary" onClick={() => setShowSettings(true)}>
-              Einstellungen bearbeiten
-            </Button>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ color: 'var(--muted)', fontSize: 13, fontWeight: 700 }}>Preisprofile:</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {defaultPriceProfiles.map((profile) => (
+                  <PriceProfilePill key={profile.id} profile={profile} />
+                ))}
+              </div>
+            </div>
           </div>
         )}
         {showSettings && (
@@ -359,6 +371,43 @@ const KpiCard = ({ title, value, description, trendLabel }: KpiCardProps) => {
       <div style={{ color: 'var(--muted)', fontSize: 13 }}>{description}</div>
       {trendLabel ? <div style={{ color: 'var(--muted)', marginTop: 6, fontSize: 12 }}>{trendLabel}</div> : null}
     </Card>
+  );
+};
+
+const PriceProfilePill = ({ profile }: { profile: PriceProfile }) => {
+  return (
+    <div
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 6,
+        padding: '8px 10px',
+        borderRadius: 999,
+        background: 'rgba(255,255,255,0.05)',
+        border: profile.isDefault ? '1px solid rgba(79,139,255,0.45)' : '1px solid var(--border)',
+        boxShadow: profile.isDefault ? '0 6px 18px rgba(79,139,255,0.18)' : 'none',
+        color: 'var(--text)',
+        fontSize: 13,
+        fontWeight: 700
+      }}
+    >
+      <span>{profile.name}</span>
+      <span style={{ color: 'var(--muted)', fontWeight: 600 }}>{Math.round(profile.margin * 100)} %</span>
+      {profile.isDefault ? (
+        <span
+          style={{
+            fontSize: 11,
+            color: '#4f8bff',
+            background: 'rgba(79,139,255,0.12)',
+            borderRadius: 6,
+            padding: '2px 6px',
+            border: '1px solid rgba(79,139,255,0.35)'
+          }}
+        >
+          Standard
+        </span>
+      ) : null}
+    </div>
   );
 };
 
