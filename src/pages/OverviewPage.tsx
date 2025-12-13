@@ -375,7 +375,7 @@ const OverviewPage = () => {
                         display: 'flex',
                         flexDirection: 'column',
                         gap: 8,
-                        minHeight: 200
+                        minHeight: 220
                       }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
@@ -385,18 +385,16 @@ const OverviewPage = () => {
                             type="checkbox"
                             checked={profile.isDefault === true}
                             onChange={() => {
-                              setPriceProfiles((prev) =>
-                                prev.map((p, pIdx) =>
-                                  pIdx === idx
-                                    ? { ...p, isDefault: !p.isDefault }
-                                    : { ...p, isDefault: false }
-                                )
-                              );
-                              if (!profile.isDefault) {
-                                setDefaultMargin(Math.round(profile.margin * 10000) / 100);
-                              } else {
-                                setDefaultMargin(null);
-                              }
+                              setPriceProfiles((prev) => {
+                                const next = prev.map((p, pIdx) =>
+                                  pIdx === idx ? { ...p, isDefault: !p.isDefault } : p
+                                );
+                                const firstDefault = next.find((p) => p.isDefault);
+                                setDefaultMargin(
+                                  firstDefault ? Math.round(firstDefault.margin * 10000) / 100 : null
+                                );
+                                return next;
+                              });
                             }}
                           />
                           Standard
