@@ -138,7 +138,6 @@ const OverviewPage = () => {
   };
 
   const handleMarginSave = () => {
-    // legacy single-field save (keeps behavior but delegates to stepper save below)
     console.log('[OverviewPage] Standard-Marge speichern angeklickt', defaultMargin);
     handleSaveSettings();
   };
@@ -160,7 +159,6 @@ const OverviewPage = () => {
         marginPercent: defaultMargin ?? 0
       });
       setError(null);
-      setStep(0);
       setShowSettings(false);
       console.log('[OverviewPage] Merchant settings saved');
     } catch (err) {
