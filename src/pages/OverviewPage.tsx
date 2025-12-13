@@ -363,72 +363,80 @@ const OverviewPage = () => {
           </div>
 
               <div style={{ color: 'var(--muted)', fontSize: 13, fontWeight: 700, marginTop: 6 }}>Preisprofile bearbeiten:</div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 12 }}>
-                {priceProfiles.map((profile, idx) => (
-                  <div
-                    key={profile.id}
-                style={{
-                  border: '1px solid var(--border)',
-                  borderRadius: 14,
-                  padding: 12,
-                  background: 'rgba(255,255,255,0.03)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 8
-                }}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 12 }}>
+                  {priceProfiles.map((profile, idx) => (
+                    <div
+                      key={profile.id}
+                      style={{
+                        border: '1px solid var(--border)',
+                        borderRadius: 14,
+                        padding: 12,
+                        background: 'rgba(255,255,255,0.03)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 8,
+                        minHeight: 200
+                      }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
                         <div style={{ fontWeight: 800 }}>{profile.name}</div>
                         <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--muted)' }}>
                           <input
-                      type="radio"
-                      name="defaultProfile"
-                      checked={profile.isDefault === true}
-                      onChange={() => {
-                        setPriceProfiles((prev) =>
-                          prev.map((p, pIdx) => ({
-                            ...p,
-                            isDefault: idx === pIdx
-                          }))
-                        );
-                        setDefaultMargin(Math.round(profile.margin * 10000) / 100);
-                      }}
-                    />
-                    Standard
-                  </label>
-                </div>
+                            type="checkbox"
+                            checked={profile.isDefault === true}
+                            onChange={() => {
+                              setPriceProfiles((prev) =>
+                                prev.map((p, pIdx) =>
+                                  pIdx === idx
+                                    ? { ...p, isDefault: !p.isDefault }
+                                    : { ...p, isDefault: false }
+                                )
+                              );
+                              if (!profile.isDefault) {
+                                setDefaultMargin(Math.round(profile.margin * 10000) / 100);
+                              } else {
+                                setDefaultMargin(null);
+                              }
+                            }}
+                          />
+                          Standard
+                        </label>
+                      </div>
                 <div style={{ color: 'var(--muted)', fontSize: 12 }}>{profile.description}</div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 6 }}>
-                        <Input
-                          label="Marge (%)"
-                          type="text"
-                          inputMode="decimal"
-                          value={marginInputs[profile.id] ?? ''}
-                          placeholder="z.B. 28"
-                          onChange={(e) => {
-                            const raw = e.target.value;
-                            const cleaned = raw.replace(/^0+(?=\d)/, ''); // führende Nullen entfernen, aber einzelne 0 erlauben
-                            setMarginInputs((prev) => ({ ...prev, [profile.id]: cleaned }));
+                  <Input
+                    label="Marge (%)"
+                    type="text"
+                    inputMode="decimal"
+                    value={marginInputs[profile.id] ?? ''}
+                    placeholder="z.B. 28"
+                    style={{ height: 44, display: 'flex', alignItems: 'center' }}
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      // wenn komplett gelöscht, leere Eingabe und setze 0 als internen Wert
+                      if (raw === '') {
+                        setMarginInputs((prev) => ({ ...prev, [profile.id]: '' }));
+                        setPriceProfiles((prev) =>
+                          prev.map((p, pIdx) => (pIdx === idx ? { ...p, margin: 0 } : p))
+                        );
+                        if (profile.isDefault) setDefaultMargin(null);
+                        return;
+                      }
+                      // führende Nullen entfernen, aber eine einzelne 0 stehen lassen
+                      const cleaned = raw.replace(/^0+(?=\d)/, '');
+                      setMarginInputs((prev) => ({ ...prev, [profile.id]: cleaned }));
 
-                            if (cleaned === '') {
-                              setPriceProfiles((prev) =>
-                                prev.map((p, pIdx) => (pIdx === idx ? { ...p, margin: 0 } : p))
-                              );
-                              if (profile.isDefault) setDefaultMargin(null);
-                              return;
-                            }
-
-                            const val = Number(cleaned);
-                            if (Number.isNaN(val)) return;
-                            const newMargin = val / 100;
-                            setPriceProfiles((prev) =>
-                              prev.map((p, pIdx) => (pIdx === idx ? { ...p, margin: newMargin } : p))
-                            );
-                            if (profile.isDefault) {
-                              setDefaultMargin(val);
-                            }
-                          }}
-                        />
+                      const val = Number(cleaned);
+                      if (Number.isNaN(val)) return;
+                      const newMargin = val / 100;
+                      setPriceProfiles((prev) =>
+                        prev.map((p, pIdx) => (pIdx === idx ? { ...p, margin: newMargin } : p))
+                      );
+                      if (profile.isDefault) {
+                        setDefaultMargin(val);
+                      }
+                    }}
+                  />
                       </div>
                     </div>
                   ))}
