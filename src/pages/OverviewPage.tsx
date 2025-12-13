@@ -399,13 +399,22 @@ const OverviewPage = () => {
                   <Input
                     label="Marge (%)"
                     type="number"
-                    value={Math.round(profile.margin * 10000) / 100}
+                    value={profile.margin === null || profile.margin === undefined ? '' : Math.round(profile.margin * 10000) / 100}
                     placeholder="z.B. 28"
                     onChange={(e) => {
-                      const val = Number(e.target.value);
+                      const raw = e.target.value;
+                      if (raw === '') {
+                        setPriceProfiles((prev) =>
+                          prev.map((p, pIdx) => (pIdx === idx ? { ...p, margin: 0 } : p))
+                        );
+                        if (profile.isDefault) setDefaultMargin(null);
+                        return;
+                      }
+                      const val = Number(raw);
                       if (Number.isNaN(val)) return;
+                      const newMargin = val / 100;
                       setPriceProfiles((prev) =>
-                        prev.map((p, pIdx) => (pIdx === idx ? { ...p, margin: val / 100 } : p))
+                        prev.map((p, pIdx) => (pIdx === idx ? { ...p, margin: newMargin } : p))
                       );
                       if (profile.isDefault) {
                         setDefaultMargin(val);
