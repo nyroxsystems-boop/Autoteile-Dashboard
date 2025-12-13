@@ -366,65 +366,61 @@ const OverviewPage = () => {
             </div>
           </div>
 
-              <div style={{ color: 'var(--muted)', fontSize: 13, fontWeight: 700, marginTop: 6 }}>Preisprofile bearbeiten:</div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 12 }}>
-                  {priceProfiles.map((profile, idx) => (
-                    <div
-                      key={profile.id}
-                      style={{
-                        border: '1px solid var(--border)',
-                        borderRadius: 14,
-                        padding: 12,
-                        background: 'rgba(255,255,255,0.03)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 8,
-                        minHeight: 240,
-                        alignContent: 'stretch'
+          <div style={{ color: 'var(--muted)', fontSize: 13, fontWeight: 700, marginTop: 6 }}>Preisprofile bearbeiten:</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 12 }}>
+            {priceProfiles.map((profile, idx) => (
+              <div
+                key={profile.id}
+                style={{
+                  border: '1px solid var(--border)',
+                  borderRadius: 14,
+                  padding: 12,
+                  background: 'rgba(255,255,255,0.03)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 10,
+                  minHeight: 260
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                  <div style={{ fontWeight: 800 }}>{profile.name}</div>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--muted)' }}>
+                    <input
+                      type="checkbox"
+                      checked={profile.isDefault === true}
+                      onChange={() => {
+                        setPriceProfiles((prev) => {
+                          const next = prev.map((p, pIdx) =>
+                            pIdx === idx ? { ...p, isDefault: !p.isDefault } : p
+                          );
+                          const firstDefault = next.find((p) => p.isDefault);
+                          setDefaultMargin(firstDefault ? Math.round(firstDefault.margin * 10000) / 100 : null);
+                          return next;
+                        });
                       }}
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-                        <div style={{ fontWeight: 800 }}>{profile.name}</div>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--muted)' }}>
-                          <input
-                            type="checkbox"
-                            checked={profile.isDefault === true}
-                            onChange={() => {
-                              setPriceProfiles((prev) => {
-                                const next = prev.map((p, pIdx) =>
-                                  pIdx === idx ? { ...p, isDefault: !p.isDefault } : p
-                                );
-                                const firstDefault = next.find((p) => p.isDefault);
-                                setDefaultMargin(
-                                  firstDefault ? Math.round(firstDefault.margin * 10000) / 100 : null
-                                );
-                                return next;
-                              });
-                            }}
-                          />
-                          Standard
-                        </label>
-                      </div>
+                    />
+                    Standard
+                  </label>
+                </div>
                 <div style={{ color: 'var(--muted)', fontSize: 12 }}>{profile.description}</div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 6 }}>
-                    <Input
-                      label="Marge (%)"
-                      type="text"
-                      inputMode="decimal"
-                      value={marginInputs[profile.id] ?? ''}
-                      placeholder="z.B. 28"
-                      style={{ height: 48, display: 'flex', alignItems: 'center', width: '100%' }}
-                      onFocus={(e) => {
-                        const len = e.target.value.length;
-                        requestAnimationFrame(() => {
-                          try {
-                            e.target.setSelectionRange(len, len);
+                <div style={{ marginTop: 'auto' }}>
+                  <Input
+                    label="Marge (%)"
+                    type="text"
+                    inputMode="decimal"
+                    value={marginInputs[profile.id] ?? ''}
+                    placeholder="z.B. 28"
+                    style={{ height: 48, display: 'flex', alignItems: 'center', width: '100%' }}
+                    onFocus={(e) => {
+                      const len = e.target.value.length;
+                      requestAnimationFrame(() => {
+                        try {
+                          e.target.setSelectionRange(len, len);
                         } catch {}
                       });
                     }}
                     onChange={(e) => {
                       const raw = e.target.value;
-                      // wenn komplett gelöscht, leere Eingabe und setze 0 als internen Wert
                       if (raw === '') {
                         setMarginInputs((prev) => ({ ...prev, [profile.id]: '' }));
                         setPriceProfiles((prev) =>
@@ -433,8 +429,6 @@ const OverviewPage = () => {
                         if (profile.isDefault) setDefaultMargin(null);
                         return;
                       }
-                      // führende Nullen entfernen, aber eine einzelne 0 stehen lassen
-                      // führende Nullen entfernen, Cursor bleibt am Ende
                       const cleaned = raw.replace(/^0+(?=\d)/, '');
                       setMarginInputs((prev) => ({ ...prev, [profile.id]: cleaned }));
 
@@ -449,27 +443,32 @@ const OverviewPage = () => {
                       }
                     }}
                   />
-                      </div>
-                    </div>
-                  ))}
+                </div>
+              </div>
+            ))}
           </div>
 
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 6 }}>
-                <Button variant="primary" onClick={handleSaveSettings} disabled={isSavingSettings}>
-                  {isSavingSettings ? 'Speichert…' : 'Speichern'}
-                </Button>
-                <Button
-                  variant="ghost"
-                  onClick={() => {
-                    setPriceProfiles(defaultPriceProfiles);
-                    const def = defaultPriceProfiles.find((p) => p.isDefault);
-                    setDefaultMargin(def ? def.margin * 100 : null);
-                    setMarginInputs(Object.fromEntries(defaultPriceProfiles.map((p) => [p.id, formatMarginValue(p.margin)])));
-                  }}
-                >
-                  Zurücksetzen
-                </Button>
-              </div>
+            <Button variant="primary" onClick={handleSaveSettings} disabled={isSavingSettings}>
+              {isSavingSettings ? 'Speichert…' : 'Speichern'}
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setPriceProfiles(defaultPriceProfiles);
+                const def = defaultPriceProfiles.find((p) => p.isDefault);
+                setDefaultMargin(def ? def.margin * 100 : null);
+                setMarginInputs(Object.fromEntries(defaultPriceProfiles.map((p) => [p.id, formatMarginValue(p.margin)])));
+              }}
+            >
+              Zurücksetzen
+            </Button>
+            {!isSavingSettings ? (
+              <span style={{ color: 'var(--muted)', fontSize: 12, alignSelf: 'center' }}>
+                Änderungen speichern, um sie zu übernehmen.
+              </span>
+            ) : null}
+          </div>
         </div>
       </Card>
 
