@@ -405,15 +405,23 @@ const OverviewPage = () => {
                     <Input
                       label="Marge (%)"
                       type="text"
-                      inputMode="decimal"
-                      value={marginInputs[profile.id] ?? ''}
-                      placeholder="z.B. 28"
-                      style={{ height: 48, display: 'flex', alignItems: 'center' }}
-                      onChange={(e) => {
-                        const raw = e.target.value;
-                        // wenn komplett gelöscht, leere Eingabe und setze 0 als internen Wert
-                        if (raw === '') {
-                          setMarginInputs((prev) => ({ ...prev, [profile.id]: '' }));
+                    inputMode="decimal"
+                    value={marginInputs[profile.id] ?? ''}
+                    placeholder="z.B. 28"
+                    style={{ height: 48, display: 'flex', alignItems: 'center' }}
+                    onFocus={(e) => {
+                      const len = e.target.value.length;
+                      requestAnimationFrame(() => {
+                        try {
+                          e.target.setSelectionRange(len, len);
+                        } catch {}
+                      });
+                    }}
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      // wenn komplett gelöscht, leere Eingabe und setze 0 als internen Wert
+                      if (raw === '') {
+                        setMarginInputs((prev) => ({ ...prev, [profile.id]: '' }));
                         setPriceProfiles((prev) =>
                           prev.map((p, pIdx) => (pIdx === idx ? { ...p, margin: 0 } : p))
                         );
