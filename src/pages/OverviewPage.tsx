@@ -19,14 +19,26 @@ const OverviewPage = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [defaultMargin, setDefaultMargin] = useState<number | null>(null);
   const [selectedShops, setSelectedShops] = useState<string[]>([]);
-  const [step, setStep] = useState<number>(0);
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [settingsLoaded, setSettingsLoaded] = useState(false);
-  const [showSettings, setShowSettings] = useState(true);
+  const [showSettings, setShowSettings] = useState(false);
   const auth = useAuth();
 
   // a small default list of known shops (can be replaced by a real backend list later)
-  const KNOWN_SHOPS = ['Autodoc', 'Stahlgruber', 'Mister Auto'];
+  const KNOWN_SHOPS = [
+    'Autodoc',
+    'Stahlgruber',
+    'Mister Auto',
+    'ATP Autoteile',
+    'Autoteile Teufel',
+    'Leebmann24',
+    'Fressnapf Auto',
+    'kfzteile24',
+    'Oscaro',
+    'Motointegrator',
+    'Autodoc Pro'
+  ];
+  const [shopSearch, setShopSearch] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   const isStatsLoading = !stats && !error;
@@ -292,52 +304,88 @@ const OverviewPage = () => {
         )}
         {showSettings && (
           <>
-            <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-              <Badge variant={step === 0 ? 'success' : 'neutral'}>Schritt 1</Badge>
-              <Badge variant={step === 1 ? 'success' : 'neutral'}>Schritt 2</Badge>
-            </div>
-            {step === 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <div style={{ color: 'var(--muted)' }}>Wähle die Shops aus, die bei der Angebotssuche berücksichtigt werden sollen.</div>
-                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ color: 'var(--muted)' }}>Shops für die Angebotssuche hinzufügen (Suche zum Filtern):</div>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                {selectedShops.map((s) => (
+                  <Badge key={s} variant="neutral">
+                    {s}{' '}
+                    <button
+                      onClick={() => handleToggleShop(s)}
+                      style={{
+                        marginLeft: 6,
+                        background: 'transparent',
+                        border: 'none',
+                        color: 'var(--muted)',
+                        cursor: 'pointer'
+                      }}
+                      aria-label={`${s} entfernen`}
+                    >
+                      ✕
+                    </button>
+                  </Badge>
+                ))}
+                {selectedShops.length === 0 ? (
+                  <span style={{ color: 'var(--muted)', fontSize: 13 }}>Noch keine Shops ausgewählt.</span>
+                ) : null}
+              </div>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                <input
+                  value={shopSearch}
+                  onChange={(e) => setShopSearch(e.target.value)}
+                  placeholder="Shop suchen oder hinzufügen…"
+                  style={{
+                    flex: 1,
+                    minWidth: 240,
+                    borderRadius: 10,
+                    border: '1px solid var(--border)',
+                    padding: '10px 12px',
+                    background: 'rgba(255,255,255,0.04)',
+                    color: 'var(--text)'
+                  }}
+                  list="shop-options"
+                />
+                <datalist id="shop-options">
                   {KNOWN_SHOPS.map((s) => (
-                    <label key={s} style={{ display: 'flex', gap: 8, alignItems: 'center', padding: 10, borderRadius: 10, border: '1px solid var(--border)' }}>
-                      <input type="checkbox" checked={selectedShops.includes(s)} onChange={() => handleToggleShop(s)} />
-                      <div style={{ fontWeight: 700 }}>{s}</div>
-                    </label>
+                    <option key={s} value={s} />
                   ))}
-                </div>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <Button variant="primary" onClick={() => setStep(1)} disabled={selectedShops.length === 0}>
-                    Weiter
-                  </Button>
-                  <Button variant="ghost" onClick={() => setSelectedShops([])}>
-                    Zurücksetzen
-                  </Button>
-                </div>
+                </datalist>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => {
+                    const val = shopSearch.trim();
+                    if (!val) return;
+                    if (!selectedShops.includes(val)) setSelectedShops((prev) => [...prev, val]);
+                    setShopSearch('');
+                  }}
+                >
+                  Hinzufügen
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => setSelectedShops([])}>
+                  Zurücksetzen
+                </Button>
               </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <div style={{ color: 'var(--muted)' }}>Diese Marge wird prozentual auf den Teilepreis aufgeschlagen.</div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 200px)', gap: 12 }}>
-                  <Input
-                    label="Standard-Marge (%)"
-                    type="number"
-                    value={defaultMargin ?? ''}
-                    placeholder="z.B. 20"
-                    onChange={(e) => handleMarginChange(e.target.value)}
-                  />
-                </div>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <Button variant="primary" onClick={handleSaveSettings} disabled={isSavingSettings}>
-                    {isSavingSettings ? 'Speichert…' : 'Speichern & Abschließen'}
-                  </Button>
-                  <Button variant="ghost" onClick={() => setStep(0)}>
-                    Zurück
-                  </Button>
-                </div>
+
+              <div style={{ color: 'var(--muted)' }}>Standard-Marge (%), wirkt als Fallback:</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 200px)', gap: 12 }}>
+                <Input
+                  label="Standard-Marge (%)"
+                  type="number"
+                  value={defaultMargin ?? ''}
+                  placeholder="z.B. 20"
+                  onChange={(e) => handleMarginChange(e.target.value)}
+                />
               </div>
-            )}
+              <div style={{ display: 'flex', gap: 8 }}>
+                <Button variant="primary" onClick={handleSaveSettings} disabled={isSavingSettings}>
+                  {isSavingSettings ? 'Speichert…' : 'Speichern'}
+                </Button>
+                <Button variant="ghost" onClick={() => setShowSettings(false)}>
+                  Abbrechen
+                </Button>
+              </div>
+            </div>
           </>
         )}
       </Card>
