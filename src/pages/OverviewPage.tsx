@@ -399,7 +399,13 @@ const OverviewPage = () => {
                   <Input
                     label="Marge (%)"
                     type="number"
-                    value={profile.margin === null || profile.margin === undefined ? '' : Math.round(profile.margin * 10000) / 100}
+                    value={
+                      profile.margin === null || profile.margin === undefined
+                        ? ''
+                        : profile.margin === 0
+                        ? '0'
+                        : Math.round(profile.margin * 10000) / 100
+                    }
                     placeholder="z.B. 28"
                     onChange={(e) => {
                       const raw = e.target.value;
@@ -412,6 +418,7 @@ const OverviewPage = () => {
                       }
                       const val = Number(raw);
                       if (Number.isNaN(val)) return;
+                      // wenn bisher 0 angezeigt wurde und der Nutzer neu tippt, ersetze komplett
                       const newMargin = val / 100;
                       setPriceProfiles((prev) =>
                         prev.map((p, pIdx) => (pIdx === idx ? { ...p, margin: newMargin } : p))
