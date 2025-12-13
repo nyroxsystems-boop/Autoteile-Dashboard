@@ -364,20 +364,21 @@ const OverviewPage = () => {
 
               <div style={{ color: 'var(--muted)', fontSize: 13, fontWeight: 700, marginTop: 6 }}>Preisprofile bearbeiten:</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 12 }}>
-                {priceProfiles.map((profile, idx) => (
-                  <div
-                    key={profile.id}
-                    style={{
-                      border: '1px solid var(--border)',
-                      borderRadius: 14,
-                      padding: 12,
-                      background: 'rgba(255,255,255,0.03)',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: 8,
-                      minHeight: 240
-                    }}
-                  >
+                  {priceProfiles.map((profile, idx) => (
+                    <div
+                      key={profile.id}
+                      style={{
+                        border: '1px solid var(--border)',
+                        borderRadius: 14,
+                        padding: 12,
+                        background: 'rgba(255,255,255,0.03)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 8,
+                        minHeight: 240,
+                        alignContent: 'stretch'
+                      }}
+                    >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
                         <div style={{ fontWeight: 800 }}>{profile.name}</div>
                         <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--muted)' }}>
@@ -405,15 +406,15 @@ const OverviewPage = () => {
                     <Input
                       label="Marge (%)"
                       type="text"
-                    inputMode="decimal"
-                    value={marginInputs[profile.id] ?? ''}
-                    placeholder="z.B. 28"
-                    style={{ height: 48, display: 'flex', alignItems: 'center' }}
-                    onFocus={(e) => {
-                      const len = e.target.value.length;
-                      requestAnimationFrame(() => {
-                        try {
-                          e.target.setSelectionRange(len, len);
+                      inputMode="decimal"
+                      value={marginInputs[profile.id] ?? ''}
+                      placeholder="z.B. 28"
+                      style={{ height: 48, display: 'flex', alignItems: 'center', width: '100%' }}
+                      onFocus={(e) => {
+                        const len = e.target.value.length;
+                        requestAnimationFrame(() => {
+                          try {
+                            e.target.setSelectionRange(len, len);
                         } catch {}
                       });
                     }}
