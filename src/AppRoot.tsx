@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from './auth/AuthContext';
-import { I18nProvider, useI18n, languageOptions } from './i18n';
+import { useI18n, languageOptions } from './i18n';
 import Button from './ui/Button';
 import Badge from './ui/Badge';
 import { TimeframeProvider, useTimeframe } from './features/timeframe/TimeframeContext';
@@ -64,11 +64,9 @@ const navGroups: NavGroup[] = [
 ];
 
 const App: React.FC = () => (
-  <I18nProvider>
-    <TimeframeProvider>
-      <InnerApp />
-    </TimeframeProvider>
-  </I18nProvider>
+  <TimeframeProvider>
+    <InnerApp />
+  </TimeframeProvider>
 );
 
 const InnerApp: React.FC = () => {

@@ -16,11 +16,14 @@ import PricingPage from './pages/PricingPage';
 import IntegrationsPage from './pages/IntegrationsPage';
 import ConversionPage from './pages/ConversionPage';
 import ReturnsPage from './pages/ReturnsPage';
+import { I18nProvider } from './i18n';
 
 const Providers = () => (
-  <AuthProvider>
-    <Outlet />
-  </AuthProvider>
+  <I18nProvider>
+    <AuthProvider>
+      <Outlet />
+    </AuthProvider>
+  </I18nProvider>
 );
 
 const routes = [
