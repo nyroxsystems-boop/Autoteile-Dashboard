@@ -47,6 +47,32 @@ const OverviewPage = () => {
   ];
   const [shopSearch, setShopSearch] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+
+  // PartsBot Empfehlungen
+  type RecCategory = 'alle' | 'marge' | 'lager' | 'retouren' | 'service';
+  type RecItem = {
+    id: string;
+    category: RecCategory;
+    severity: 'high' | 'medium' | 'low';
+    title: string;
+    rationale: string;
+    state?: 'vorgemerkt' | 'ignoriert' | 'spaeter';
+  };
+  const [recFilter, setRecFilter] = useState<RecCategory>('alle');
+  const [recs, setRecs] = useState<RecItem[]>([
+    { id: 'rec1', category: 'retouren', severity: 'high', title: 'Retouren-Cluster DHL Nord', rationale: 'Abbruchrate +18% bei Lieferzeit >3 Tage' },
+    { id: 'rec2', category: 'marge', severity: 'medium', title: 'Marge anheben bei Bremsbelägen', rationale: 'Ø Marge 11% vs Ziel 18% (SKU-Set 2440)' },
+    { id: 'rec3', category: 'lager', severity: 'high', title: 'Dead-Stock 90T+ abbauen', rationale: '12 SKUs > 90 Tage, Kapital 14.200 €' },
+    { id: 'rec4', category: 'service', severity: 'low', title: 'Kompatibilitäts-Hinweise ergänzen', rationale: '20% Abbruchgrund: Kompatibilität unklar' },
+    { id: 'rec5', category: 'marge', severity: 'medium', title: 'Bundle-Vorschlag Öl + Filter', rationale: 'Warenkorb +12%, Retouren -4%' },
+    { id: 'rec6', category: 'retouren', severity: 'medium', title: 'Qualitätscheck Lieferant XY', rationale: 'Retourenquote 9% vs Schnitt 3%' },
+    { id: 'rec7', category: 'lager', severity: 'low', title: 'Langlieger Rabatt B2B anbieten', rationale: 'Kapitalbindung 8.900 € in 6 SKUs' }
+  ]);
+
+  const filteredRecs = useMemo(() => {
+    return recs.filter((r) => recFilter === 'alle' || r.category === recFilter).filter((r) => r.state !== 'ignoriert');
+  }, [recs, recFilter]);
 
   const isStatsLoading = !stats && !error;
 
@@ -172,6 +198,7 @@ const OverviewPage = () => {
       // TODO: priceProfiles persistieren, sobald API dafür vorhanden ist
       setError(null);
       console.log('[OverviewPage] Merchant settings saved');
+      setToast('Einstellungen gespeichert (Demo)');
     } catch (err) {
       console.error('[OverviewPage] Fehler beim Speichern der Merchant-Settings', err);
       setError(err instanceof Error ? err.message : 'Fehler beim Speichern');
@@ -265,6 +292,104 @@ const OverviewPage = () => {
                 />
               </>
             )}
+        </div>
+      </Card>
+
+      {/* PartsBot Empfehlungen */}
+      <Card
+        title="PartsBot Empfehlungen"
+        subtitle="Heute priorisiert – basierend auf Anfragen, Abbrüchen, Lager & Marge"
+        actions={
+          <select
+            aria-label="Kategorie"
+            className="topbar-select"
+            value={recFilter}
+            onChange={(e) => setRecFilter(e.target.value as any)}
+            style={{ minWidth: 160 }}
+          >
+            <option value="alle">Kategorie: Alle</option>
+            <option value="marge">Marge</option>
+            <option value="lager">Lager</option>
+            <option value="retouren">Retouren</option>
+            <option value="service">Service</option>
+          </select>
+        }
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {filteredRecs.map((rec, idx) => (
+            <div
+              key={rec.id}
+              style={{
+                border: '1px solid var(--border)',
+                borderRadius: 12,
+                padding: 10,
+                display: 'grid',
+                gridTemplateColumns: '1fr auto',
+                gap: 8,
+                alignItems: 'center'
+              }}
+            >
+              <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                <span
+                  style={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: 999,
+                    background:
+                      rec.severity === 'high' ? '#ef4444' : rec.severity === 'medium' ? '#f59e0b' : '#22c55e'
+                  }}
+                />
+                <div>
+                  <div style={{ fontWeight: 800 }}>{rec.title}</div>
+                  <div style={{ color: 'var(--muted)', fontSize: 13 }}>
+                    {rec.rationale}{' '}
+                    {rec.state === 'spaeter' ? <Badge variant="warning">Erinnerung: morgen (Demo)</Badge> : null}
+                    {rec.state === 'vorgemerkt' ? <Badge variant="success">Vorgemerkt (Demo)</Badge> : null}
+                  </div>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                <Button
+                  size="sm"
+                  variant="primary"
+                  onClick={() => {
+                    setRecs((prev) =>
+                      prev.map((r, i) => (i === idx ? { ...r, state: 'vorgemerkt' } : r))
+                    );
+                    setToast('Aktion vorgemerkt (Demo)');
+                  }}
+                >
+                  Anwenden
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => {
+                    // move to bottom, mark spaeter
+                    setRecs((prev) => {
+                      const item = { ...prev[idx], state: 'spaeter' };
+                      const rest = prev.filter((_, i) => i !== idx);
+                      return [...rest, item];
+                    });
+                  }}
+                >
+                  Später
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => {
+                    setRecs((prev) => prev.map((r, i) => (i === idx ? { ...r, state: 'ignoriert' } : r)));
+                  }}
+                >
+                  Ignorieren
+                </Button>
+              </div>
+            </div>
+          ))}
+          {filteredRecs.length === 0 ? (
+            <div style={{ color: 'var(--muted)' }}>Alle Empfehlungen sind verarbeitet.</div>
+          ) : null}
         </div>
       </Card>
 
@@ -472,6 +597,57 @@ const OverviewPage = () => {
         </div>
       </Card>
 
+      {/* Retouren- & Abbruch-Forensik */}
+      <Card title="Retouren- & Abbruch-Forensik" subtitle="Warum Geld verloren geht">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10, marginBottom: 10 }}>
+          <KpiCard title="Vermeidbarer Umsatzverlust" value="14.800 €" description="geschätzt, letzte 30 Tage" />
+          <KpiCard title="Haupttreiber" value="Lieferzeit & Kompatibilität" description="Top 2 Ursachen" />
+          <KpiCard title="Betroffene SKUs" value="17" description="mit >10% Abbruch/Retouren" />
+        </div>
+        <div style={{ marginBottom: 12 }}>
+          <div style={{ fontWeight: 700, marginBottom: 6 }}>Abbruch- & Retourenursachen</div>
+          <CauseBarChart
+            data={[
+              { label: 'Lieferzeit zu lang', value: 38 },
+              { label: 'Preis zu hoch', value: 22 },
+              { label: 'Kompatibilität unklar', value: 31 },
+              { label: 'Doppelbestellung', value: 12 },
+              { label: 'Qualitätsmangel', value: 18 }
+            ]}
+          />
+        </div>
+        <div>
+          <div style={{ fontWeight: 700, marginBottom: 6 }}>Hotspots (SKU × Ursache)</div>
+          <HotspotTable />
+        </div>
+      </Card>
+
+      {/* Gebundenes Kapital Radar */}
+      <Card
+        title="Gebundenes Kapital Radar"
+        subtitle="Slow Mover & Kapitalbindung – fokus auf Liquidität"
+        actions={
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <input type="checkbox" /> Nur Risiko
+            </label>
+            <select className="topbar-select" style={{ minWidth: 130 }}>
+              <option>30 Tage</option>
+              <option>90 Tage</option>
+              <option>180 Tage</option>
+              <option>365 Tage</option>
+            </select>
+          </div>
+        }
+      >
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10, marginBottom: 10 }}>
+          <KpiCard title="Im Lager gebunden" value="72.400 €" description="Warenwert aktuell" />
+          <KpiCard title="Kurzfristig freisetzbar" value="18.600 €" description="30–60 Tage" />
+          <KpiCard title="Dead Stock Kandidaten" value="9" description=">180 Tage" />
+        </div>
+        <CapitalTable />
+      </Card>
+
       <Card title="Hinweise & Status">
         <ul style={{ margin: 0, paddingLeft: 18, color: 'var(--muted)', display: 'flex', flexDirection: 'column', gap: 6 }}>
           <li>Empfangene Nachrichten heute: {stats?.incomingMessages ?? '–'}</li>
@@ -479,6 +655,18 @@ const OverviewPage = () => {
           <li>Bestellungen, die auf OEM-Klärung warten: {oemIssuesCount}</li>
         </ul>
       </Card>
+
+      {toast ? (
+        <div style={{ position: 'fixed', bottom: 20, right: 20, background: 'var(--bg-panel)', border: '1px solid var(--border)', borderRadius: 12, padding: 12, boxShadow: '0 10px 30px rgba(0,0,0,0.35)' }}>
+          {toast}
+          <button
+            onClick={() => setToast(null)}
+            style={{ marginLeft: 10, background: 'transparent', border: 'none', color: 'var(--muted)', cursor: 'pointer' }}
+          >
+            ×
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 };
@@ -552,6 +740,215 @@ function formatMarginValue(margin: number | null | undefined): string {
 function buildMarginInputs(profiles: PriceProfile[]) {
   return Object.fromEntries(profiles.map((p) => [p.id, formatMarginValue(p.margin)]));
 }
+
+const CauseBarChart = ({ data }: { data: { label: string; value: number }[] }) => {
+  const max = Math.max(...data.map((d) => d.value), 1);
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {data.map((d) => (
+        <div key={d.label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ width: 160, color: 'var(--muted)', fontSize: 13 }}>{d.label}</div>
+          <div style={{ flex: 1, height: 10, borderRadius: 999, background: 'rgba(255,255,255,0.04)', overflow: 'hidden' }}>
+            <div
+              style={{
+                width: `${Math.round((d.value / max) * 100)}%`,
+                height: '100%',
+                borderRadius: 999,
+                background: 'linear-gradient(90deg, #2563eb, #22c55e)'
+              }}
+            />
+          </div>
+          <div style={{ width: 40, textAlign: 'right', color: 'var(--muted)', fontSize: 13 }}>{d.value}%</div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const hotspotData = [
+  { sku: 'BREM-2440', cause: 'Lieferzeit zu lang', abbruch: '18%', retouren: '6%', marge: '14%', note: 'Express-Option anbieten' },
+  { sku: 'FILTER-900', cause: 'Preis zu hoch', abbruch: '12%', retouren: '3%', marge: '22%', note: 'Bundle mit Öl filter' },
+  { sku: 'RADLAGER-77', cause: 'Kompatibilität unklar', abbruch: '15%', retouren: '5%', marge: '19%', note: 'Kompatibilitätstext ergänzen' },
+  { sku: 'BATT-AGM60', cause: 'Doppelbestellung', abbruch: '9%', retouren: '8%', marge: '11%', note: 'Warenkorb-Prüfung verstärken' },
+  { sku: 'WISCH-SET2', cause: 'Qualitätsmangel', abbruch: '6%', retouren: '10%', marge: '24%', note: 'Lieferant prüfen' },
+  { sku: 'OEL-5W30', cause: 'Preis zu hoch', abbruch: '7%', retouren: '2%', marge: '17%', note: 'Preisstaffel prüfen' }
+];
+
+const HotspotTable = () => {
+  const [selected, setSelected] = useState<string[]>([]);
+  const allSelected = selected.length === hotspotData.length;
+  const toggleAll = () => setSelected(allSelected ? [] : hotspotData.map((h) => h.sku));
+  const toggle = (id: string) =>
+    setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+
+  return (
+    <div>
+      {selected.length > 0 ? (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', gap: 8 }}>
+          <div style={{ color: 'var(--muted)', fontSize: 13 }}>{selected.length} markiert</div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <Button size="sm" variant="secondary">Markierte analysieren</Button>
+            <Button size="sm" variant="ghost">Als Aufgabe speichern</Button>
+          </div>
+        </div>
+      ) : null}
+      <div style={{ overflowX: 'auto', border: '1px solid var(--border)', borderRadius: 10 }}>
+        <table className="table">
+          <thead>
+            <tr>
+              <th><input type="checkbox" checked={allSelected} onChange={toggleAll} aria-label="Alle auswählen" /></th>
+              <th>SKU / Artikel</th>
+              <th>Ursache</th>
+              <th>Abbruchrate</th>
+              <th>Retourenquote</th>
+              <th>Ø Marge</th>
+              <th>Empfehlung</th>
+              <th>Aktion</th>
+            </tr>
+          </thead>
+          <tbody>
+            {hotspotData.map((h) => (
+              <tr key={h.sku} className="table-row">
+                <td><input type="checkbox" checked={selected.includes(h.sku)} onChange={() => toggle(h.sku)} aria-label={`${h.sku} auswählen`} /></td>
+                <td>{h.sku}</td>
+                <td><Badge variant="neutral">{h.cause}</Badge></td>
+                <td>{h.abbruch}</td>
+                <td>{h.retouren}</td>
+                <td>{h.marge}</td>
+                <td style={{ color: 'var(--muted)' }}>{h.note}</td>
+                <td><Button size="sm" variant="ghost">Details</Button></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+const capitalData = [
+  { sku: 'BREM-2440', stock: 120, einstand: '45 €', capital: '5.400 €', days: '120 Tage', action: 'B2B-Abverkauf' },
+  { sku: 'FILTER-900', stock: 340, einstand: '6 €', capital: '2.040 €', days: '95 Tage', action: 'Bundle' },
+  { sku: 'RADLAGER-77', stock: 60, einstand: '38 €', capital: '2.280 €', days: '150 Tage', action: 'Preis senken' },
+  { sku: 'BATT-AGM60', stock: 18, einstand: '110 €', capital: '1.980 €', days: '210 Tage', action: 'Lieferant-Rückgabe' },
+  { sku: 'WISCH-SET2', stock: 220, einstand: '4 €', capital: '880 €', days: '75 Tage', action: 'Bundle' },
+  { sku: 'OEL-5W30', stock: 90, einstand: '18 €', capital: '1.620 €', days: '60 Tage', action: 'B2B-Abverkauf' }
+];
+
+const CapitalTable = () => {
+  const [planner, setPlanner] = useState<{ open: boolean; sku?: string }>({ open: false });
+  const [note, setNote] = useState('');
+  const [target, setTarget] = useState('');
+  const [actionType, setActionType] = useState('Preis senken');
+  const [planStatus, setPlanStatus] = useState<string | null>(null);
+
+  return (
+    <div>
+      <div style={{ overflowX: 'auto', border: '1px solid var(--border)', borderRadius: 10 }}>
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Artikel / SKU</th>
+              <th>Bestand</th>
+              <th>Einstand</th>
+              <th>Kapitalwert</th>
+              <th>Liegedauer</th>
+              <th>Empfohlene Aktion</th>
+              <th>Aktion</th>
+            </tr>
+          </thead>
+          <tbody>
+            {capitalData.map((c) => (
+              <tr key={c.sku} className="table-row">
+                <td>{c.sku}</td>
+                <td>{c.stock}</td>
+                <td>{c.einstand}</td>
+                <td>{c.capital}</td>
+                <td>{c.days}</td>
+                <td><Badge variant="neutral">{c.action}</Badge></td>
+                <td>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => {
+                      setPlanner({ open: true, sku: c.sku });
+                      setPlanStatus(null);
+                    }}
+                  >
+                    Aktion planen
+                  </Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {planner.open ? (
+        <div
+          style={{
+            marginTop: 12,
+            border: '1px solid var(--border)',
+            borderRadius: 12,
+            padding: 12,
+            background: 'rgba(255,255,255,0.03)',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            gap: 10
+          }}
+        >
+          <div style={{ fontWeight: 800 }}>Plan für {planner.sku}</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <label style={{ color: 'var(--muted)', fontSize: 12 }}>Aktionstyp</label>
+            <select
+              className="topbar-select"
+              value={actionType}
+              onChange={(e) => setActionType(e.target.value)}
+            >
+              <option>Preis senken</option>
+              <option>Bundle</option>
+              <option>B2B-Abverkauf</option>
+              <option>Lieferant-Rückgabe</option>
+            </select>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <label style={{ color: 'var(--muted)', fontSize: 12 }}>Zielpreis (€)</label>
+            <Input value={target} onChange={(e) => setTarget(e.target.value)} placeholder="z.B. 14,90" />
+          </div>
+          <div style={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <label style={{ color: 'var(--muted)', fontSize: 12 }}>Notiz</label>
+            <textarea
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              style={{
+                minHeight: 80,
+                borderRadius: 10,
+                border: '1px solid var(--border)',
+                padding: 10,
+                background: 'rgba(255,255,255,0.03)',
+                color: 'var(--text)'
+              }}
+            />
+          </div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <Button
+              variant="primary"
+              onClick={() => {
+                setPlanStatus('Plan gespeichert (Demo)');
+              }}
+            >
+              Plan speichern (Demo)
+            </Button>
+            <Button variant="ghost" onClick={() => setPlanner({ open: false })}>
+              Schließen
+            </Button>
+            {planStatus ? <span style={{ color: 'var(--muted)' }}>{planStatus}</span> : null}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+};
 type OrderBucket = { label: string; orders: Order[] };
 
 const buildOrderBuckets = (
