@@ -1,28 +1,73 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from './auth/AuthContext';
 import { I18nProvider, useI18n, languageOptions } from './i18n';
 import Button from './ui/Button';
 import Badge from './ui/Badge';
+import { TimeframeProvider, useTimeframe } from './features/timeframe/TimeframeContext';
 
-const navItems = [
-  { path: '/', label: 'Übersicht' },
-  { path: '/orders', label: 'Bestellungen' },
-  { path: '/wws', label: 'Warenwirtschaftssystem' },
-  { path: '/documents', label: 'Belege' }
-];
-
-const pageTitleMap: Record<string, string> = {
-  '/': 'Übersicht',
-  '/orders': 'Bestellungen',
-  '/orders/': 'Bestellungen',
-  '/wws': 'Warenwirtschaftssystem',
-  '/documents': 'Belege'
+type NavGroup = {
+  id: string;
+  label: string;
+  items: { path: string; label: string }[];
 };
+
+const navGroups: NavGroup[] = [
+  {
+    id: 'cockpit',
+    label: 'Cockpit',
+    items: [
+      { path: '/overview', label: 'Übersicht' },
+      { path: '/recommendations', label: 'Empfehlungen' }
+    ]
+  },
+  {
+    id: 'sales',
+    label: 'Verkauf',
+    items: [
+      { path: '/orders', label: 'Bestellungen' },
+      { path: '/insights/conversion', label: 'Konversion & Abbrüche' }
+    ]
+  },
+  {
+    id: 'insights',
+    label: 'Insights',
+    items: [
+      { path: '/insights/forensics', label: 'Forensik' },
+      { path: '/insights/returns', label: 'Retouren' }
+    ]
+  },
+  {
+    id: 'inventory',
+    label: 'Lager & Einkauf',
+    items: [
+      { path: '/inventory', label: 'Lagerübersicht' },
+      { path: '/inventory/capital', label: 'Gebundenes Kapital' }
+    ]
+  },
+  {
+    id: 'finance',
+    label: 'Finanzen',
+    items: [
+      { path: '/documents', label: 'Belege' },
+      { path: '/documents/transmit', label: 'Behörden-Übermittlung' }
+    ]
+  },
+  {
+    id: 'settings',
+    label: 'Einstellungen',
+    items: [
+      { path: '/settings/pricing', label: 'Preisprofile' },
+      { path: '/settings/integrations', label: 'Shops & Integrationen' }
+    ]
+  }
+];
 
 const App: React.FC = () => (
   <I18nProvider>
-    <InnerApp />
+    <TimeframeProvider>
+      <InnerApp />
+    </TimeframeProvider>
   </I18nProvider>
 );
 
@@ -30,7 +75,8 @@ const InnerApp: React.FC = () => {
   const location = useLocation();
   const auth = useAuth();
   const { t, lang, setLang } = useI18n();
-  const [showProfileMenu, setShowProfileMenu] = useState(false); // Top-right Profilmenü statt Sidebar
+  const { timeframe, setTimeframe } = useTimeframe();
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     if (typeof localStorage === 'undefined') return 'dark';
     const stored = localStorage.getItem('theme');
@@ -38,15 +84,41 @@ const InnerApp: React.FC = () => {
   });
   const [langSearch, setLangSearch] = useState('');
   const [showLangMenu, setShowLangMenu] = useState(false);
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>(() => {
+    if (typeof localStorage === 'undefined') return {};
+    try {
+      return JSON.parse(localStorage.getItem('nav_collapsed') || '{}');
+    } catch {
+      return {};
+    }
+  });
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
     localStorage.setItem('theme', theme);
   }, [theme]);
 
-  const pageTitle =
-    pageTitleMap[location.pathname] ||
-    (location.pathname.startsWith('/orders/') ? 'Bestelldetails' : t('brandTitle'));
+  useEffect(() => {
+    localStorage.setItem('nav_collapsed', JSON.stringify(collapsedGroups));
+  }, [collapsedGroups]);
+
+  const pageTitle = useMemo(() => {
+    if (location.pathname.startsWith('/orders/')) return 'Bestelldetails';
+    if (location.pathname.startsWith('/overview')) return 'Übersicht';
+    if (location.pathname.startsWith('/recommendations')) return 'Empfehlungen';
+    if (location.pathname.startsWith('/insights/forensics')) return 'Forensik';
+    if (location.pathname.startsWith('/insights/conversion')) return 'Konversion & Abbrüche';
+    if (location.pathname.startsWith('/inventory/capital')) return 'Gebundenes Kapital Radar';
+    if (location.pathname.startsWith('/inventory')) return 'Lagerübersicht';
+    if (location.pathname.startsWith('/documents')) return 'Belege';
+    if (location.pathname.startsWith('/settings/pricing')) return 'Preisprofile';
+    if (location.pathname.startsWith('/settings/integrations')) return 'Shops & Integrationen';
+    return t('brandTitle');
+  }, [location.pathname, t]);
+
+  const toggleGroup = (id: string) => {
+    setCollapsedGroups((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
 
   return (
     <div className="app-shell">
@@ -58,15 +130,42 @@ const InnerApp: React.FC = () => {
             <div style={{ color: 'var(--muted)', fontSize: 12 }}>{t('brandSubtitle')}</div>
           </div>
         </div>
-        <nav className="sidebar-nav">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              className={({ isActive }) => ['sidebar-link', isActive ? 'active' : ''].join(' ')}
-            >
-              <span className="sidebar-link-label">{item.label}</span>
-            </NavLink>
+        <nav className="sidebar-nav" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {navGroups.map((group) => (
+            <div key={group.id} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <button
+                type="button"
+                onClick={() => toggleGroup(group.id)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--muted)',
+                  fontWeight: 700,
+                  textAlign: 'left',
+                  padding: '6px 8px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  cursor: 'pointer'
+                }}
+              >
+                <span>{group.label}</span>
+                <span style={{ opacity: 0.6 }}>{collapsedGroups[group.id] ? '▸' : '▾'}</span>
+              </button>
+              {!collapsedGroups[group.id] ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  {group.items.map((item) => (
+                    <NavLink
+                      key={item.path}
+                      to={item.path}
+                      className={({ isActive }) => ['sidebar-link', isActive ? 'active' : ''].join(' ')}
+                    >
+                      <span className="sidebar-link-label">{item.label}</span>
+                    </NavLink>
+                  ))}
+                </div>
+              ) : null}
+            </div>
           ))}
         </nav>
       </aside>
@@ -74,7 +173,21 @@ const InnerApp: React.FC = () => {
       <div className="main-area">
         <div className="topbar">
           <div className="topbar-title">{pageTitle}</div>
-          <div className="topbar-actions">
+          <div className="topbar-actions" style={{ gap: 10 }}>
+            <div style={{ display: 'flex', gap: 6 }}>
+              {(['Heute', 'Diese Woche', 'Dieser Monat', 'Dieses Jahr'] as const).map((p) => (
+                <Button
+                  key={p}
+                  variant={timeframe === p ? 'primary' : 'ghost'}
+                  size="sm"
+                  onClick={() => setTimeframe(p)}
+                  aria-label={`Zeitraum ${p}`}
+                >
+                  {p}
+                </Button>
+              ))}
+            </div>
+            <Button variant="ghost" size="sm" aria-label="Command Palette">⌘K</Button>
             <div style={{ position: 'relative' }}>
               <Button
                 variant="ghost"

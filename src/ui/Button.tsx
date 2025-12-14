@@ -8,6 +8,7 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   variant?: ButtonVariant;
   size?: ButtonSize;
   fullWidth?: boolean;
+  as?: React.ElementType;
 }
 
 export const Button: React.FC<ButtonProps> = ({
@@ -16,10 +17,12 @@ export const Button: React.FC<ButtonProps> = ({
   fullWidth,
   className,
   children,
+  as,
   ...rest
 }) => {
+  const Component: any = as || 'button';
   return (
-    <button
+    <Component
       className={cn(
         'ui-btn',
         `ui-btn-${variant}`,
@@ -30,7 +33,7 @@ export const Button: React.FC<ButtonProps> = ({
       {...rest}
     >
       {children}
-    </button>
+    </Component>
   );
 };
 

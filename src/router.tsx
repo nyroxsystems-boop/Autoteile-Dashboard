@@ -6,14 +6,20 @@ import OverviewPage from './pages/OverviewPage';
 import AuthPage from './pages/AuthPage';
 import { AuthProvider, RequireAuth } from './auth/AuthContext';
 import WwsPage from './features/wws/WwsPage';
-import { I18nProvider } from './i18n';
 import DocumentsPage from './pages/DocumentsPage';
+import RecommendationsPage from './pages/RecommendationsPage';
+import ForensicsPage from './pages/ForensicsPage';
+import CapitalPage from './pages/CapitalPage';
+import InventoryPage from './pages/InventoryPage';
+import TransmitPage from './pages/TransmitPage';
+import PricingPage from './pages/PricingPage';
+import IntegrationsPage from './pages/IntegrationsPage';
+import ConversionPage from './pages/ConversionPage';
+import ReturnsPage from './pages/ReturnsPage';
 
 const Providers = () => (
   <AuthProvider>
-    <I18nProvider>
-      <Outlet />
-    </I18nProvider>
+    <Outlet />
   </AuthProvider>
 );
 
@@ -30,11 +36,21 @@ const routes = [
           </RequireAuth>
         ),
         children: [
-          { index: true, element: <OverviewPage /> },
+          { index: true, element: <Navigate to="/overview" replace /> },
+          { path: 'overview', element: <OverviewPage /> },
+          { path: 'recommendations', element: <RecommendationsPage /> },
+          { path: 'insights/forensics', element: <ForensicsPage /> },
+          { path: 'insights/conversion', element: <ConversionPage /> },
+          { path: 'insights/returns', element: <ReturnsPage /> },
+          { path: 'inventory', element: <InventoryPage /> },
+          { path: 'inventory/capital', element: <CapitalPage /> },
           { path: 'orders', element: <OrdersListPage /> },
           { path: 'orders/:id', element: <OrderDetailPage /> },
           { path: 'wws', element: <WwsPage /> },
           { path: 'documents', element: <DocumentsPage /> },
+          { path: 'documents/transmit', element: <TransmitPage /> },
+          { path: 'settings/pricing', element: <PricingPage /> },
+          { path: 'settings/integrations', element: <IntegrationsPage /> },
           { path: '*', element: <Navigate to='/' replace /> }
         ]
       },
