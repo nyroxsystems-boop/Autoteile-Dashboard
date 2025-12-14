@@ -63,7 +63,7 @@ const InventoryPage = () => {
           >
             <option value="alle">Alle</option>
             <option value="risiko">Risiko / Dead Stock</option>
-            <option value="slow">Liegedauer > 60 Tage</option>
+            <option value="slow">Liegedauer &gt; 60 Tage</option>
           </select>
           <Button variant="ghost" size="sm" onClick={() => { setSearch(''); setFilter('alle'); }}>
             Filter zurücksetzen
