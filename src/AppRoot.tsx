@@ -8,14 +8,16 @@ import Badge from './ui/Badge';
 const navItems = [
   { path: '/', label: 'Übersicht' },
   { path: '/orders', label: 'Bestellungen' },
-  { path: '/wws', label: 'Warenwirtschaftssystem' }
+  { path: '/wws', label: 'Warenwirtschaftssystem' },
+  { path: '/documents', label: 'Belege' }
 ];
 
 const pageTitleMap: Record<string, string> = {
   '/': 'Übersicht',
   '/orders': 'Bestellungen',
   '/orders/': 'Bestellungen',
-  '/wws': 'Warenwirtschaftssystem'
+  '/wws': 'Warenwirtschaftssystem',
+  '/documents': 'Belege'
 };
 
 const App: React.FC = () => (
