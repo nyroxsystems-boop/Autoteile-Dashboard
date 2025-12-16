@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
-import { listInvoices, type Invoice } from '../api/part/';
+import { listInvoices, type Invoice } from '../api/invoices';
 import { Link } from 'react-router-dom';
 
 const InvoicesPage = () => {

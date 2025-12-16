@@ -5,7 +5,7 @@ import type { Order, OrderData, SelectedOfferSummary, ShopOffer } from '../api/t
 import Card from '../ui/Card';
 import Badge from '../ui/Badge';
 import Button from '../ui/Button';
-import { createInvoiceFromOrder } from '../api/part/';
+import { createInvoiceFromOrder } from '../api/invoices';
 
 type OfferRow = ShopOffer & { priceValue: number; currencyValue: string };
 

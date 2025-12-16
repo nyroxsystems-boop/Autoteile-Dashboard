@@ -10,7 +10,7 @@ import {
   markInvoicePaid,
   sendInvoice,
   type Invoice
-} from '../api/part/';
+} from '../api/invoices';
 
 const InvoiceDetailPage = () => {
   const { id } = useParams();
