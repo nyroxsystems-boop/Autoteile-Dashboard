@@ -1,9 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Badge from '../ui/Badge';
 import Input from '../ui/Input';
 import PageHeader from '../ui/PageHeader';
+import { wawiService } from '../services/wawi';
 
 type RecCategory = 'marge' | 'lager' | 'retouren' | 'service';
 type RecItem = {
@@ -15,26 +16,54 @@ type RecItem = {
   state?: 'vorgemerkt' | 'ignoriert' | 'spaeter';
 };
 
-const mockItems: RecItem[] = [
-  { id: 'r1', title: 'Bremsen Bundle erhöhen', rationale: 'Marge +6% möglich bei Set-Preis 89€', category: 'marge', severity: 'medium' },
-  { id: 'r2', title: 'Dead Stock abverkaufen', rationale: '9 SKUs > 120 Tage, Kapital 14.2k €', category: 'lager', severity: 'high' },
-  { id: 'r3', title: 'Retouren DHL Nord', rationale: 'Lieferzeit >3 Tage → Retouren +8%', category: 'retouren', severity: 'high' },
-  { id: 'r4', title: 'Kompatibilitäts-Check ergänzen', rationale: '20% Abbruchgrund “unklar”', category: 'service', severity: 'low' },
-  { id: 'r5', title: 'Werkstatt Basic Rabatt prüfen', rationale: 'Basket 280€ · Marge 17%', category: 'marge', severity: 'medium' },
-  { id: 'r6', title: 'B2B-Abverkauf Batterien', rationale: 'Bestand 18 · Liegedauer 210 Tage', category: 'lager', severity: 'medium' }
-];
-
 const tabs = ['Alle', 'Heute', 'Hoher Impact', 'Vorgemerkt', 'Ignoriert'] as const;
 
 const RecommendationsPage = () => {
   const [activeTab, setActiveTab] = useState<(typeof tabs)[number]>('Alle');
   const [selected, setSelected] = useState<string[]>([]);
-  const [items, setItems] = useState<RecItem[]>(mockItems);
+  const [items, setItems] = useState<RecItem[]>([]);
   const [categoryFilter, setCategoryFilter] = useState<'alle' | RecCategory>('alle');
   const [severityFilter, setSeverityFilter] = useState<'alle' | 'high' | 'medium' | 'low'>('alle');
   const [toast, setToast] = useState<string | null>(null);
   const [detailId, setDetailId] = useState<string | null>(null);
   const [simPrice, setSimPrice] = useState<string>('');
+  const [oemQuery, setOemQuery] = useState<string>('11428507683');
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadRecommendations = async (oem: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await wawiService.inventoryByOem(oem);
+      const offers = (data as any)?.offers ?? [];
+      const mapped: RecItem[] = offers.map((offer: any, idx: number) => ({
+        id: offer.id?.toString() ?? `${oem}-${idx}`,
+        title: offer.product_name || offer.brand || offer.supplier_name || 'Angebot',
+        rationale: `${offer.price ?? '-'} ${offer.currency ?? ''} · ${offer.supplier_name ?? ''}`,
+        category: 'marge',
+        severity:
+          offer.price && Number(offer.price) > 200
+            ? 'high'
+            : offer.price && Number(offer.price) > 100
+              ? 'medium'
+              : 'low'
+      }));
+      setItems(mapped);
+      setDetailId(mapped[0]?.id ?? null);
+      if (mapped.length === 0) setToast('Keine Angebote gefunden');
+    } catch (err) {
+      console.error('[recommendations] load error', err);
+      setError('Angebote konnten nicht geladen werden');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadRecommendations(oemQuery);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const filtered = useMemo(() => {
     return items
@@ -78,8 +107,20 @@ const RecommendationsPage = () => {
         subtitle="Priorisiert nach Impact auf Marge, Cash & Retouren"
         actions={
           <>
-            <Button variant="secondary" size="sm">Regeln verwalten (Demo)</Button>
-            <Button variant="primary" size="sm">Neue Aufgabe</Button>
+            <Input
+              value={oemQuery}
+              onChange={(e) => setOemQuery(e.target.value)}
+              placeholder="OEM / Suchbegriff"
+              style={{ minWidth: 160 }}
+            />
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => loadRecommendations(oemQuery || 'DEMO-OEM')}
+              disabled={loading}
+            >
+              {loading ? 'Lädt...' : 'Angebote laden'}
+            </Button>
           </>
         }
       />
@@ -120,6 +161,8 @@ const RecommendationsPage = () => {
             <option value="low">Niedrig</option>
           </select>
         </div>
+        {error ? <div style={{ paddingTop: 8, color: 'var(--danger)' }}>{error}</div> : null}
+        {loading ? <div style={{ paddingTop: 8, color: 'var(--muted)' }}>Lade Angebote...</div> : null}
       </Card>
 
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr', gap: 12 }}>

@@ -5,6 +5,7 @@ import { useI18n, languageOptions } from './i18n';
 import Button from './ui/Button';
 import Badge from './ui/Badge';
 import { TimeframeProvider, useTimeframe } from './features/timeframe/TimeframeContext';
+import DevInfo from './ui/DevInfo';
 
 type NavGroup = {
   id: string;
@@ -49,6 +50,7 @@ const navGroups: NavGroup[] = [
     id: 'finance',
     label: 'Finanzen',
     items: [
+      { path: '/invoices', label: 'Rechnungen' },
       { path: '/documents', label: 'Belege' },
       { path: '/documents/transmit', label: 'Behörden-Übermittlung' }
     ]
@@ -108,6 +110,7 @@ const InnerApp: React.FC = () => {
     if (location.pathname.startsWith('/insights/conversion')) return 'Konversion & Abbrüche';
     if (location.pathname.startsWith('/inventory/capital')) return 'Gebundenes Kapital Radar';
     if (location.pathname.startsWith('/inventory')) return 'Lagerübersicht';
+    if (location.pathname.startsWith('/invoices')) return 'Rechnungen';
     if (location.pathname.startsWith('/documents')) return 'Belege';
     if (location.pathname.startsWith('/settings/pricing')) return 'Preisprofile';
     if (location.pathname.startsWith('/settings/integrations')) return 'Shops & Integrationen';
@@ -327,6 +330,7 @@ const InnerApp: React.FC = () => {
           </div>
         </div>
         <main className="page">
+          {import.meta.env.DEV ? <DevInfo /> : null}
           <Outlet />
         </main>
       </div>

@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { getOrder, getOrderOffers } from '../api/orders';
 import type { Order, OrderData, SelectedOfferSummary, ShopOffer } from '../api/types';
 import Card from '../ui/Card';
 import Badge from '../ui/Badge';
+import Button from '../ui/Button';
+import { createInvoiceFromOrder } from '../api/invoices';
 
 type OfferRow = ShopOffer & { priceValue: number; currencyValue: string };
 
@@ -15,6 +17,7 @@ const OrderDetailPage = () => {
 
   const [orderError, setOrderError] = useState<string | null>(null);
   const [offersError, setOffersError] = useState<string | null>(null);
+  const [invoiceError, setInvoiceError] = useState<string | null>(null);
 
   const [isOrderLoading, setIsOrderLoading] = useState<boolean>(false);
   const [isOffersLoading, setIsOffersLoading] = useState<boolean>(false);
@@ -125,6 +128,17 @@ const OrderDetailPage = () => {
       }
     : null);
 
+  const handleCreateInvoice = async () => {
+    if (!orderId) return;
+    setInvoiceError(null);
+    try {
+      const inv = await createInvoiceFromOrder(orderId);
+      navigate(`/invoices/${inv.id}`);
+    } catch (err: any) {
+      setInvoiceError(err?.message || 'Rechnung konnte nicht erstellt werden');
+    }
+  };
+
   if (!orderId) {
     return <div style={styles.wrapper}>Keine Bestell-ID übergeben.</div>;
   }
@@ -148,11 +162,23 @@ const OrderDetailPage = () => {
           <strong>Fehler beim Laden der Bestellung:</strong> {orderError}
         </div>
       ) : null}
+      {invoiceError ? (
+        <div className="error-box">
+          <strong>Rechnungsfehler:</strong> {invoiceError}
+        </div>
+      ) : null}
 
       <Card
         title={`Bestellung #${orderId}`}
         subtitle="Status und Metadaten"
-        actions={<Badge variant="neutral">{order?.language ?? 'n/a'}</Badge>}
+        actions={
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <Badge variant="neutral">{order?.language ?? 'n/a'}</Badge>
+            <Button size="sm" onClick={handleCreateInvoice}>
+              Rechnung erstellen
+            </Button>
+          </div>
+        }
       >
         <div style={styles.rowGrid}>
           <div>

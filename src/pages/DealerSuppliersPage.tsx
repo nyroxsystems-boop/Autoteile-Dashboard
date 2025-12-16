@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Badge from '../ui/Badge';
+import { apiClient } from '../api/client';
 
 type Supplier = {
   id: string;
@@ -51,11 +52,9 @@ const DealerSuppliersPage: React.FC<Props> = ({ dealerId }) => {
       setError(null);
       setSuccess(null);
       try {
-        const res = await fetch(`/api/dealers/${dealerId}/suppliers`);
-        if (!res.ok) {
-          throw new Error(`Laden fehlgeschlagen (${res.status})`);
-        }
-        const data: DealerSupplierItem[] = await res.json();
+        const data = await apiClient.get<DealerSupplierItem[]>(
+          `/api/dealers/${dealerId}/suppliers`
+        );
         setItems(normalizePriorities(data ?? []));
       } catch (err) {
         console.error('[DealerSuppliersPage] Fehler beim Laden', err);
@@ -141,15 +140,7 @@ const DealerSuppliersPage: React.FC<Props> = ({ dealerId }) => {
         }))
       };
 
-      const res = await fetch(`/api/dealers/${dealerId}/suppliers`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (!res.ok) {
-        throw new Error(`Speichern fehlgeschlagen (${res.status})`);
-      }
+      await apiClient.put(`/api/dealers/${dealerId}/suppliers`, payload);
 
       setSuccess('Änderungen gespeichert.');
     } catch (err) {

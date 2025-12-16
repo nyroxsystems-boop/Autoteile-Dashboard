@@ -14,6 +14,8 @@ import InventoryPage from './pages/InventoryPage';
 import TransmitPage from './pages/TransmitPage';
 import PricingPage from './pages/PricingPage';
 import IntegrationsPage from './pages/IntegrationsPage';
+import InvoicesPage from './pages/InvoicesPage';
+import InvoiceDetailPage from './pages/InvoiceDetailPage';
 import ConversionPage from './pages/ConversionPage';
 import ReturnsPage from './pages/ReturnsPage';
 import { I18nProvider } from './i18n';
@@ -49,6 +51,8 @@ const routes = [
           { path: 'inventory/capital', element: <CapitalPage /> },
           { path: 'orders', element: <OrdersListPage /> },
           { path: 'orders/:id', element: <OrderDetailPage /> },
+          { path: 'invoices', element: <InvoicesPage /> },
+          { path: 'invoices/:id', element: <InvoiceDetailPage /> },
           { path: 'wws', element: <WwsPage /> },
           { path: 'documents', element: <DocumentsPage /> },
           { path: 'documents/transmit', element: <TransmitPage /> },

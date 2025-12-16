@@ -7,8 +7,8 @@ import Input from '../ui/Input';
 import { languageOptions, useI18n } from '../i18n';
 
 const AuthPage = () => {
-  const [isRegister, setIsRegister] = useState(false);
-  const [merchantId, setMerchantId] = useState('');
+  const [email, setEmail] = useState('');
+  const [tenant, setTenant] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const auth = useAuth();
@@ -29,22 +29,16 @@ const AuthPage = () => {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (!merchantId) return setError('Bitte gib deine Merchant-ID ein.');
+    if (!email) return setError('Bitte gib deine E-Mail ein.');
     if (!password) return setError('Bitte gib dein Passwort ein.');
     let ok = false;
     try {
-      if (isRegister) ok = await auth.register(merchantId.trim(), password);
-      else ok = await auth.login(merchantId.trim(), password);
+      ok = await auth.login(email.trim(), password, tenant.trim() || undefined);
     } catch (err: any) {
       setError(err?.message ?? 'Es ist ein Fehler aufgetreten. Bitte versuche es erneut.');
       return;
     }
-    if (!ok)
-      return setError(
-        isRegister
-          ? 'Registrierung fehlgeschlagen. Existiert der Account bereits?'
-          : 'Login fehlgeschlagen. Bitte prüfe deine Eingaben.'
-      );
+    if (!ok) return setError('Login fehlgeschlagen. Bitte prüfe deine Eingaben.');
     navigate('/');
   };
 
@@ -149,30 +143,17 @@ const AuthPage = () => {
           className="ui-card-padded"
         >
           <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <Button
-                type="button"
-                variant={!isRegister ? 'primary' : 'ghost'}
-                fullWidth
-                onClick={() => setIsRegister(false)}
-              >
-                Einloggen
-              </Button>
-              <Button
-                type="button"
-                variant={isRegister ? 'primary' : 'ghost'}
-                fullWidth
-                onClick={() => setIsRegister(true)}
-              >
-                Account erstellen
-              </Button>
-            </div>
-
             <Input
-              label="Merchant-ID"
-              value={merchantId}
-              onChange={(e) => setMerchantId(e.target.value)}
-              placeholder="z.B. demo-haendler"
+              label="E-Mail"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="z.B. user@example.com"
+            />
+            <Input
+              label="Tenant (optional)"
+              value={tenant}
+              onChange={(e) => setTenant(e.target.value)}
+              placeholder="Tenant-ID oder Slug"
             />
             <Input
               label="Passwort"
@@ -185,24 +166,11 @@ const AuthPage = () => {
             {error ? <div className="error-box">{error}</div> : null}
 
             <Button type="submit" variant="primary" fullWidth>
-              {isRegister ? 'Account erstellen' : 'Einloggen'}
+              Einloggen
             </Button>
 
             <div style={{ textAlign: 'center', color: 'var(--muted)', fontSize: 13 }}>
-              {isRegister ? 'Schon einen Account?' : 'Noch keinen Account?'}{' '}
-              <button
-                type="button"
-                onClick={() => setIsRegister((v) => !v)}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  color: 'var(--primary)',
-                  fontWeight: 700,
-                  cursor: 'pointer'
-                }}
-              >
-                {isRegister ? 'Zum Login' : 'Jetzt registrieren'}
-              </button>
+              Verwende die Zugangsdaten aus dem Backend (/api/auth/login).
             </div>
           </form>
         </Card>

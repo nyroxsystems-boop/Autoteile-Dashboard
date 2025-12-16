@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Badge from '../ui/Badge';
+import { listInvoices } from '../api/invoices';
 
 type DocStatus = 'neu' | 'geprüft' | 'übermittelt' | 'fehler';
 type TaxTag = 'ust' | 'keine_ust' | 'reverse';
@@ -35,23 +36,6 @@ const taxLabel: Record<TaxTag, string> = {
   reverse: 'Reverse Charge'
 };
 
-const mockDocs: DocumentRow[] = [
-  { id: 'DOC-10231', name: 'Rechnung DHL Paketzentrum', sender: 'DHL', date: '2024-05-02', amount: '89,30 €', tax: 'ust', status: 'neu' },
-  { id: 'DOC-10232', name: 'Meta Ads April', sender: 'Meta Platforms', date: '2024-05-03', amount: '1.240,00 €', tax: 'reverse', status: 'geprüft' },
-  { id: 'DOC-10233', name: 'Strom Abschlag', sender: 'Stadtwerke Berlin', date: '2024-05-04', amount: '310,22 €', tax: 'ust', status: 'übermittelt' },
-  { id: 'DOC-10234', name: 'Shopify App Gebühren', sender: 'Shopify', date: '2024-05-05', amount: '129,00 €', tax: 'reverse', status: 'neu' },
-  { id: 'DOC-10235', name: 'Amazon Lagergebühren', sender: 'Amazon FBA', date: '2024-05-06', amount: '540,70 €', tax: 'ust', status: 'geprüft' },
-  { id: 'DOC-10236', name: 'Verpackungen Q2', sender: 'Rajapack', date: '2024-05-06', amount: '420,40 €', tax: 'ust', status: 'fehler' },
-  { id: 'DOC-10237', name: 'Zollabfertigung', sender: 'DHL Express', date: '2024-05-07', amount: '220,00 €', tax: 'keine_ust', status: 'neu' },
-  { id: 'DOC-10238', name: 'Meta Ads Mai', sender: 'Meta Platforms', date: '2024-05-08', amount: '980,00 €', tax: 'reverse', status: 'neu' },
-  { id: 'DOC-10239', name: 'Strom Nachzahlung', sender: 'Stadtwerke Berlin', date: '2024-05-09', amount: '88,10 €', tax: 'ust', status: 'geprüft' },
-  { id: 'DOC-10240', name: 'Kartons Nachschub', sender: 'Smurfit Kappa', date: '2024-05-10', amount: '265,90 €', tax: 'ust', status: 'neu' },
-  { id: 'DOC-10241', name: 'Werbepartner Fee', sender: 'Influencer Media', date: '2024-05-11', amount: '1.050,00 €', tax: 'reverse', status: 'neu' },
-  { id: 'DOC-10242', name: 'Logistik Software', sender: 'Shipcloud', date: '2024-05-12', amount: '149,00 €', tax: 'ust', status: 'übermittelt' },
-  { id: 'DOC-10243', name: 'B2B Teile Einkauf', sender: 'Händler XY', date: '2024-05-12', amount: '2.310,00 €', tax: 'keine_ust', status: 'neu' },
-  { id: 'DOC-10244', name: 'Entsorgung/Recycling', sender: 'Grüne Tonne', date: '2024-05-13', amount: '74,50 €', tax: 'ust', status: 'geprüft' }
-];
-
 const DocumentsPage = () => {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [search, setSearch] = useState('');
@@ -59,16 +43,52 @@ const DocumentsPage = () => {
   const [taxFilter, setTaxFilter] = useState<TaxTag | 'alle'>('alle');
   const [destination, setDestination] = useState('Finanzamt');
   const [sendStatus, setSendStatus] = useState<string | null>(null);
+  const [docs, setDocs] = useState<DocumentRow[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const invoices = await listInvoices();
+        const mapStatus = (status?: string): DocStatus => {
+          const s = (status || '').toLowerCase();
+          if (s === 'paid') return 'übermittelt';
+          if (s === 'issued' || s === 'sent') return 'geprüft';
+          if (s === 'canceled') return 'fehler';
+          return 'neu';
+        };
+        const mapped: DocumentRow[] = invoices.map((inv) => ({
+          id: inv.invoice_number || String(inv.id),
+          name: inv.invoice_number ? `Rechnung ${inv.invoice_number}` : `Rechnung #${inv.id}`,
+          sender: inv.billing_address_json?.company || 'Kunde',
+          date: inv.issue_date || inv.created_at || new Date().toISOString(),
+          amount: `${inv.total?.toFixed ? inv.total.toFixed(2) : inv.total || 0} ${inv.currency || 'EUR'}`,
+          tax: 'ust',
+          status: mapStatus(inv.status)
+        }));
+        setDocs(mapped);
+      } catch (err) {
+        console.error('[documents] load error', err);
+        setError('Belege konnten nicht geladen werden');
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
 
   const filtered = useMemo(() => {
-    return mockDocs.filter((d) => {
+    return docs.filter((d) => {
       const term = search.toLowerCase();
       if (term && !(`${d.id} ${d.name} ${d.sender} ${d.amount}`.toLowerCase().includes(term))) return false;
       if (statusFilter !== 'alle' && d.status !== statusFilter) return false;
       if (taxFilter !== 'alle' && d.tax !== taxFilter) return false;
       return true;
     });
-  }, [search, statusFilter, taxFilter]);
+  }, [docs, search, statusFilter, taxFilter]);
 
   const allSelected = filtered.length > 0 && selectedIds.length === filtered.length;
   const toggleSelectAll = () =>
@@ -136,6 +156,12 @@ const DocumentsPage = () => {
       </Card>
 
       <Card>
+        {loading ? (
+          <div style={{ padding: 12, color: 'var(--muted)' }}>Lade Belege...</div>
+        ) : null}
+        {error ? (
+          <div style={{ padding: 12, color: 'var(--danger)' }}>{error}</div>
+        ) : null}
         {bulkBarVisible ? (
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', gap: 8 }}>
             <div style={{ color: 'var(--muted)', fontSize: 13 }}>{selectedIds.length} ausgewählt</div>
@@ -195,7 +221,7 @@ const DocumentsPage = () => {
                   </td>
                 </tr>
               ))}
-              {filtered.length === 0 ? (
+              {!loading && filtered.length === 0 ? (
                 <tr>
                   <td colSpan={8} style={{ padding: 16, color: 'var(--muted)' }}>Keine Dokumente gefunden.</td>
                 </tr>
