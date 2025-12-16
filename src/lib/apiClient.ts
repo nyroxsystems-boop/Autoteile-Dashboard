@@ -7,8 +7,20 @@ type ApiRequestOptions = {
 };
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
-const ENV_TOKEN = import.meta.env.VITE_WAWI_API_TOKEN;
+const ENV_USER_TOKEN = import.meta.env.VITE_WAWI_API_TOKEN;
+const ENV_SERVICE_TOKEN = import.meta.env.VITE_WAWI_SERVICE_TOKEN;
 const isDev = import.meta.env.DEV;
+
+const SERVICE_PATHS = [
+  '/api/dashboard/',
+  '/api/orders',
+  '/api/offers',
+  '/api/suppliers',
+  '/api/wws-connections',
+  '/api/dealers/',
+  '/api/requests',
+  '/api/bot/'
+];
 
 const buildUrl = (path: string, query?: ApiRequestOptions['query']) => {
   const resolvedPath =
@@ -39,9 +51,25 @@ const parseJsonSafe = (text: string) => {
   }
 };
 
-const tokenHeader = () => {
-  // Env token has Priorität (Static Site). Optional: localStorage fallback.
-  const envToken = ENV_TOKEN;
+const normalizePath = (path: string) => {
+  if (path.startsWith('http://') || path.startsWith('https://')) {
+    try {
+      return new URL(path).pathname || '/';
+    } catch {
+      return '/';
+    }
+  }
+  if (!path.startsWith('/')) return `/${path}`;
+  return path;
+};
+
+const isServicePath = (path: string) => {
+  const p = normalizePath(path);
+  return SERVICE_PATHS.some((prefix) => p.startsWith(prefix));
+};
+
+const userTokenHeader = () => {
+  const envToken = ENV_USER_TOKEN;
   if (envToken) return `Token ${envToken}`;
   try {
     const stored = localStorage.getItem('auth_access_token');
@@ -49,6 +77,11 @@ const tokenHeader = () => {
   } catch {
     return envToken ? `Token ${envToken}` : undefined;
   }
+};
+
+const serviceTokenHeader = () => {
+  const svc = ENV_SERVICE_TOKEN;
+  return svc ? `Bearer ${svc}` : undefined;
 };
 
 const request = async <T>(
@@ -66,12 +99,27 @@ const request = async <T>(
     ...headers
   };
 
-  const auth = tokenHeader();
-  if (auth) requestHeaders.Authorization = auth;
-  else if (isDev) console.warn('[api] kein Token gesetzt (VITE_WAWI_API_TOKEN)');
+  const needsService = isServicePath(path);
+  const auth = needsService ? serviceTokenHeader() : userTokenHeader();
+
+  if (auth) {
+    requestHeaders.Authorization = auth;
+  } else if (isDev) {
+    console.warn(
+      `[api] kein ${needsService ? 'Service' : 'User'} Token gesetzt (VITE_${
+        needsService ? 'WAWI_SERVICE_TOKEN' : 'WAWI_API_TOKEN'
+      })`
+    );
+  }
 
   if (isDev) {
-    console.log('[api] request', { method, url, query: query ?? null, body: body ?? null });
+    console.log('[api] request', {
+      method,
+      url,
+      query: query ?? null,
+      body: body ?? null,
+      authType: needsService ? 'service' : 'user'
+    });
   }
 
   const response = await fetch(url, {
