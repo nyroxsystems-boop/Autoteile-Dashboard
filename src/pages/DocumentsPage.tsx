@@ -3,7 +3,7 @@ import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Badge from '../ui/Badge';
-import { listInvoices } from '../api/invoices';
+import { listInvoices } from '../api/part/';
 
 type DocStatus = 'neu' | 'geprüft' | 'übermittelt' | 'fehler';
 type TaxTag = 'ust' | 'keine_ust' | 'reverse';

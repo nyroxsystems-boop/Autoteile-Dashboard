@@ -28,31 +28,31 @@ export type Invoice = {
 };
 
 export const listInvoices = async (): Promise<Invoice[]> => {
-  return apiClient.get<Invoice[]>('/api/invoices');
+  return apiClient.get<Invoice[]>('/api/part/');
 };
 
 export const getInvoice = async (id: string | number): Promise<Invoice> => {
-  return apiClient.get<Invoice>(`/api/invoices/${id}`);
+  return apiClient.get<Invoice>(`/api/part/${id}`);
 };
 
 export const createInvoice = async (payload: Partial<Invoice>): Promise<Invoice> => {
-  return apiClient.post<Invoice>('/api/invoices', payload);
+  return apiClient.post<Invoice>('/api/part/', payload);
 };
 
 export const issueInvoice = async (id: string | number): Promise<Invoice> =>
-  apiClient.post<Invoice>(`/api/invoices/${id}/issue`);
+  apiClient.post<Invoice>(`/api/part/${id}/issue`);
 
 export const sendInvoice = async (id: string | number): Promise<Invoice> =>
-  apiClient.post<Invoice>(`/api/invoices/${id}/send`);
+  apiClient.post<Invoice>(`/api/part/${id}/send`);
 
 export const markInvoicePaid = async (id: string | number): Promise<Invoice> =>
-  apiClient.post<Invoice>(`/api/invoices/${id}/mark-paid`);
+  apiClient.post<Invoice>(`/api/part/${id}/mark-paid`);
 
 export const cancelInvoice = async (id: string | number): Promise<Invoice> =>
-  apiClient.post<Invoice>(`/api/invoices/${id}/cancel`);
+  apiClient.post<Invoice>(`/api/part/${id}/cancel`);
 
 export const downloadInvoicePdf = async (id: string | number) => {
-  const url = `${import.meta.env.VITE_API_BASE_URL ?? ''}/api/invoices/${id}/pdf`;
+  const url = `${import.meta.env.VITE_API_BASE_URL ?? ''}/api/part/${id}/pdf`;
   window.open(url, '_blank');
 };
 
