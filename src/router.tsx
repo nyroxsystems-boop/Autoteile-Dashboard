@@ -61,7 +61,7 @@ const routes = [
           { path: '*', element: <Navigate to='/' replace /> }
         ]
       },
-      { path: '*', element: <Navigate to="/auth" replace /> }
+      { path: '*', element: <Navigate to="/" replace /> }
     ]
   }
 ];
