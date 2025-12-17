@@ -5,6 +5,17 @@ import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 
+/*
+  Access Code Gate (temporär, kein echter Auth-Flow)
+
+  ENV (Render Static Site / Vite build-time):
+  - VITE_ACCESS_GATE=true|false  → Gate aktivieren (case-insensitive)
+  - VITE_ACCESS_CODE=xyz         → erwarteter Access Code (wird ins Bundle eingebettet, kein Secret)
+  - VITE_DISABLE_LOGIN           → bestehender Login-Mechanismus (unverändert gelassen)
+
+  Hinweis: Zugangscode in Render → Environment setzen/ändern (nicht im Repo committen).
+*/
+
 const ACCESS_UNLOCK_KEY = 'dashboard_access_unlocked';
 
 const isGateEnabled = () =>
@@ -51,17 +62,15 @@ const AccessGatePage = () => {
 
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [unlocked, setUnlocked] = useState(() => hasUnlocked());
 
   useEffect(() => {
     if (!gateEnabled) {
       navigate('/overview', { replace: true });
       return;
     }
-
-    if (hasUnlocked()) {
-      navigate(nextPath, { replace: true });
-    }
-  }, [gateEnabled, navigate, nextPath]);
+    setUnlocked(hasUnlocked());
+  }, [gateEnabled, navigate]);
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -81,7 +90,19 @@ const AccessGatePage = () => {
     }
 
     storeUnlock();
+    setUnlocked(true);
     navigate(nextPath, { replace: true });
+  };
+
+  const resetAccess = () => {
+    try {
+      localStorage.removeItem(ACCESS_UNLOCK_KEY);
+    } catch {
+      // ignore storage errors
+    }
+    setCode('');
+    setError(null);
+    setUnlocked(false);
   };
 
   if (!gateEnabled) return null;
@@ -103,6 +124,11 @@ const AccessGatePage = () => {
           className="ui-card-padded"
         >
           <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {unlocked ? (
+              <div style={{ color: 'var(--muted)', fontSize: 13 }}>
+                Zugriff ist bereits freigeschaltet.
+              </div>
+            ) : null}
             <Input
               label="Access Code"
               type="password"
@@ -119,6 +145,12 @@ const AccessGatePage = () => {
             <Button type="submit" variant="primary" fullWidth>
               Entsperren
             </Button>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <Button type="button" variant="ghost" size="sm" onClick={resetAccess}>
+                Zugriff zurücksetzen
+              </Button>
+            </div>
           </form>
         </Card>
       </div>
