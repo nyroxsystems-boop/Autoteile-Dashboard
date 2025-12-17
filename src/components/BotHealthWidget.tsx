@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import Card from '../ui/Card';
+import apiClient from '../lib/apiClient';
 
 const isHealthy = (data: any) => {
   if (!data) return false;
@@ -15,8 +16,7 @@ const BotHealthWidget = () => {
   useEffect(() => {
     const load = async () => {
       try {
-        const res = await fetch('/api/bot/health');
-        const data = await res.json();
+        const { data } = await apiClient.get('/api/bot/health');
         setStatus(isHealthy(data) ? 'healthy' : data?.status ?? 'unknown');
       } catch (err: any) {
         setError(err?.message ?? 'Fehler');

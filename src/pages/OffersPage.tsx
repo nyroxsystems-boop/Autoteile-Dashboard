@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import Card from '../ui/Card';
+import apiClient from '../lib/apiClient';
 
 const OffersPage = () => {
   const [rows, setRows] = useState<any[]>([]);
@@ -11,10 +12,9 @@ const OffersPage = () => {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch('/api/dashboard/offers');
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        setRows(Array.isArray(data) ? data : []);
+        const { data } = await apiClient.get('/api/dashboard/offers');
+        const rows = Array.isArray(data) ? data : (data?.items ?? data?.data ?? []);
+        setRows(rows);
       } catch (err: any) {
         setError(err?.message ?? 'Fehler beim Laden');
       } finally {

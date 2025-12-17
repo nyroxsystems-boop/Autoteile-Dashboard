@@ -154,3 +154,26 @@ export const apiClient = {
     request<T>('PATCH', path, { ...options, body }),
   delete: <T>(path: string, options: ApiRequestOptions = {}) => request<T>('DELETE', path, options)
 };
+
+type ApiResponse<T> = { data: T };
+
+const wrapResponse = async <T>(promise: Promise<T>): Promise<ApiResponse<T>> => ({
+  data: await promise
+});
+
+const apiClientDefault = {
+  request: <T = any>(method: HttpMethod, path: string, options: ApiRequestOptions = {}) =>
+    wrapResponse(apiClient.request<T>(method, path, options)),
+  get: <T = any>(path: string, options: ApiRequestOptions = {}) =>
+    wrapResponse(apiClient.get<T>(path, options)),
+  post: <T = any>(path: string, body?: unknown, options: ApiRequestOptions = {}) =>
+    wrapResponse(apiClient.post<T>(path, body, options)),
+  put: <T = any>(path: string, body?: unknown, options: ApiRequestOptions = {}) =>
+    wrapResponse(apiClient.put<T>(path, body, options)),
+  patch: <T = any>(path: string, body?: unknown, options: ApiRequestOptions = {}) =>
+    wrapResponse(apiClient.patch<T>(path, body, options)),
+  delete: <T = any>(path: string, options: ApiRequestOptions = {}) =>
+    wrapResponse(apiClient.delete<T>(path, options))
+};
+
+export default apiClientDefault;
