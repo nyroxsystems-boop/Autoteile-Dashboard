@@ -10,6 +10,7 @@ import OrdersOverTimeChart from '../features/overview/components/OrdersOverTimeC
 import ConversionRateChart from '../features/overview/components/ConversionRateChart';
 import PageHeader from '../ui/PageHeader';
 import { useTimeframe } from '../features/timeframe/TimeframeContext';
+import BotHealthWidget from '../components/BotHealthWidget';
 
 type RecItem = {
   id: string;
@@ -115,6 +116,8 @@ const OverviewPage = () => {
           </div>
         }
       />
+
+      <BotHealthWidget />
 
       {error ? (
         <Card>

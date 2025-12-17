@@ -50,9 +50,18 @@ const navGroups: NavGroup[] = [
     id: 'finance',
     label: 'Finanzen',
     items: [
-      { path: '/invoices', label: 'Rechnungen' },
+      { path: '/orders', label: 'Orders' },
       { path: '/documents', label: 'Belege' },
       { path: '/documents/transmit', label: 'Behörden-Übermittlung' }
+    ]
+  },
+  {
+    id: 'wawi',
+    label: 'WAWI',
+    items: [
+      { path: '/offers', label: 'Offers' },
+      { path: '/suppliers', label: 'Suppliers' },
+      { path: '/wws-connections', label: 'WWS Connections' }
     ]
   },
   {
@@ -110,7 +119,7 @@ const InnerApp: React.FC = () => {
     if (location.pathname.startsWith('/insights/conversion')) return 'Konversion & Abbrüche';
     if (location.pathname.startsWith('/inventory/capital')) return 'Gebundenes Kapital Radar';
     if (location.pathname.startsWith('/inventory')) return 'Lagerübersicht';
-    if (location.pathname.startsWith('/invoices')) return 'Rechnungen';
+    if (location.pathname.startsWith('/orders') || location.pathname.startsWith('/invoices')) return 'Orders';
     if (location.pathname.startsWith('/documents')) return 'Belege';
     if (location.pathname.startsWith('/settings/pricing')) return 'Preisprofile';
     if (location.pathname.startsWith('/settings/integrations')) return 'Shops & Integrationen';

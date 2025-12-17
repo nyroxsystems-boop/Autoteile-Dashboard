@@ -19,6 +19,10 @@ import InvoiceDetailPage from './pages/InvoiceDetailPage';
 import ConversionPage from './pages/ConversionPage';
 import ReturnsPage from './pages/ReturnsPage';
 import { I18nProvider } from './i18n';
+import LegacyInvoiceRedirect from './pages/LegacyInvoiceRedirect';
+import OffersPage from './pages/OffersPage';
+import SuppliersPage from './pages/SuppliersPage';
+import WwsConnectionsPage from './pages/WwsConnectionsPage';
 
 const Providers = () => (
   <I18nProvider>
@@ -51,8 +55,15 @@ const routes = [
           { path: 'inventory/capital', element: <CapitalPage /> },
           { path: 'orders', element: <OrdersListPage /> },
           { path: 'orders/:id', element: <OrderDetailPage /> },
-          { path: 'invoices', element: <InvoicesPage /> },
-          { path: 'invoices/:id', element: <InvoiceDetailPage /> },
+          { path: 'offers', element: <OffersPage /> },
+          { path: 'suppliers', element: <SuppliersPage /> },
+          { path: 'wws-connections', element: <WwsConnectionsPage /> },
+          // Legacy redirects for invoices -> orders
+          { path: 'invoices', element: <LegacyInvoiceRedirect /> },
+          { path: 'invoices/:id', element: <LegacyInvoiceRedirect /> },
+          // Orders detail via former invoices UI (kept as fallback)
+          { path: 'orders-billing', element: <InvoicesPage /> },
+          { path: 'orders-billing/:id', element: <InvoiceDetailPage /> },
           { path: 'wws', element: <WwsPage /> },
           { path: 'documents', element: <DocumentsPage /> },
           { path: 'documents/transmit', element: <TransmitPage /> },

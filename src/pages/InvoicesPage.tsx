@@ -17,7 +17,7 @@ const InvoicesPage = () => {
         const data = await listInvoices();
         setInvoices(data ?? []);
       } catch (err: any) {
-        setError(err?.message || 'Fehler beim Laden der Rechnungen');
+        setError(err?.message || 'Fehler beim Laden der Orders');
       } finally {
         setLoading(false);
       }
@@ -28,8 +28,8 @@ const InvoicesPage = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <Card
-        title="Rechnungen"
-        subtitle="Alle Rechnungen je Tenant. Aktionen: Anzeigen, PDF, Status."
+        title="Orders"
+        subtitle="Alle Orders je Tenant."
         actions={
           <Button as={Link} to="/orders" variant="ghost" size="sm">
             Aus Bestellung erzeugen
@@ -66,7 +66,7 @@ const InvoicesPage = () => {
                   </td>
                   <td>{inv.due_date || '-'}</td>
                   <td>
-                    <Button as={Link} to={`/invoices/${inv.id}`} size="sm" variant="ghost">
+                    <Button as={Link} to={`/orders/${inv.id}`} size="sm" variant="ghost">
                       Öffnen
                     </Button>
                   </td>

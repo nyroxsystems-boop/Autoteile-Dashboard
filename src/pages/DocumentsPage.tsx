@@ -62,7 +62,7 @@ const DocumentsPage = () => {
         };
         const mapped: DocumentRow[] = invoices.map((inv) => ({
           id: inv.invoice_number || String(inv.id),
-          name: inv.invoice_number ? `Rechnung ${inv.invoice_number}` : `Rechnung #${inv.id}`,
+          name: inv.invoice_number ? `Order ${inv.invoice_number}` : `Order #${inv.id}`,
           sender: inv.billing_address_json?.company || 'Kunde',
           date: inv.issue_date || inv.created_at || new Date().toISOString(),
           amount: `${inv.total?.toFixed ? inv.total.toFixed(2) : inv.total || 0} ${inv.currency || 'EUR'}`,
@@ -101,7 +101,7 @@ const DocumentsPage = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <Card
-        title="Belege & Rechnungen"
+        title="Belege & Orders"
         subtitle="Zentrale Ablage für eingehende Dokumente"
         actions={
           <div style={{ display: 'flex', gap: 8 }}>
@@ -112,7 +112,7 @@ const DocumentsPage = () => {
       >
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           <Input
-            placeholder="Suchen (Rechnungsnummer, Absender, Betrag)..."
+            placeholder="Suchen (Ordernummer, Absender, Betrag)..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             style={{ minWidth: 280, flex: 1 }}
