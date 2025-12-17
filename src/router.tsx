@@ -23,6 +23,8 @@ import LegacyInvoiceRedirect from './pages/LegacyInvoiceRedirect';
 import OffersPage from './pages/OffersPage';
 import SuppliersPage from './pages/SuppliersPage';
 import WwsConnectionsPage from './pages/WwsConnectionsPage';
+import AccessGatePage from './pages/AccessGatePage';
+import RequireAccess from './components/RequireAccess';
 
 const Providers = () => (
   <I18nProvider>
@@ -36,13 +38,23 @@ const routes = [
   {
     element: <Providers />,
     children: [
-      { path: '/auth', element: <AuthPage /> },
+      { path: '/access', element: <AccessGatePage /> },
+      {
+        path: '/auth',
+        element: (
+          <RequireAccess>
+            <AuthPage />
+          </RequireAccess>
+        )
+      },
       {
         path: '/',
         element: (
-          <RequireAuth>
-            <App />
-          </RequireAuth>
+          <RequireAccess>
+            <RequireAuth>
+              <App />
+            </RequireAuth>
+          </RequireAccess>
         ),
         children: [
           { index: true, element: <Navigate to="/overview" replace /> },
