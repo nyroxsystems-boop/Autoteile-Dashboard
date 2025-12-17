@@ -20,7 +20,7 @@ export const Input: React.FC<InputProps> = ({
   const inputId = id || rest.name || undefined;
 
   return (
-    <div className={cn('ui-input-group', className, { 'ui-input-full': fullWidth })}>
+    <div className={cn('ui-input-group', className, { 'ui-input-full': !!fullWidth })}>
       {label ? (
         <label className="ui-input-label" htmlFor={inputId}>
           {label}

@@ -8,8 +8,8 @@ const DevInfo = () => {
 
   const test = async () => {
     try {
-      const health = await wawiService.health();
-      const me = await wawiService.getMe();
+      const health = (await wawiService.health()) as any;
+      const me = (await wawiService.getMe()) as any;
       setStatus(`OK · health: ${health?.status ?? 'ok'} · user: ${me?.username ?? 'unknown'}`);
     } catch (err) {
       setStatus('Fehler beim Test: ' + ((err as any)?.message ?? 'unknown'));

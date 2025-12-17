@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Badge from '../ui/Badge';
@@ -21,8 +22,22 @@ const KNOWN_SHOPS = [
   'Autodoc Pro'
 ];
 
+const resolveMerchantId = (session: unknown): string | null => {
+  const s = session as any;
+  const candidate =
+    s?.merchantId ??
+    s?.tenant?.merchantId ??
+    s?.tenant?.id ??
+    s?.tenant?.slug ??
+    s?.user?.merchantId ??
+    s?.user?.id ??
+    null;
+  return candidate ? String(candidate) : null;
+};
+
 const PricingPage = () => {
   const auth = useAuth();
+  const merchantId = useMemo(() => resolveMerchantId(auth?.session), [auth?.session]);
   const [selectedShops, setSelectedShops] = useState<string[]>([]);
   const [shopSearch, setShopSearch] = useState('');
   const [priceProfiles, setPriceProfiles] = useState<PriceProfile[]>(defaultPriceProfiles);
@@ -36,9 +51,9 @@ const PricingPage = () => {
 
   useEffect(() => {
     const loadSettings = async () => {
-      if (!auth?.session?.merchantId) return;
+      if (!merchantId) return;
       try {
-        const s = await fetchMerchantSettings(auth.session.merchantId);
+        const s = await fetchMerchantSettings(merchantId);
         if (s) {
           setSelectedShops(s.selectedShops ?? []);
           setDefaultMargin(s.marginPercent ?? null);
@@ -54,7 +69,7 @@ const PricingPage = () => {
     };
 
     loadSettings();
-  }, [auth?.session?.merchantId]);
+  }, [merchantId]);
 
   const defaultProfileId = useMemo(() => priceProfiles.find((p) => p.isDefault)?.id, [priceProfiles]);
 
@@ -70,14 +85,14 @@ const PricingPage = () => {
   };
 
   const handleSave = async () => {
-    if (!auth?.session?.merchantId) {
-      setError('Bitte zuerst anmelden, um Einstellungen zu speichern.');
+    if (!merchantId) {
+      setError('Bitte zuerst anmelden (oder Login deaktivieren), um Einstellungen zu speichern.');
       return;
     }
     setIsSaving(true);
     setError(null);
     try {
-      await saveMerchantSettings(auth.session.merchantId, {
+      await saveMerchantSettings(merchantId, {
         selectedShops,
         marginPercent: defaultMargin ?? 0,
         priceProfiles
@@ -103,7 +118,7 @@ const PricingPage = () => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       <PageHeader
         title="Preisprofile & Margen"
-        subtitle="Shops auswählen und Preisprofile pflegen. Änderungen speichern, um sie zu übernehmen."
+        subtitle="Marge beeinflusst den Kundenpreis, den du in WhatsApp verschickst."
         actions={
           <div style={{ display: 'flex', gap: 8 }}>
             <Button variant="ghost" onClick={handleReset} disabled={isSaving}>
@@ -123,6 +138,34 @@ const PricingPage = () => {
           </div>
         </Card>
       ) : null}
+
+      <Card
+        title="Kurz erklärt"
+        subtitle="So entsteht der WhatsApp-Kundenpreis (Basis + Marge)"
+        actions={
+          <Button as={Link} to="/offers" variant="secondary" size="sm">
+            Zu den Angeboten
+          </Button>
+        }
+      >
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
+          <div style={{ border: '1px solid var(--border)', borderRadius: 12, padding: 12 }}>
+            <div style={{ color: 'var(--muted)', fontSize: 12, fontWeight: 800 }}>Beispiel</div>
+            <div style={{ marginTop: 6, fontWeight: 800 }}>
+              100 € Basis + 25% Marge → <span style={{ color: 'var(--text-strong)' }}>125 € Kundenpreis</span>
+            </div>
+            <div style={{ marginTop: 6, color: 'var(--muted)', fontSize: 13 }}>
+              Tipp: Halte die Marge stabil, damit WhatsApp-Angebote konsistent bleiben.
+            </div>
+          </div>
+          <div style={{ border: '1px solid var(--border)', borderRadius: 12, padding: 12 }}>
+            <div style={{ color: 'var(--muted)', fontSize: 12, fontWeight: 800 }}>Wofür?</div>
+            <div style={{ marginTop: 6, color: 'var(--muted)', fontSize: 13 }}>
+              Preisprofile helfen dir, schnell passende Aufschläge für unterschiedliche Teile/Segmente zu wählen.
+            </div>
+          </div>
+        </div>
+      </Card>
 
       <Card title="Shops & Grundlagen" subtitle="Shops auswählen, die bei der Angebotssuche genutzt werden.">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -150,22 +193,16 @@ const PricingPage = () => {
             ) : null}
           </div>
 
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <input
-              value={shopSearch}
-              onChange={(e) => setShopSearch(e.target.value)}
-              placeholder="Shop suchen oder hinzufügen…"
-              style={{
-                flex: 1,
-                minWidth: 240,
-                borderRadius: 10,
-                border: '1px solid var(--border)',
-                padding: '10px 12px',
-                background: 'rgba(255,255,255,0.04)',
-                color: 'var(--text)'
-              }}
-              list="shop-options"
-            />
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+            <div style={{ flex: 1, minWidth: 240 }}>
+              <Input
+                label="Shop hinzufügen"
+                value={shopSearch}
+                onChange={(e) => setShopSearch(e.target.value)}
+                placeholder="Shop suchen oder hinzufügen…"
+                list="shop-options"
+              />
+            </div>
             <datalist id="shop-options">
               {KNOWN_SHOPS.map((s) => (
                 <option key={s} value={s} />

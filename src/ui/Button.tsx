@@ -9,6 +9,8 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   size?: ButtonSize;
   fullWidth?: boolean;
   as?: React.ElementType;
+  to?: string;
+  href?: string;
 }
 
 export const Button: React.FC<ButtonProps> = ({
@@ -27,7 +29,7 @@ export const Button: React.FC<ButtonProps> = ({
         'ui-btn',
         `ui-btn-${variant}`,
         `ui-btn-${size}`,
-        { 'ui-btn-full': fullWidth },
+        { 'ui-btn-full': !!fullWidth },
         className
       )}
       {...rest}

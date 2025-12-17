@@ -15,61 +15,55 @@ type NavGroup = {
 
 const navGroups: NavGroup[] = [
   {
-    id: 'cockpit',
-    label: 'Cockpit',
+    id: 'today',
+    label: 'Heute',
     items: [
-      { path: '/overview', label: 'Übersicht' },
-      { path: '/recommendations', label: 'Empfehlungen' }
+      { path: '/overview', label: 'Übersicht' }
     ]
   },
   {
-    id: 'sales',
-    label: 'Verkauf',
+    id: 'orders',
+    label: 'Aufträge',
     items: [
-      { path: '/orders', label: 'Bestellungen' },
-      { path: '/insights/conversion', label: 'Konversion & Abbrüche' }
+      { path: '/orders', label: 'Aufträge' }
     ]
   },
   {
-    id: 'insights',
-    label: 'Insights',
+    id: 'offers',
+    label: 'Angebote & Preise',
     items: [
-      { path: '/insights/forensics', label: 'Forensik' },
-      { path: '/insights/returns', label: 'Retouren' }
+      { path: '/offers', label: 'Angebote' },
+      { path: '/settings/pricing', label: 'Preisprofile & Margen' }
     ]
   },
   {
-    id: 'inventory',
-    label: 'Lager & Einkauf',
+    id: 'documents',
+    label: 'Belege',
     items: [
-      { path: '/inventory', label: 'Lagerübersicht' },
-      { path: '/inventory/capital', label: 'Gebundenes Kapital' }
-    ]
-  },
-  {
-    id: 'finance',
-    label: 'Finanzen',
-    items: [
-      { path: '/orders', label: 'Orders' },
-      { path: '/documents', label: 'Belege' },
+      { path: '/documents', label: 'Belege & Rechnungen' },
       { path: '/documents/transmit', label: 'Behörden-Übermittlung' }
     ]
   },
   {
-    id: 'wawi',
-    label: 'WAWI',
+    id: 'partners',
+    label: 'Partner & Shops',
     items: [
-      { path: '/offers', label: 'Offers' },
-      { path: '/suppliers', label: 'Suppliers' },
-      { path: '/wws-connections', label: 'WWS Connections' }
+      { path: '/suppliers', label: 'Lieferanten' },
+      { path: '/wws-connections', label: 'Integrationen' }
     ]
   },
   {
-    id: 'settings',
-    label: 'Einstellungen',
+    id: 'advanced',
+    label: 'Erweitert',
     items: [
-      { path: '/settings/pricing', label: 'Preisprofile' },
-      { path: '/settings/integrations', label: 'Shops & Integrationen' }
+      { path: '/recommendations', label: 'Empfehlungen' },
+      { path: '/insights/forensics', label: 'Probleme' },
+      { path: '/insights/conversion', label: 'Konversion & Abbrüche' },
+      { path: '/insights/returns', label: 'Retouren' },
+      { path: '/inventory', label: 'Lagerübersicht' },
+      { path: '/inventory/capital', label: 'Gebundenes Kapital' },
+      { path: '/settings/integrations', label: 'Shops & Integrationen' },
+      { path: '/wws', label: 'WWS (Admin)' }
     ]
   }
 ];
@@ -96,9 +90,10 @@ const InnerApp: React.FC = () => {
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>(() => {
     if (typeof localStorage === 'undefined') return {};
     try {
-      return JSON.parse(localStorage.getItem('nav_collapsed') || '{}');
+      const stored = JSON.parse(localStorage.getItem('nav_collapsed') || '{}') as Record<string, boolean>;
+      return { advanced: true, ...stored };
     } catch {
-      return {};
+      return { advanced: true };
     }
   });
 
@@ -113,18 +108,41 @@ const InnerApp: React.FC = () => {
 
   const pageTitle = useMemo(() => {
     if (location.pathname.startsWith('/orders/')) return 'Bestelldetails';
-    if (location.pathname.startsWith('/overview')) return 'Übersicht';
-    if (location.pathname.startsWith('/recommendations')) return 'Empfehlungen';
-    if (location.pathname.startsWith('/insights/forensics')) return 'Forensik';
-    if (location.pathname.startsWith('/insights/conversion')) return 'Konversion & Abbrüche';
-    if (location.pathname.startsWith('/inventory/capital')) return 'Gebundenes Kapital Radar';
-    if (location.pathname.startsWith('/inventory')) return 'Lagerübersicht';
-    if (location.pathname.startsWith('/orders') || location.pathname.startsWith('/invoices')) return 'Orders';
+    if (location.pathname.startsWith('/overview')) return 'Heute';
+    if (location.pathname.startsWith('/orders')) return 'Aufträge';
+    if (location.pathname.startsWith('/offers')) return 'Angebote';
+    if (location.pathname.startsWith('/settings/pricing')) return 'Preisprofile & Margen';
     if (location.pathname.startsWith('/documents')) return 'Belege';
-    if (location.pathname.startsWith('/settings/pricing')) return 'Preisprofile';
+    if (location.pathname.startsWith('/suppliers')) return 'Lieferanten';
+    if (location.pathname.startsWith('/wws-connections')) return 'Integrationen';
+    if (location.pathname.startsWith('/recommendations')) return 'Empfehlungen';
+    if (location.pathname.startsWith('/insights/forensics')) return 'Probleme';
+    if (location.pathname.startsWith('/insights/conversion')) return 'Konversion & Abbrüche';
+    if (location.pathname.startsWith('/insights/returns')) return 'Retouren';
+    if (location.pathname.startsWith('/inventory/capital')) return 'Gebundenes Kapital';
+    if (location.pathname.startsWith('/inventory')) return 'Lager';
     if (location.pathname.startsWith('/settings/integrations')) return 'Shops & Integrationen';
+    if (location.pathname.startsWith('/wws')) return 'WWS';
     return t('brandTitle');
   }, [location.pathname, t]);
+
+  const profileTitle = useMemo(() => {
+    const session = auth?.session as any;
+    const raw =
+      session?.tenant?.name ??
+      session?.tenant?.slug ??
+      session?.tenant?.id ??
+      session?.user?.email ??
+      session?.user?.username ??
+      session?.role ??
+      'Account';
+    return String(raw);
+  }, [auth?.session]);
+
+  const profileInitials = useMemo(() => {
+    const text = (profileTitle ?? '').trim();
+    return (text ? text.slice(0, 2) : 'ME').toUpperCase();
+  }, [profileTitle]);
 
   const toggleGroup = (id: string) => {
     setCollapsedGroups((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -298,7 +316,7 @@ const InnerApp: React.FC = () => {
                   }}
                   aria-label="Profilmenü öffnen"
                 >
-                  {auth.session.merchantId?.slice(0, 2).toUpperCase()}
+                  {profileInitials}
                 </button>
                 {showProfileMenu ? (
                   <div
@@ -318,7 +336,7 @@ const InnerApp: React.FC = () => {
                       zIndex: 15
                     }}
                   >
-                    <div style={{ fontWeight: 800 }}>{auth.session.merchantId}</div>
+                    <div style={{ fontWeight: 800 }}>{profileTitle}</div>
                     <Badge variant="success">Plan aktiv</Badge>
                     <Button variant="ghost" size="sm" fullWidth>
                       Marge & Shops

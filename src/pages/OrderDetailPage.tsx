@@ -11,6 +11,7 @@ type OfferRow = ShopOffer & { priceValue: number; currencyValue: string };
 
 const OrderDetailPage = () => {
   const { id: orderId } = useParams<{ id: string }>();
+  const navigate = useNavigate();
 
   const [order, setOrder] = useState<Order | null>(null);
   const [offers, setOffers] = useState<OfferRow[]>([]);

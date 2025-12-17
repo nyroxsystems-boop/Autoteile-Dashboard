@@ -1,20 +1,12 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { listOrders } from '../api/orders';
 import type { Order } from '../api/types';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
-import Badge from '../ui/Badge';
 import Input from '../ui/Input';
-
-const statusLabelMap: Record<string, string> = {
-  collect_vehicle: 'Fahrzeugdaten sammeln',
-  collect_part: 'Teiledaten sammeln',
-  oem_lookup: 'OEM-Ermittlung',
-  show_offers: 'Angebote anzeigen',
-  done: 'Abgeschlossen',
-  choose_language: 'Sprache wählen'
-};
+import ShopBadge from '../ui/ShopBadge';
+import StatusChip from '../ui/StatusChip';
 
 const OrdersListPage = () => {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -24,23 +16,23 @@ const OrdersListPage = () => {
   const [statusFilter, setStatusFilter] = useState<'all' | 'open' | 'done' | 'failed'>('all');
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchOrders = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const data = await listOrders();
-        setOrders(data);
-      } catch (err) {
-        console.error('[OrdersListPage] Fehler beim Laden der Bestellungen', err);
-        setError(err instanceof Error ? err.message : 'Unbekannter Fehler');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchOrders();
+  const loadOrders = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await listOrders();
+      setOrders(data);
+    } catch (err) {
+      console.error('[OrdersListPage] Fehler beim Laden der Aufträge', err);
+      setError(err instanceof Error ? err.message : 'Unbekannter Fehler');
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    void loadOrders();
+  }, [loadOrders]);
 
   const rows = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -49,15 +41,19 @@ const OrdersListPage = () => {
         if (statusFilter === 'done') return String(o.status).includes('done');
         if (statusFilter === 'failed') return String(o.status).includes('fail') || String(o.status).includes('error');
         if (statusFilter === 'open')
-          return ['collect_vehicle', 'collect_part', 'oem_lookup', 'choose_language'].includes(String(o.status));
+          return ['collect_vehicle', 'collect_part', 'oem_lookup', 'choose_language', 'show_offers'].includes(
+            String(o.status)
+          );
         return true;
       })
       .filter((o) => {
         if (!term) return true;
         const customer = `${o.customerId ?? ''} ${o.customerPhone ?? ''}`.toLowerCase();
         const id = String(o.id ?? '').toLowerCase();
-        const part = String((o as any)?.part?.partText ?? '').toLowerCase();
-        return customer.includes(term) || id.includes(term) || part.includes(term);
+        const part = String(o.part?.partText ?? '').toLowerCase();
+        const oem = String(o.part?.oemNumber ?? '').toLowerCase();
+        const vehicle = `${o.vehicle?.make ?? ''} ${o.vehicle?.model ?? ''} ${o.vehicle?.vin ?? ''}`.toLowerCase();
+        return customer.includes(term) || id.includes(term) || part.includes(term) || oem.includes(term) || vehicle.includes(term);
       });
   }, [orders, search, statusFilter]);
 
@@ -65,15 +61,6 @@ const OrdersListPage = () => {
     if (!date) return '–';
     return new Date(date).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
   };
-
-  const statusVariant = (status: string): 'success' | 'danger' | 'neutral' => {
-    const s = status.toLowerCase();
-    if (s.includes('done') || s.includes('completed') || s.includes('show_offers')) return 'success';
-    if (s.includes('fail') || s.includes('error') || s.includes('aborted')) return 'danger';
-    return 'neutral';
-  };
-
-  const renderStatus = (status: string) => statusLabelMap[status] ?? status ?? '–';
 
   const renderVehicle = (order: Order) => {
     const vehicle = order.vehicle ?? null;
@@ -96,25 +83,35 @@ const OrdersListPage = () => {
     if (!part) return '–';
     return (
       <div style={styles.cellStack}>
-        <div>{part.partCategory ?? '-'}</div>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          <div>{part.partCategory ?? '-'}</div>
+          {part.oemNumber ? <span style={styles.oemChip}>OEM {part.oemNumber}</span> : null}
+        </div>
         <div style={styles.muted}>{part.partText ?? '-'}</div>
       </div>
     );
-  };
-
-  const renderSelectedBadge = (order: Order) => {
-    const selectedId =
-      (order as any)?.order_data?.selectedOfferId ??
-      (order as any)?.orderData?.selectedOfferId ??
-      null;
-    if (!selectedId) return null;
-    return <span style={styles.selectedBadge}>Produkt gewählt</span>;
   };
 
   const renderPrice = (order: Order) => {
     const value = order.totalPrice ?? order.total_price ?? null;
     if (value === null || value === undefined) return '–';
     return `€ ${value.toFixed(2)}`;
+  };
+
+  const renderShop = (order: Order) => {
+    const shop = order.order_data?.selectedOfferSummary?.shopName ?? null;
+    return <ShopBadge shopName={shop} />;
+  };
+
+  const renderNextAction = (order: Order) => {
+    const status = String(order.status ?? '').toLowerCase();
+    if (status === 'show_offers') return '3 Angebote senden → Kunden-OK';
+    if (status === 'oem_lookup') return 'OEM prüfen / bestätigen';
+    if (status === 'collect_vehicle') return 'Fahrzeugdaten vervollständigen';
+    if (status === 'collect_part') return 'Teildaten vervollständigen';
+    if (status === 'choose_language') return 'Sprache wählen';
+    if (status === 'done') return 'Beleg prüfen / abschließen';
+    return 'Öffnen';
   };
 
   const renderCustomer = (order: Order) => {
@@ -131,8 +128,8 @@ const OrdersListPage = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <Card
-        title="Bestellungen"
-        subtitle="Alle Bestellungen aus dem WhatsApp-Bot"
+        title="Aufträge"
+        subtitle="WhatsApp-Anfragen → OEM → Angebote → Kunden-OK → Auftrag"
         actions={
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <Button size="sm" variant={statusFilter === 'all' ? 'primary' : 'ghost'} onClick={() => setStatusFilter('all')}>
@@ -152,8 +149,13 @@ const OrdersListPage = () => {
         }
       >
         {error ? (
-          <div className="error-box" role="status" aria-live="polite">
-            <strong>Fehler:</strong> {error}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div className="error-box" role="status" aria-live="polite">
+              <strong>Fehler:</strong> {error}
+            </div>
+            <Button type="button" size="sm" variant="secondary" onClick={() => void loadOrders()} disabled={isLoading}>
+              Erneut laden
+            </Button>
           </div>
         ) : null}
 
@@ -162,8 +164,8 @@ const OrdersListPage = () => {
             label="Suchen"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="ID oder Kundenname"
-            helperText="Filtert nach ID oder Kundenname."
+            placeholder="Auftrag, Kunde, OEM, Fahrzeug…"
+            helperText="Filtert nach Auftrag-ID, Kunde, OEM oder Fahrzeug."
             style={{ maxWidth: 320 }}
           />
         </div>
@@ -172,13 +174,14 @@ const OrdersListPage = () => {
           <table className="table">
             <thead>
               <tr>
-                <th>Bestellung</th>
+                <th>Auftrag</th>
                 <th>Kunde</th>
                 <th>Fahrzeug</th>
-                <th>Teil</th>
+                <th>Teil / OEM</th>
+                <th>Shop</th>
                 <th>Preis</th>
                 <th>Status</th>
-                <th>Erstellt</th>
+                <th>Nächster Schritt</th>
                 <th></th>
               </tr>
             </thead>
@@ -186,7 +189,7 @@ const OrdersListPage = () => {
               {isLoading
                 ? Array.from({ length: 4 }).map((_, idx) => (
                     <tr key={idx}>
-                      <td colSpan={8}>
+                      <td colSpan={9}>
                         <div className="skeleton-row">
                           <div className="skeleton-block" />
                           <div className="skeleton-block" />
@@ -199,7 +202,7 @@ const OrdersListPage = () => {
 
               {!isLoading && rows.length === 0 ? (
                 <tr>
-                  <td colSpan={8} style={{ padding: 14 }}>Es liegen noch keine Bestellungen vor.</td>
+                  <td colSpan={9} style={{ padding: 14 }}>Es liegen noch keine Aufträge vor.</td>
                 </tr>
               ) : null}
 
@@ -218,18 +221,23 @@ const OrdersListPage = () => {
                       }
                     }}
                   >
-                    <td>{order.id}</td>
+                    <td>
+                      <div style={styles.cellStack}>
+                        <div style={{ fontWeight: 800 }}>#{order.id}</div>
+                        <div style={styles.muted}>{renderDate(order.created_at ?? order.createdAt ?? undefined)}</div>
+                      </div>
+                    </td>
                     <td>{renderCustomer(order)}</td>
                     <td>{renderVehicle(order)}</td>
                     <td>
                       {renderPart(order)}
-                      {renderSelectedBadge(order)}
                     </td>
+                    <td>{renderShop(order)}</td>
                     <td>{renderPrice(order)}</td>
                     <td>
-                      <Badge variant={statusVariant(String(order.status)) as any}>{renderStatus(String(order.status))}</Badge>
+                      <StatusChip status={String(order.status ?? '')} />
                     </td>
-                    <td>{renderDate(order.created_at ?? order.createdAt ?? undefined)}</td>
+                    <td>{renderNextAction(order)}</td>
                     <td>
                       <Button
                         size="sm"
@@ -257,15 +265,15 @@ export default OrdersListPage;
 const styles = {
   muted: { color: 'var(--muted)', fontSize: 13 },
   cellStack: { display: 'flex', flexDirection: 'column', gap: 4 },
-  selectedBadge: {
-    marginTop: 6,
-    display: 'inline-block',
-    padding: '4px 8px',
-    borderRadius: 9999,
-    backgroundColor: 'rgba(34,197,94,0.15)',
-    color: '#22c55e',
-    border: '1px solid rgba(34,197,94,0.4)',
+  oemChip: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    padding: '2px 8px',
+    borderRadius: 999,
+    background: 'rgba(79,139,255,0.12)',
+    border: '1px solid rgba(79,139,255,0.35)',
+    color: '#4f8bff',
     fontSize: 12,
-    fontWeight: 700
+    fontWeight: 800
   }
 } as const;

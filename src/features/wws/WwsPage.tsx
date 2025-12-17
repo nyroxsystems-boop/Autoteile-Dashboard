@@ -196,11 +196,11 @@ const WwsPage: React.FC = () => {
                   <tr key={c.id}>
                     <td>{c.name}</td>
                     <td>
-                      <Badge variant="secondary">{typeLabels[c.type] || c.type}</Badge>
+                      <Badge variant="neutral">{typeLabels[c.type] || c.type}</Badge>
                     </td>
                     <td style={{ fontSize: 13, color: 'var(--muted)' }}>{c.baseUrl}</td>
                     <td>
-                      <Badge variant={c.isActive ? 'success' : 'secondary'}>
+                      <Badge variant={c.isActive ? 'success' : 'neutral'}>
                         {c.isActive ? 'Aktiv' : 'Inaktiv'}
                       </Badge>
                     </td>
