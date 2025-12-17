@@ -72,10 +72,7 @@ const InvoiceDetailPage = () => {
         </div>
       </div>
 
-      <Card
-        title={`Rechnung ${invoice?.invoice_number || 'Draft'}`}
-        subtitle={`Status: ${invoice?.status ?? '-'}`}
-      >
+      <Card title={`Order ${invoice?.invoice_number || 'Draft'}`} subtitle={`Status: ${invoice?.status ?? '-'}`}>
         {loading ? <div className="skeleton-block" style={{ width: 200, height: 12 }} /> : null}
         {error ? <div className="error-box">{error}</div> : null}
 

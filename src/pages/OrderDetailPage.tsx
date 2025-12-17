@@ -133,9 +133,9 @@ const OrderDetailPage = () => {
     setInvoiceError(null);
     try {
       const inv = await createInvoiceFromOrder(orderId);
-      navigate(`/invoices/${inv.id}`);
+      navigate(`/orders/${inv.id}`);
     } catch (err: any) {
-      setInvoiceError(err?.message || 'Rechnung konnte nicht erstellt werden');
+      setInvoiceError(err?.message || 'Order konnte nicht erstellt werden');
     }
   };
 
@@ -164,7 +164,7 @@ const OrderDetailPage = () => {
       ) : null}
       {invoiceError ? (
         <div className="error-box">
-          <strong>Rechnungsfehler:</strong> {invoiceError}
+          <strong>Order-Fehler:</strong> {invoiceError}
         </div>
       ) : null}
 
@@ -175,7 +175,7 @@ const OrderDetailPage = () => {
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <Badge variant="neutral">{order?.language ?? 'n/a'}</Badge>
             <Button size="sm" onClick={handleCreateInvoice}>
-              Rechnung erstellen
+              Order erzeugen
             </Button>
           </div>
         }
