@@ -6,7 +6,13 @@ import { useBillingSettings } from '../hooks/useBillingSettings';
 
 const SettingsPage = () => {
     const { settings, update, loading } = useBillingSettings();
+    const { settings, update, loading } = useBillingSettings();
     const [activeTab, setActiveTab] = useState('invoice');
+
+    // Password Change State
+    const [oldPassword, setOldPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
 
     // Form State
     const [formData, setFormData] = useState<any>({});
@@ -26,6 +32,36 @@ const SettingsPage = () => {
         alert('Einstellungen gespeichert!');
     };
 
+    const handleChangePassword = async () => {
+        if (newPassword !== confirmPassword) {
+            alert('Die neuen Passwörter stimmen nicht überein.');
+            return;
+        }
+        try {
+            const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://autoteile-bot-service.onrender.com';
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${API_BASE}/api/auth/change-password`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token ${token}`
+                },
+                body: JSON.stringify({ oldPassword, newPassword })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                alert('Passwort erfolgreich geändert!');
+                setOldPassword('');
+                setNewPassword('');
+                setConfirmPassword('');
+            } else {
+                alert(data.error || 'Fehler beim Ändern des Passworts');
+            }
+        } catch (err) {
+            alert('Netzwerkfehler');
+        }
+    };
+
     if (loading) return <div>Lade Einstellungen...</div>;
 
     return (
@@ -43,6 +79,9 @@ const SettingsPage = () => {
                 </Button>
                 <Button variant={activeTab === 'company' ? 'primary' : 'ghost'} onClick={() => setActiveTab('company')}>
                     Firmendaten
+                </Button>
+                <Button variant={activeTab === 'security' ? 'primary' : 'ghost'} onClick={() => setActiveTab('security')}>
+                    Sicherheit
                 </Button>
             </div>
 
@@ -228,6 +267,34 @@ const SettingsPage = () => {
                     </div>
                     <div style={{ marginTop: 20, textAlign: 'right' }}>
                         <Button onClick={handleSave}>Änderungen speichern</Button>
+                    </div>
+                </Card>
+            )}
+
+            {/* Security Tab */}
+            {activeTab === 'security' && (
+                <Card title="Sicherheit">
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 400 }}>
+                        <p style={{ fontSize: 14, color: 'var(--muted)' }}>Ändern Sie hier Ihr Passwort.</p>
+
+                        <div>
+                            <label style={{ fontSize: 13, display: 'block', marginBottom: 6 }}>Aktuelles Passwort</label>
+                            <Input type="password" value={oldPassword} onChange={(e: any) => setOldPassword(e.target.value)} />
+                        </div>
+
+                        <div>
+                            <label style={{ fontSize: 13, display: 'block', marginBottom: 6 }}>Neues Passwort</label>
+                            <Input type="password" value={newPassword} onChange={(e: any) => setNewPassword(e.target.value)} />
+                        </div>
+
+                        <div>
+                            <label style={{ fontSize: 13, display: 'block', marginBottom: 6 }}>Passwort bestätigen</label>
+                            <Input type="password" value={confirmPassword} onChange={(e: any) => setConfirmPassword(e.target.value)} />
+                        </div>
+
+                        <div style={{ marginTop: 10 }}>
+                            <Button onClick={handleChangePassword}>Passwort ändern</Button>
+                        </div>
                     </div>
                 </Card>
             )}
