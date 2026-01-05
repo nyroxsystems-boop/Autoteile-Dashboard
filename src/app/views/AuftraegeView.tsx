@@ -69,8 +69,7 @@ export function AuftraegeView() {
         toast.error('Keine neuen Angebote zum Veröffentlichen');
         return;
       }
-      // @ts-ignore - publishOffers expects number[] currently but we moved to strings
-      await publishOffers(selectedOrderId, ids);
+      const response = await publishOffers(selectedOrderId, ids);
       toast.success('Angebote an Kunden gesendet');
       loadOffers(selectedOrderId);
     } catch (err) {
@@ -81,8 +80,7 @@ export function AuftraegeView() {
   const handleCreateInvoice = async () => {
     if (!selectedOrderId) return;
     try {
-      // @ts-ignore - createInvoice expects number currently
-      await createInvoice(selectedOrderId);
+      const inv = await createInvoice(selectedOrderId);
       toast.success('Entwurf für Rechnung erstellt');
       refresh(); // update status
     } catch (err) {

@@ -19,21 +19,28 @@ export function useTenants() {
     useEffect(() => {
         async function load() {
             try {
-                // Backend doesn't support multi-tenancy, use mock data
-                const mockTenants: TenantMembership[] = [{
-                    id: 1,
-                    tenant: 1,
-                    tenant_name: 'AutoTeile Müller GmbH',
-                    tenant_slug: 'dealer-demo-001',
-                    role: 'admin',
-                    is_active: true
-                }];
+                // Use real backend API to get tenant list
+                const tenantList = await getMeTenants();
 
-                setTenants(mockTenants);
-                setCurrentTenantId(1);
-                localStorage.setItem('selectedTenantId', '1');
+                if (tenantList && tenantList.length > 0) {
+                    setTenants(tenantList);
+
+                    // Restore previously selected tenant or use first
+                    const savedTenantId = localStorage.getItem('selectedTenantId');
+                    const tenantToSelect = savedTenantId
+                        ? tenantList.find(t => t.tenant.toString() === savedTenantId)
+                        : tenantList[0];
+
+                    if (tenantToSelect) {
+                        setCurrentTenantId(tenantToSelect.tenant);
+                        localStorage.setItem('selectedTenantId', tenantToSelect.tenant.toString());
+                    }
+                } else {
+                    console.warn('No tenants returned from API');
+                }
             } catch (err) {
                 console.error('Failed to load tenants', err);
+                // If API fails, keep empty state - don't fall back to mock data
             } finally {
                 setLoading(false);
             }

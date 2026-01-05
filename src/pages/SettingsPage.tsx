@@ -6,8 +6,8 @@ import { useBillingSettings } from '../hooks/useBillingSettings';
 
 const SettingsPage = () => {
     const { settings, update, loading } = useBillingSettings();
-    const { settings, update, loading } = useBillingSettings();
     const [activeTab, setActiveTab] = useState('invoice');
+
 
     // Password Change State
     const [oldPassword, setOldPassword] = useState('');

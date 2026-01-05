@@ -197,14 +197,14 @@ export async function createOffer(orderId: string | number, offerData: any): Pro
     });
 }
 
-export async function publishOffers(orderId: string | number, offerIds: number[]): Promise<{ success: boolean }> {
+export async function publishOffers(orderId: string | number, offerIds: (string | number)[]): Promise<{ success: boolean }> {
     return apiFetch<{ success: boolean }>(`/api/dashboard/orders/${orderId}/offers/publish`, {
         method: 'POST',
         body: JSON.stringify({ offerIds }),
     });
 }
 
-export async function createInvoice(orderId: number): Promise<Invoice> {
+export async function createInvoice(orderId: string | number): Promise<Invoice> {
     return apiFetch(`/api/dashboard/orders/${orderId}/create-invoice`, {
         method: 'POST',
     });
@@ -244,7 +244,26 @@ export async function getConversations(): Promise<any[]> {
 }
 
 export async function downloadInvoicePdf(id: number): Promise<void> {
-    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'}/api/billing/invoices/${id}/pdf`);
+    const token = localStorage.getItem('token');
+    const authSession = localStorage.getItem('auth_session');
+    let tenantSlug = '';
+
+    // Extract tenant slug from session if available
+    if (authSession) {
+        try {
+            const session = JSON.parse(authSession);
+            tenantSlug = session.user?.merchant_id || '';
+        } catch (e) {
+            console.error('Failed to parse auth session', e);
+        }
+    }
+
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'}/api/billing/invoices/${id}/pdf`, {
+        headers: {
+            'Authorization': `Token ${token}`,
+            ...(tenantSlug ? { 'X-Tenant-ID': tenantSlug } : {})
+        }
+    });
     if (!response.ok) throw new Error('PDF download failed');
     const blob = await response.blob();
     const url = window.URL.createObjectURL(blob);
@@ -267,46 +286,52 @@ export async function getBotHealth(): Promise<{ status: string }> {
 }
 
 export async function getMerchantSettings(): Promise<MerchantSettings> {
-    return apiFetch<MerchantSettings>('/api/dashboard/merchant/settings/dealer-demo-001');
+    // Get tenant slug dynamically from auth
+    const me = await getMe();
+    const tenantSlug = me.tenant?.slug || 'default';
+    return apiFetch<MerchantSettings>(`/api/dashboard/merchant/settings/${tenantSlug}`);
 }
 
 export async function updateMerchantSettings(settings: Partial<MerchantSettings>): Promise<{ ok: boolean }> {
-    return apiFetch<{ ok: boolean }>('/api/dashboard/merchant/settings/dealer-demo-001', {
+    // Get tenant slug dynamically from auth
+    const me = await getMe();
+    const tenantSlug = me.tenant?.slug || 'default';
+    return apiFetch<{ ok: boolean }>(`/api/dashboard/merchant/settings/${tenantSlug}`, {
         method: 'POST',
         body: JSON.stringify(settings),
     });
 }
 export async function getAdminStats(): Promise<AdminStats> {
-    return apiFetch<AdminStats>('/admin-stats/');
+    return apiFetch<AdminStats>('/api/admin-stats/');
 }
 
 export async function listActiveDevices(tenantId: number): Promise<ActiveDevice[]> {
-    return apiFetch<ActiveDevice[]>(`/tenants/${tenantId}/devices/`);
+    return apiFetch<ActiveDevice[]>(`/api/tenants/${tenantId}/devices/`);
 }
 
 export async function removeActiveDevice(tenantId: number, deviceId: string): Promise<void> {
-    return apiFetch(`/tenants/${tenantId}/remove-device/`, {
+    return apiFetch(`/api/tenants/${tenantId}/remove-device/`, {
         method: 'POST',
         body: JSON.stringify({ device_id: deviceId }),
     });
 }
 
 export async function updateTenantLimits(tenantId: number, limits: { max_users: number, max_devices: number }): Promise<void> {
-    return apiFetch(`/tenants/${tenantId}/`, {
+    return apiFetch(`/api/tenants/${tenantId}/`, {
         method: 'PATCH',
         body: JSON.stringify(limits),
     });
 }
 
 export async function createTenantUser(tenantId: number, userData: any): Promise<void> {
-    return apiFetch(`/tenants/${tenantId}/users/`, {
+    return apiFetch(`/api/tenants/${tenantId}/users/`, {
         method: 'POST',
         body: JSON.stringify(userData),
     });
 }
 
 export async function getTeam(): Promise<any[]> {
-    return apiFetch<any[]>('/auth/team/');
+    return apiFetch<any[]>('/api/auth/team/');
 }
 
 export interface BillingSettings {
@@ -331,11 +356,11 @@ export interface BillingSettings {
 }
 
 export async function getBillingSettings(): Promise<BillingSettings> {
-    return apiFetch<BillingSettings>('/billing/settings/billing/tenant/');
+    return apiFetch<BillingSettings>('/api/billing/settings/billing/tenant/');
 }
 
 export async function updateBillingSettings(settings: Partial<BillingSettings>): Promise<void> {
-    return apiFetch('/billing/settings/billing/tenant/', {
+    return apiFetch('/api/billing/settings/billing/tenant/', {
         method: 'PUT',
         body: JSON.stringify(settings),
     });

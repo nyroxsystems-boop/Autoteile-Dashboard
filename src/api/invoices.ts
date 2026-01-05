@@ -71,7 +71,7 @@ export const downloadInvoicePdf = async (id: string | number) => {
   // Use raw fetch for file blob
   const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/invoices/${id}/pdf`, {
     headers: {
-      'Authorization': `Bearer ${token}`
+      'Authorization': `Token ${token}`
     }
   });
 

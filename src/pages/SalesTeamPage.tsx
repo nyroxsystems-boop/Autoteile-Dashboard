@@ -31,10 +31,11 @@ interface KPIStats {
 }
 
 const SalesTeamPage: React.FC = () => {
-    const { session } = useAuth();
+    const { user, token, session } = useAuth(); // session available for future use
     const [users, setUsers] = useState<User[]>([]);
     const [stats, setStats] = useState<KPIStats | null>(null);
     const [showAddUser, setShowAddUser] = useState(false);
+
 
     // Form state
     const [newName, setNewName] = useState('');
