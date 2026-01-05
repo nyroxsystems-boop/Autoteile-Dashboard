@@ -31,7 +31,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (token) {
                 try {
                     // Verify token and get user
-                    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://autoteile-bot-service.onrender.com';
+                    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://whatsapp-bot-oem-ermittlung.onrender.com';
                     const res = await axios.get(`${API_BASE}/api/auth/me`, {
                         headers: { Authorization: `Token ${token}` }
                     });

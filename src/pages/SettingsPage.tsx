@@ -38,7 +38,7 @@ const SettingsPage = () => {
             return;
         }
         try {
-            const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://autoteile-bot-service.onrender.com';
+            const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://whatsapp-bot-oem-ermittlung.onrender.com';
             const token = localStorage.getItem('token');
             const res = await fetch(`${API_BASE}/api/auth/change-password`, {
                 method: 'POST',
