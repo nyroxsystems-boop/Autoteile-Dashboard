@@ -17,7 +17,7 @@ export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): 
 
     // Multi-tenancy support
     const tenantId = localStorage.getItem('selectedTenantId');
-    const token = localStorage.getItem('auth_access_token') || API_TOKEN;
+    const token = localStorage.getItem('token') || localStorage.getItem('auth_access_token') || API_TOKEN;
     const deviceId = getDeviceId();
 
     const headers: Record<string, string> = {
