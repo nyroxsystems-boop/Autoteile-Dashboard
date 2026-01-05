@@ -302,31 +302,30 @@ export async function updateMerchantSettings(settings: Partial<MerchantSettings>
     });
 }
 export async function getAdminStats(): Promise<AdminStats> {
-    return apiFetch<AdminStats>('/api/admin-stats/');
+    return apiFetch<AdminStats>('/api/admin/kpis');
 }
 
 export async function listActiveDevices(tenantId: number): Promise<ActiveDevice[]> {
-    return apiFetch<ActiveDevice[]>(`/api/tenants/${tenantId}/devices/`);
+    return apiFetch<ActiveDevice[]>(`/api/admin/tenants/${tenantId}/devices`);
 }
 
 export async function removeActiveDevice(tenantId: number, deviceId: string): Promise<void> {
-    return apiFetch(`/api/tenants/${tenantId}/remove-device/`, {
-        method: 'POST',
-        body: JSON.stringify({ device_id: deviceId }),
+    return apiFetch(`/api/admin/tenants/${tenantId}/devices/${deviceId}`, {
+        method: 'DELETE'
     });
 }
 
 export async function updateTenantLimits(tenantId: number, limits: { max_users: number, max_devices: number }): Promise<void> {
-    return apiFetch(`/api/tenants/${tenantId}/`, {
+    return apiFetch(`/api/admin/tenants/${tenantId}/limits`, {
         method: 'PATCH',
         body: JSON.stringify(limits),
     });
 }
 
 export async function createTenantUser(tenantId: number, userData: any): Promise<void> {
-    return apiFetch(`/api/tenants/${tenantId}/users/`, {
+    return apiFetch(`/api/admin/users`, {
         method: 'POST',
-        body: JSON.stringify(userData),
+        body: JSON.stringify({ ...userData, tenant_id: tenantId }),
     });
 }
 
