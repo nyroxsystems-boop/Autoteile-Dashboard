@@ -114,46 +114,54 @@ export const wawiService = {
     },
 
     getRecentMovements: async () => {
-        // Placeholder until backend endpoints are ready
-        return [] as StockMovement[];
+        return await apiFetch<StockMovement[]>('/api/stock/movements?limit=50');
     },
 
     getMovementHistory: async (partId: number | string) => {
-        // Placeholder - will fetch detailed movement log for a specific part
-        return [] as StockMovement[];
-    },
-
-    getLocations: async () => {
-        // Placeholder - will fetch all warehouse locations
-        return [
-            { id: 1, name: 'Hauptlager', type: 'main', code: 'A1', capacity: 1000, current_stock: 450 },
-            { id: 2, name: 'Regal B3', type: 'shelf', code: 'B3', capacity: 200, current_stock: 87 },
-            { id: 3, name: 'Wareneingang Quarantäne', type: 'quarantine', code: 'Q1', capacity: 100, current_stock: 12 },
-            { id: 4, name: 'Retouren', type: 'returns', code: 'R1', capacity: 150, current_stock: 23 },
-        ] as WarehouseLocation[];
+        return await apiFetch<StockMovement[]>(`/api/stock/movements?part_id=${partId}`);
     },
 
     createMovement: async (movement: Partial<StockMovement>) => {
-        // Placeholder - will create a new stock movement
-        console.log('Creating movement:', movement);
-        return { id: Date.now(), ...movement } as StockMovement;
+        return await apiFetch<StockMovement>('/api/stock/movements', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(movement)
+        });
+    },
+
+    getLocations: async () => {
+        return await apiFetch<WarehouseLocation[]>('/api/stock/locations');
     },
 
     // Procurement methods
     getSuppliers: async () => {
-        // Placeholder - will fetch all suppliers
-        return [] as Supplier[];
+        return await apiFetch<Supplier[]>('/api/suppliers/');
     },
 
     getSupplierDetails: async (id: number | string) => {
-        // Placeholder - will fetch supplier details
-        console.log('Fetching supplier:', id);
-        return null as Supplier | null;
+        return await apiFetch<Supplier>(`/api/suppliers/${id}/`);
     },
 
     createSupplier: async (supplier: Partial<Supplier>) => {
-        console.log('Creating supplier:', supplier);
-        return { id: Date.now(), ...supplier, status: 'active' } as Supplier;
+        return await apiFetch<Supplier>('/api/suppliers/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(supplier)
+        });
+    },
+
+    updateSupplier: async (id: number | string, patch: Partial<Supplier>) => {
+        return await apiFetch<Supplier>(`/api/suppliers/${id}/`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(patch)
+        });
+    },
+
+    deleteSupplier: async (id: number | string) => {
+        await apiFetch(`/api/suppliers/${id}/`, {
+            method: 'DELETE'
+        });
     },
 
     getSupplierArticles: async (supplierId?: number) => {
