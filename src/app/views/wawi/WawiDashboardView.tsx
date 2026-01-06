@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import {
     Package, Warehouse, ShoppingCart, History, ArrowLeft,
-    ExternalLink, Edit, Trash2, Truck, AlertTriangle
+    ExternalLink, Edit, Trash2, Truck, AlertTriangle, TrendingUp, ArrowRight
 } from 'lucide-react';
 import { MetricCard } from '../../components/MetricCard';
 import { Button } from '../../components/ui/button';
