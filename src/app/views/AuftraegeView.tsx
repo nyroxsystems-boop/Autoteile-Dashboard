@@ -26,11 +26,11 @@ export function AuftraegeView() {
     }
   }, [selectedOrder?.id]);
 
-  const loadOffers = async (id: number) => {
+  const loadOffers = async (id: string | number) => {
     setOffersLoading(true);
     try {
       const data = await getOrderOffers(id);
-      setOffers(data);
+      setOffers(data || []);
     } catch (err) {
       console.error('Failed to load offers', err);
     } finally {
@@ -38,10 +38,10 @@ export function AuftraegeView() {
     }
   };
 
-  const loadMessages = async (id: number) => {
+  const loadMessages = async (id: string | number) => {
     try {
       const msgs = await getOrderMessages(id);
-      setMessages(msgs);
+      setMessages(msgs || []);
     } catch (err) {
       console.error('Failed to load messages', err);
     }
@@ -63,15 +63,15 @@ export function AuftraegeView() {
   const handlePublish = async () => {
     if (!selectedOrderId) return;
     try {
-      // For now, publish all draft offers or first 3
-      const ids = offers.filter(o => o.status === 'draft').map(o => parseInt(o.id) || o.id); // Handle string IDs gracefully if needed, though they are strings now
+      // Get draft offer IDs - keep as strings (UUIDs)
+      const ids = offers.filter(o => o.status === 'draft').map(o => o.id);
       if (ids.length === 0) {
         toast.error('Keine neuen Angebote zum Veröffentlichen');
         return;
       }
-      const response = await publishOffers(selectedOrderId, ids);
+      await publishOffers(selectedOrderId, ids);
       toast.success('Angebote an Kunden gesendet');
-      loadOffers(selectedOrderId);
+      loadOffers(selectedOrderId as number);
     } catch (err) {
       toast.error('Fehler beim Senden');
     }

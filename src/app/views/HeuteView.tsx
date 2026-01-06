@@ -60,19 +60,22 @@ export function HeuteView({
     {
       key: 'vehicle',
       header: 'Fahrzeug',
-      render: (order: Order) => (
-        <div className="flex items-center gap-2">
-          <Package className="w-4 h-4 text-muted-foreground" />
-          <span>{order.vehicle_json?.make} {order.vehicle_json?.model}</span>
-        </div>
-      ),
+      render: (order: Order) => {
+        const vehicle = order.vehicle || order.vehicle_json;
+        return (
+          <div className="flex items-center gap-2">
+            <Package className="w-4 h-4 text-muted-foreground" />
+            <span>{vehicle?.make || ''} {vehicle?.model || ''}</span>
+          </div>
+        );
+      },
     },
     {
       key: 'oem',
       header: 'OEM-Nummer',
       render: (order: Order) => (
         <code className="px-2 py-1 bg-muted rounded text-xs text-mono">
-          {order.oem}
+          {order.oem_number || order.part?.oemNumber || order.oem || '-'}
         </code>
       ),
     },
