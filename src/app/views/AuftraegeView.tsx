@@ -220,27 +220,57 @@ export function AuftraegeView() {
               </div>
             </div>
 
-            <div className="space-y-5">
-              <h3>Gefundene Angebote</h3>
-              {offersLoading ? <div>Suche Angebote...</div> : (
-                <div className="space-y-3">
-                  {offers.length === 0 ? <div className="p-4 border border-dashed rounded-lg text-muted-foreground italic">Noch keine Angebote hinterlegt.</div> :
-                    offers.map((offer) => (
-                      <div key={offer.id} className="p-5 rounded-xl border border-border bg-background">
-                        <div className="flex items-start justify-between mb-2">
-                          <div>
-                            <div className="font-semibold">{offer.shopName || offer.supplierName}</div>
-                            <div className="text-sm text-muted-foreground">{offer.productName || offer.product_name}</div>
-                          </div>
-                          <StatusChip status={offer.status === 'published' ? 'success' : 'waiting'} label={offer.status === 'published' ? 'Gesendet' : 'Bereit'} size="sm" />
-                        </div>
-                        <div className="flex justify-between items-end mt-4">
-                          <div className="text-sm text-muted-foreground">OEM: {offer.oemNumber}</div>
-                          <div className="text-2xl font-bold">€{typeof offer.basePrice === 'number' ? offer.basePrice.toFixed(2) : parseFloat(offer.price || '0').toFixed(2)}</div>
-                        </div>
-                      </div>
-                    ))
-                  }
+            <div className="space-y-4">
+              <h3 className="flex items-center gap-2">
+                <Truck className="w-5 h-5 text-primary" />
+                Gefundene Angebote
+              </h3>
+              {offersLoading ? (
+                <div className="flex items-center gap-2 text-muted-foreground animate-pulse">
+                  <Clock className="w-4 h-4 animate-spin" />
+                  Suche Angebote...
+                </div>
+              ) : (
+                <div className="bg-muted/30 border border-border rounded-xl overflow-hidden">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-muted/50 text-muted-foreground border-b border-border">
+                        <th className="px-4 py-3 text-left font-semibold uppercase tracking-wider text-[10px]">Lieferant / Produkt</th>
+                        <th className="px-4 py-3 text-left font-semibold uppercase tracking-wider text-[10px]">Status</th>
+                        <th className="px-4 py-3 text-right font-semibold uppercase tracking-wider text-[10px]">Preis</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border bg-card">
+                      {offers.length === 0 ? (
+                        <tr>
+                          <td colSpan={3} className="px-4 py-8 text-center text-muted-foreground italic">
+                            Noch keine Angebote hinterlegt.
+                          </td>
+                        </tr>
+                      ) : (
+                        offers.map((offer) => (
+                          <tr key={offer.id} className="hover:bg-muted/20 transition-colors">
+                            <td className="px-4 py-3">
+                              <div className="font-semibold">{offer.shopName || offer.supplierName}</div>
+                              <div className="text-[10px] text-muted-foreground truncate max-w-[200px]">
+                                {offer.productName || offer.product_name}
+                              </div>
+                            </td>
+                            <td className="px-4 py-3">
+                              <StatusChip
+                                status={offer.status === 'published' ? 'success' : 'waiting'}
+                                label={offer.status === 'published' ? 'Gesendet' : 'Bereit'}
+                                size="sm"
+                              />
+                            </td>
+                            <td className="px-4 py-3 text-right font-bold text-foreground">
+                              €{typeof offer.basePrice === 'number' ? offer.basePrice.toFixed(2) : parseFloat(offer.price || '0').toFixed(2)}
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
                 </div>
               )}
             </div>

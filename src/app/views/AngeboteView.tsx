@@ -185,63 +185,91 @@ export function AngeboteView() {
       </div >
 
       {/* List */}
-      < div className="space-y-4" >
-        {
-          filteredQuotes.map((quote) => (
-            <div key={quote.id} className="bg-card border border-border rounded-lg p-6 hover:border-primary/50 transition-all">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h3 className="font-semibold text-foreground">{quote.customerName}</h3>
-                    <span className={`px-2 py-0.5 rounded text-xs font-medium border ${quote.status === 'confirmed' ? 'bg-green-500/10 text-green-600 border-green-500/20' :
-                      quote.status === 'selected' ? 'bg-blue-500/10 text-blue-600 border-blue-500/20' :
-                        quote.status === 'offers_ready' ? 'bg-amber-500/10 text-amber-600 border-amber-500/20' :
-                          'bg-slate-500/10 text-slate-600 border-slate-500/20'
+      <div className="space-y-6">
+        {filteredQuotes.map((quote) => (
+          <div key={quote.id} className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
+            {/* Quote Header */}
+            <div className="bg-muted/30 px-6 py-4 flex items-center justify-between border-b border-border">
+              <div className="flex items-center gap-4">
+                <div className="flex flex-col">
+                  <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
+                    {quote.customerName}
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider font-bold border ${quote.status === 'confirmed' ? 'bg-success/10 text-success border-success/20' :
+                        quote.status === 'selected' ? 'bg-primary/10 text-primary border-primary/20' :
+                          quote.status === 'offers_ready' ? 'bg-warning/10 text-warning border-warning/20' :
+                            'bg-slate-500/10 text-slate-600 border-slate-500/20'
                       }`}>
-                      {quote.status === 'confirmed' ? '✓ Bestätigt' :
-                        quote.status === 'selected' ? '⏱ Ausgewählt' :
-                          quote.status === 'offers_ready' ? '📋 Angebote bereit' :
-                            '✕ Abgelehnt'}
+                      {quote.status === 'confirmed' ? 'Bestätigt' :
+                        quote.status === 'selected' ? 'Ausgewählt' :
+                          quote.status === 'offers_ready' ? 'Bereit' :
+                            'Abgelehnt'}
                     </span>
-                  </div>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <span className="font-mono">{quote.oemNumber}</span>
+                  </h3>
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
+                    <span className="font-mono bg-muted px-1.5 py-0.5 rounded">{quote.oemNumber}</span>
                     <span>•</span>
-                    <span>{quote.partName}</span>
+                    <span className="font-medium text-foreground/70">{quote.partName}</span>
                     <span>•</span>
                     <span>{quote.timestamp}</span>
                   </div>
                 </div>
               </div>
-
-              <div className="grid grid-cols-3 gap-4">
-                {quote.options.map((option) => (
-                  <div key={option.id} className="p-4 rounded-lg border border-border bg-muted/30">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="w-7 h-7 rounded-full bg-muted flex items-center justify-center font-semibold text-sm">
-                        {option.label}
-                      </span>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="text-sm font-medium text-foreground">{option.supplier}</div>
-                      <div className="text-2xl font-semibold text-foreground">€ {option.price.toFixed(2)}</div>
-                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <Clock className="w-3.5 h-3.5" />
-                        <span>{option.deliveryTime}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                {quote.options.length === 0 && (
-                  <div className="col-span-3 py-4 text-center text-sm text-muted-foreground italic">
-                    Keine Angebote hinterlegt
-                  </div>
-                )}
+              <div className="flex items-center gap-2">
+                {/* Action buttons could go here */}
               </div>
             </div>
-          ))
-        }
-      </div >
+
+            {/* Offers Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-muted/40 text-muted-foreground border-b border-border">
+                    <th className="px-6 py-3 text-left font-semibold uppercase tracking-wider text-[10px]">Option</th>
+                    <th className="px-6 py-3 text-left font-semibold uppercase tracking-wider text-[10px]">Lieferant</th>
+                    <th className="px-6 py-3 text-left font-semibold uppercase tracking-wider text-[10px]">Lieferzeit</th>
+                    <th className="px-6 py-3 text-left font-semibold uppercase tracking-wider text-[10px]">Qualität</th>
+                    <th className="px-6 py-3 text-right font-semibold uppercase tracking-wider text-[10px]">Preis</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {quote.options.length > 0 ? (
+                    quote.options.map((option) => (
+                      <tr key={option.id} className="hover:bg-muted/20 transition-colors">
+                        <td className="px-6 py-3 font-bold text-primary">
+                          {option.label}
+                        </td>
+                        <td className="px-6 py-3 font-medium">
+                          {option.supplier}
+                        </td>
+                        <td className="px-6 py-3 text-muted-foreground flex items-center gap-2">
+                          <Clock className="w-3.5 h-3.5" />
+                          {option.deliveryTime}
+                        </td>
+                        <td className="px-6 py-3">
+                          <span className="text-xs px-2 py-0.5 bg-muted rounded-md border border-border">
+                            {option.quality}
+                          </span>
+                        </td>
+                        <td className="px-6 py-3 text-right">
+                          <div className="text-lg font-bold text-foreground">
+                            € {option.price.toFixed(2)}
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-8 text-center text-muted-foreground italic">
+                        Keine Angebote für diesen Auftrag hinterlegt.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ))}
+      </div>
     </div >
   );
 }

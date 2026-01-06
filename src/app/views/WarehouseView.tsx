@@ -29,8 +29,8 @@ export function WarehouseView() {
   const loadParts = async () => {
     setLoading(true);
     try {
-      // InvenTree Part API
-      const data = await apiFetch<Part[]>('/part/');
+      // InvenTree Part API (via Bot-Service bridge)
+      const data = await apiFetch<Part[]>('/api/products/');
       setParts(data);
     } catch (err) {
       console.error('Failed to load parts', err);
