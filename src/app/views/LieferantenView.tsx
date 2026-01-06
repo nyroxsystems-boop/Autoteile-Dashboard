@@ -4,7 +4,7 @@ import { MetricCard } from '../components/MetricCard';
 import { Store, Clock, TrendingUp } from 'lucide-react';
 
 export function LieferantenView() {
-  const { suppliers, loading, error } = useSuppliers();
+  const { suppliers, loading } = useSuppliers();
 
   const getStatusVariant = (status: string) => {
     switch (status.toLowerCase()) {
@@ -39,7 +39,7 @@ export function LieferantenView() {
   };
 
   if (loading) return <div className="p-20 text-center text-muted-foreground">Lade Lieferanten...</div>;
-  if (error) return <div className="p-20 text-center text-red-500">{error}</div>;
+  // Silently handle errors - show empty state
 
   return (
     <div className="space-y-6">

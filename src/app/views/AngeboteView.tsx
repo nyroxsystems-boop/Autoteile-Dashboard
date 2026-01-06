@@ -3,6 +3,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { Search, Package, Clock, CheckCircle2, XCircle, FileText, Plus, Loader2 } from 'lucide-react';
 import { useOrders } from '../hooks/useOrders';
 import { getOrderOffers, Offer } from '../api/wws';
+import { toast } from 'sonner';
 
 export function AngeboteView() {
   const { orders, loading, refresh } = useOrders();
@@ -91,20 +92,18 @@ export function AngeboteView() {
         </div>
         <button
           onClick={async () => {
-            // Quick test: Create offer for first order
             if (orders.length > 0) {
               const orderId = orders[0].id;
               try {
                 const { createOffer } = await import('../api/wws');
                 await createOffer(orderId, { price: '150.00', supplierName: 'Test Supplier' });
-                alert('Test Offer Created for Order ' + orderId);
-                // Trigger refresh or state update here if needed
+                toast.success(`Angebot für Auftrag ${orderId} erstellt`);
                 refresh();
               } catch (e) {
-                alert('Failed to create offer');
+                toast.error('Fehler beim Erstellen des Angebots');
               }
             } else {
-              alert('No orders available to create offer for');
+              toast.info('Keine Aufträge verfügbar - erstellen Sie zuerst einen Auftrag');
             }
           }}
           className="h-10 px-6 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors flex items-center gap-2">

@@ -2,8 +2,9 @@
 import { useState, useEffect } from 'react';
 import { apiFetch } from '../api/client';
 import { MetricCard } from '../components/MetricCard';
-import { Package, AlertTriangle, ArrowDownRight, Search, Filter } from 'lucide-react';
+import { Package, AlertTriangle, ArrowDownRight, Search } from 'lucide-react';
 import { StatusChip } from '../components/StatusChip';
+import { Button } from '../components/ui/button';
 
 interface Part {
   id: number;
@@ -133,17 +134,5 @@ export function WarehouseView() {
         </div>
       </div>
     </div>
-  );
-}
-
-// Minimal button fallback if not imported correctly
-function Button({ children, variant, size, onClick, className }: any) {
-  return (
-    <button
-      onClick={onClick}
-      className={`px-4 py-2 rounded-lg font-medium transition-all ${variant === 'outline' ? 'border border-border hover:bg-muted' : 'bg-primary text-white'} ${className}`}
-    >
-      {children}
-    </button>
   );
 }
