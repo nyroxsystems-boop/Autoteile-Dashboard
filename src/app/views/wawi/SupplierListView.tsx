@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Plus, Search, Phone, Mail, Building2, MoreVertical, CheckCircle2, XCircle } from 'lucide-react';
+import { Search, Plus, Building2, CheckCircle2, XCircle, MoreVertical, Edit, Trash2 } from 'lucide-react';
+import { wawiService } from '../../services/wawiService';
+import type { Supplier } from '../../services/wawiService';
 import { Button } from '../../components/ui/button';
-import { wawiService, Supplier } from '../../services/wawiService';
+import { SupplierModal } from '../../components/SupplierModal';
 import { toast } from 'sonner';
 
 export function SupplierListView() {
@@ -9,6 +11,8 @@ export function SupplierListView() {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
+    const [openMenuId, setOpenMenuId] = useState<number | string | null>(null);
 
     useEffect(() => {
         loadSuppliers();
@@ -21,6 +25,7 @@ export function SupplierListView() {
             setSuppliers(data);
         } catch (err) {
             console.error('Failed to load suppliers', err);
+            toast.error('Fehler beim Laden der Lieferanten');
         } finally {
             setLoading(false);
         }
@@ -29,11 +34,38 @@ export function SupplierListView() {
     const handleCreateSupplier = async (formData: any) => {
         try {
             await wawiService.createSupplier(formData);
-            toast.success('Lieferant erstellt');
+            toast.success('Lieferant erfolgreich erstellt');
             loadSuppliers();
             setIsCreateModalOpen(false);
         } catch (err) {
-            toast.error('Fehler beim Erstellen');
+            console.error('Create failed:', err);
+            toast.error('Fehler beim Erstellen des Lieferanten');
+        }
+    };
+
+    const handleUpdateSupplier = async (formData: any) => {
+        if (!editingSupplier) return;
+        try {
+            await wawiService.updateSupplier(editingSupplier.id, formData);
+            toast.success('Lieferant erfolgreich aktualisiert');
+            loadSuppliers();
+            setEditingSupplier(null);
+        } catch (err) {
+            console.error('Update failed:', err);
+            toast.error('Fehler beim Aktualisieren des Lieferanten');
+        }
+    };
+
+    const handleDeleteSupplier = async (id: number | string) => {
+        if (!confirm('Möchten Sie diesen Lieferanten wirklich löschen?')) return;
+        try {
+            await wawiService.deleteSupplier(id);
+            toast.success('Lieferant erfolgreich gelöscht');
+            loadSuppliers();
+            setOpenMenuId(null);
+        } catch (err) {
+            console.error('Delete failed:', err);
+            toast.error('Fehler beim Löschen des Lieferanten');
         }
     };
 
@@ -105,36 +137,32 @@ export function SupplierListView() {
                                                     <Building2 className="w-5 h-5 text-primary" />
                                                 </div>
                                                 <div>
-                                                    <div className="font-bold text-sm">{supplier.name}</div>
-                                                    {supplier.address && (
-                                                        <div className="text-xs text-muted-foreground">{supplier.address}</div>
+                                                    <div className="font-semibold text-sm">{supplier.name}</div>
+                                                    {supplier.website && (
+                                                        <a href={supplier.website} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">
+                                                            {supplier.website}
+                                                        </a>
                                                     )}
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className="text-sm">{supplier.contact_person || '—'}</span>
+                                            <span className="text-sm">{supplier.contact_person || '-'}</span>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className="flex flex-col gap-1">
+                                            <div className="space-y-1">
                                                 {supplier.email && (
-                                                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                                        <Mail className="w-3 h-3" />
-                                                        <span>{supplier.email}</span>
-                                                    </div>
+                                                    <div className="text-xs text-muted-foreground">{supplier.email}</div>
                                                 )}
                                                 {supplier.phone && (
-                                                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                                        <Phone className="w-3 h-3" />
-                                                        <span>{supplier.phone}</span>
-                                                    </div>
+                                                    <div className="text-xs text-muted-foreground">{supplier.phone}</div>
                                                 )}
-                                                {!supplier.email && !supplier.phone && <span className="text-xs">—</span>}
+                                                {!supplier.email && !supplier.phone && <span className="text-sm">-</span>}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            {supplier.status === 'active' ? (
-                                                <div className="flex items-center gap-2 text-emerald-600">
+                                            {supplier.status === 'active' || supplier.active ? (
+                                                <div className="flex items-center gap-2 text-green-500">
                                                     <CheckCircle2 className="w-4 h-4" />
                                                     <span className="text-xs font-bold">Aktiv</span>
                                                 </div>
@@ -146,9 +174,37 @@ export function SupplierListView() {
                                             )}
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                <MoreVertical className="w-4 h-4" />
-                                            </Button>
+                                            <div className="relative">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-8 w-8"
+                                                    onClick={() => setOpenMenuId(openMenuId === supplier.id ? null : supplier.id)}
+                                                >
+                                                    <MoreVertical className="w-4 h-4" />
+                                                </Button>
+                                                {openMenuId === supplier.id && (
+                                                    <div className="absolute right-0 top-10 z-50 bg-card border border-border rounded-xl shadow-lg py-1 min-w-[160px] animate-in fade-in zoom-in-95 duration-100">
+                                                        <button
+                                                            onClick={() => {
+                                                                setEditingSupplier(supplier);
+                                                                setOpenMenuId(null);
+                                                            }}
+                                                            className="w-full px-4 py-2 text-sm text-left hover:bg-muted/50 flex items-center gap-2 transition-colors"
+                                                        >
+                                                            <Edit className="w-4 h-4" />
+                                                            Bearbeiten
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteSupplier(supplier.id)}
+                                                            className="w-full px-4 py-2 text-sm text-left hover:bg-muted/50 flex items-center gap-2 text-red-500 transition-colors"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                            Löschen
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </td>
                                     </tr>
                                 ))
@@ -158,7 +214,24 @@ export function SupplierListView() {
                 </div>
             </div>
 
-            {/* Simple Create Modal would go here - simplified for now */}
+            {/* Create Modal */}
+            <SupplierModal
+                isOpen={isCreateModalOpen}
+                onClose={() => setIsCreateModalOpen(false)}
+                onSubmit={handleCreateSupplier}
+                title="Neuer Lieferant"
+            />
+
+            {/* Edit Modal */}
+            {editingSupplier && (
+                <SupplierModal
+                    isOpen={true}
+                    onClose={() => setEditingSupplier(null)}
+                    onSubmit={handleUpdateSupplier}
+                    initialData={editingSupplier}
+                    title="Lieferant bearbeiten"
+                />
+            )}
         </div>
     );
 }

@@ -63,7 +63,10 @@ export interface Supplier {
     email?: string;
     phone?: string;
     address?: string;
+    website?: string;
+    notes?: string;
     status: 'active' | 'inactive';
+    active?: boolean;
     payment_terms?: string;
     created_at?: string;
 }
