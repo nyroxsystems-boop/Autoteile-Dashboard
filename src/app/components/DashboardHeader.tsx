@@ -1,3 +1,4 @@
+import { useState, useRef, useEffect } from 'react';
 import {
   Sun, Moon, Globe, Settings, User, LogOut, Bell, ChevronDown,
   ChevronsUpDown, Plus, Check, Building2, Users, Crown, Shield,
