@@ -8,7 +8,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 export default defineConfig({
   plugins: [
     react({
-      jsxRuntime: 'classic', // Force classic runtime to ensure React is in scope
+      jsxRuntime: 'automatic', // Use modern automatic runtime
     }),
   ],
   resolve: {
@@ -20,5 +20,12 @@ export default defineConfig({
   build: {
     sourcemap: false,
     minify: 'esbuild',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+        },
+      },
+    },
   },
 })
