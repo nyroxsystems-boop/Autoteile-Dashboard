@@ -21,11 +21,11 @@ export function ArticleDetailView() {
 
     useEffect(() => {
         if (id) {
-            loadArticle(parseInt(id));
+            loadArticle(id);
         }
     }, [id]);
 
-    const loadArticle = async (articleId: number) => {
+    const loadArticle = async (articleId: string | number) => {
         setLoading(true);
         try {
             const data = await wawiService.getArticleDetails(articleId);

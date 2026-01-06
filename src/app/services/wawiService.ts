@@ -1,7 +1,7 @@
 import { apiFetch } from '../api/client';
 
 export interface Part {
-    id: number;
+    id: number | string; // Support both numeric and UUID IDs
     name: string;
     IPN: string;
     description: string;
@@ -109,7 +109,7 @@ export const wawiService = {
         return await apiFetch<Part[]>('/api/products/');
     },
 
-    getArticleDetails: async (id: number) => {
+    getArticleDetails: async (id: number | string) => {
         return await apiFetch<Part>(`/api/products/${id}/`);
     },
 
@@ -118,7 +118,7 @@ export const wawiService = {
         return [] as StockMovement[];
     },
 
-    getMovementHistory: async (partId: number) => {
+    getMovementHistory: async (partId: number | string) => {
         // Placeholder - will fetch detailed movement log for a specific part
         return [] as StockMovement[];
     },
@@ -145,7 +145,7 @@ export const wawiService = {
         return [] as Supplier[];
     },
 
-    getSupplierDetails: async (id: number) => {
+    getSupplierDetails: async (id: number | string) => {
         // Placeholder - will fetch supplier details
         console.log('Fetching supplier:', id);
         return null as Supplier | null;

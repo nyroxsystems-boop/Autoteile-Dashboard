@@ -3,7 +3,6 @@ import {
   Activity, MessageSquare, Warehouse, Shield, Settings,
   DollarSign, Truck
 } from 'lucide-react';
-import { useLocation } from 'react-router-dom';
 
 interface NavItem {
   id: string;
@@ -29,7 +28,6 @@ export function DashboardSidebar({
   environment = 'demo',
   isOwner = false
 }: DashboardSidebarProps) {
-  const location = useLocation();
   const isWawi = window.location.pathname.startsWith('/wawi');
 
   const botNavItems: NavItem[] = [
@@ -53,8 +51,6 @@ export function DashboardSidebar({
     { id: 'nachbestellung', label: 'Nachbestellung', icon: Receipt, group: 'main' },
     { id: 'wareneingang', label: 'Wareneingang', icon: Truck, group: 'main' },
     { id: 'berichte', label: 'Berichte', icon: Activity, group: 'main' },
-    { id: 'einkauf', label: 'Einkauf', icon: Store, group: 'operations' },
-    { id: 'status', label: 'Berichte', icon: Activity, group: 'system' },
     { id: 'settings', label: 'Setup', icon: Settings, group: 'system' },
   ];
 

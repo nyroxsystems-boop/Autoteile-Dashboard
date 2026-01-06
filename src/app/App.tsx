@@ -97,6 +97,9 @@ export default function App() {
 
   // Handle view navigation
   const handleNavigate = (view: string) => {
+    // Check if we're currently in WAWI workspace
+    const isCurrentlyInWawi = location.pathname.startsWith('/wawi');
+
     const viewPaths: Record<string, string> = {
       heute: '/bot/heute',
       kunden: '/bot/kunden',
@@ -104,8 +107,10 @@ export default function App() {
       auftraege: '/bot/auftraege',
       preise: '/bot/preise',
       belege: '/bot/belege',
-      lieferanten: '/bot/lieferanten',
-      status: '/bot/status',
+      // Context-aware navigation for shared views
+      lieferanten: isCurrentlyInWawi ? '/wawi/lieferanten' : '/bot/lieferanten',
+      status: isCurrentlyInWawi ? '/wawi/berichte' : '/bot/status',
+      settings: isCurrentlyInWawi ? '/wawi/setup' : '/bot/settings',
       warenwirtschaft: '/wawi/dashboard',
       bot_heute: '/bot/heute',
       artikel: '/wawi/artikel',
@@ -113,8 +118,8 @@ export default function App() {
       nachbestellung: '/wawi/nachbestellung',
       wareneingang: '/wawi/wareneingang',
       berichte: '/wawi/berichte',
+      einkauf: '/wawi/lieferanten',
       admin: '/bot/admin',
-      settings: '/bot/settings',
     };
 
     if (viewPaths[view]) {
@@ -218,6 +223,7 @@ export default function App() {
         tenants={tenants}
         currentTenant={currentTenant}
         onSwitchTenant={switchTenant}
+        isWawi={true}
       />
       <main className="ml-20 mt-16">
         <div className="max-w-[1440px] mx-auto px-12 py-12">
@@ -269,6 +275,7 @@ export default function App() {
       <Route path="/wawi/nachbestellung" element={<WawiLayout><ReorderWizardView /></WawiLayout>} />
       <Route path="/wawi/wareneingang" element={<WawiLayout><GoodsReceiptView /></WawiLayout>} />
       <Route path="/wawi/berichte" element={<WawiLayout><ReportsView /></WawiLayout>} />
+      <Route path="/wawi/setup" element={<WawiLayout><SettingsView /></WawiLayout>} />
 
       {/* Catch all - Redirect to Bot */}
       <Route path="/" element={<Navigate to="/bot/heute" replace />} />

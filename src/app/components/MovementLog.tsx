@@ -3,7 +3,7 @@ import { History, ArrowDownLeft, ArrowUpRight, Repeat, Edit, Filter, Calendar } 
 import { StockMovement, wawiService } from '../services/wawiService';
 
 interface MovementLogProps {
-    partId: number;
+    partId: number | string;
 }
 
 export function MovementLog({ partId }: MovementLogProps) {
