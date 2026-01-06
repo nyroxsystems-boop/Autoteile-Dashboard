@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Warehouse, MapPin, Package, AlertCircle } from 'lucide-react';
-import { StockByLocation } from '../../services/wawiService';
+import { StockByLocation } from '../services/wawiService';
 
 interface StockLocationManagerProps {
     locations: StockByLocation[];

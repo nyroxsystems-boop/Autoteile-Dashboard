@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { History, ArrowDownLeft, ArrowUpRight, Repeat, Edit, Filter, Calendar } from 'lucide-react';
-import { StockMovement, wawiService } from '../../services/wawiService';
+import { StockMovement, wawiService } from '../services/wawiService';
 
 interface MovementLogProps {
     partId: number;

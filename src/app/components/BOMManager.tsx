@@ -1,7 +1,8 @@
+```typescript
 import { useState } from 'react';
 import { Plus, Trash2, Package, AlertTriangle } from 'lucide-react';
-import { Button } from '../../components/ui/button';
-import { BOMComponent } from '../../services/wawiService';
+import { Button } from './ui/button';
+import { wawiService, Part, BOMComponent } from '../services/wawiService';
 
 interface BOMManagerProps {
     components: BOMComponent[];
@@ -90,8 +91,9 @@ export function BOMManager({ components, onChange, availableArticles = [] }: BOM
                 {components.map((component, index) => (
                     <div
                         key={component.id}
-                        className={`p-4 flex items-center justify-between hover:bg-muted/20 transition-colors ${index > 0 ? 'border-t border-border' : ''
-                            }`}
+                        className={`p - 4 flex items - center justify - between hover: bg - muted / 20 transition - colors ${
+    index > 0 ? 'border-t border-border' : ''
+} `}
                     >
                         <div className="flex items-center gap-4 flex-1">
                             <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center border border-border">
