@@ -7,7 +7,7 @@ import { wawiService, Part, BOMComponent } from '../services/wawiService';
 interface BOMManagerProps {
     components: BOMComponent[];
     onChange: (components: BOMComponent[]) => void;
-    availableArticles?: any[];
+    availableArticles: Part[];
 }
 
 export function BOMManager({ components, onChange, availableArticles = [] }: BOMManagerProps) {
