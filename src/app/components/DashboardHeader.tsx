@@ -1,7 +1,7 @@
-import { useState } from 'react';
 import {
   Sun, Moon, Globe, Settings, User, LogOut, Bell, ChevronDown,
-  ChevronsUpDown, Plus, Check, Building2, Users, Crown, Shield
+  ChevronsUpDown, Plus, Check, Building2, Users, Crown, Shield,
+  ArrowLeft
 } from 'lucide-react';
 
 interface Account {
@@ -28,6 +28,7 @@ interface DashboardHeaderProps {
   tenants?: any[];
   currentTenant?: any;
   onSwitchTenant?: (id: number) => void;
+  isWawi?: boolean;
 }
 
 export function DashboardHeader({
@@ -44,6 +45,7 @@ export function DashboardHeader({
   tenants = [],
   currentTenant,
   onSwitchTenant,
+  isWawi,
 }: DashboardHeaderProps) {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showLangMenu, setShowLangMenu] = useState(false);
@@ -74,13 +76,25 @@ export function DashboardHeader({
   return (
     <>
       <header className="fixed top-0 right-0 left-20 h-16 bg-card border-b border-border z-30 flex items-center justify-between px-12">
-        {/* Left: Keyboard Shortcut Hint */}
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <kbd className="px-2 py-1 bg-muted border border-border rounded font-mono">⌘K</kbd>
-          <span>für Suche</span>
-          <span className="mx-2">·</span>
-          <kbd className="px-2 py-1 bg-muted border border-border rounded font-mono">?</kbd>
-          <span>für Shortcuts</span>
+        {/* Left: Keyboard Shortcut Hint & Back Button */}
+        <div className="flex items-center gap-6">
+          {isWawi && (
+            <button
+              onClick={() => onNavigate?.('bot_heute')}
+              className="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary hover:bg-primary/20 transition-all rounded-xl font-bold text-sm group"
+            >
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" strokeWidth={2.5} />
+              Zurück zum Dashboard
+            </button>
+          )}
+
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <kbd className="px-2 py-1 bg-muted border border-border rounded font-mono">⌘K</kbd>
+            <span>für Suche</span>
+            <span className="mx-2">·</span>
+            <kbd className="px-2 py-1 bg-muted border border-border rounded font-mono">?</kbd>
+            <span>für Shortcuts</span>
+          </div>
         </div>
 
         {/* Right: Controls */}

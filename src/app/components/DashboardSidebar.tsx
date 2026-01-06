@@ -1,7 +1,9 @@
 import {
   LayoutDashboard, Package, FileText, Receipt, Store,
-  Activity, Plug, Lightbulb, TrendingUp, DollarSign, MessageSquare, Warehouse, Shield, Settings
+  Activity, MessageSquare, Warehouse, Shield, Settings,
+  DollarSign, Truck
 } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 
 interface NavItem {
   id: string;
@@ -18,18 +20,7 @@ interface DashboardSidebarProps {
   isOwner?: boolean;
 }
 
-const navItems: NavItem[] = [
-  { id: 'heute', label: 'Heute', icon: LayoutDashboard, group: 'main' },
-  { id: 'kunden', label: 'Kunden', icon: MessageSquare, group: 'operations' },
-  { id: 'auftraege', label: 'Aufträge', icon: Package, group: 'operations' },
-  { id: 'angebote', label: 'Angebote', icon: FileText, group: 'operations' },
-  { id: 'preise', label: 'Preise', icon: DollarSign, group: 'operations' },
-  { id: 'belege', label: 'Belege', icon: Receipt, group: 'operations' },
-  { id: 'warenwirtschaft', label: 'WWS', icon: Warehouse, group: 'partners' },
-  { id: 'lieferanten', label: 'Lieferanten', icon: Store, group: 'partners' },
-  { id: 'status', label: 'Status', icon: Activity, group: 'system' },
-  { id: 'settings', label: 'Einstellungen', icon: Settings, group: 'system' },
-];
+// Navigation item configuration is now handled inside the component based on workspace
 
 export function DashboardSidebar({
   activeView,
@@ -38,8 +29,38 @@ export function DashboardSidebar({
   environment = 'demo',
   isOwner = false
 }: DashboardSidebarProps) {
+  const location = useLocation();
+  const isWawi = window.location.pathname.startsWith('/wawi');
 
+  const botNavItems: NavItem[] = [
+    { id: 'heute', label: 'Heute', icon: LayoutDashboard, group: 'main' },
+    { id: 'kunden', label: 'Kunden', icon: MessageSquare, group: 'operations' },
+    { id: 'auftraege', label: 'Aufträge', icon: Package, group: 'operations' },
+    { id: 'angebote', label: 'Angebote', icon: FileText, group: 'operations' },
+    { id: 'preise', label: 'Preise', icon: DollarSign, group: 'operations' },
+    { id: 'belege', label: 'Belege', icon: Receipt, group: 'operations' },
+    { id: 'warenwirtschaft', label: 'WAWI', icon: Warehouse, group: 'partners' },
+    { id: 'lieferanten', label: 'Lieferanten', icon: Store, group: 'partners' },
+    { id: 'status', label: 'Status', icon: Activity, group: 'system' },
+    { id: 'settings', label: 'Einstellungen', icon: Settings, group: 'system' },
+  ];
+
+  const wawiNavItems: NavItem[] = [
+    { id: 'warenwirtschaft', label: 'Dashboard', icon: LayoutDashboard, group: 'main' },
+    { id: 'artikel', label: 'Artikel', icon: Package, group: 'main' },
+    { id: 'lager', label: 'Lager', icon: Warehouse, group: 'main' },
+    { id: 'lieferanten', label: 'Lieferanten', icon: Store, group: 'main' },
+    { id: 'nachbestellung', label: 'Nachbestellung', icon: Receipt, group: 'main' },
+    { id: 'wareneingang', label: 'Wareneingang', icon: Truck, group: 'main' },
+    { id: 'berichte', label: 'Berichte', icon: Activity, group: 'main' },
+    { id: 'einkauf', label: 'Einkauf', icon: Store, group: 'operations' },
+    { id: 'status', label: 'Berichte', icon: Activity, group: 'system' },
+    { id: 'settings', label: 'Setup', icon: Settings, group: 'system' },
+  ];
+
+  const navItems = isWawi ? wawiNavItems : botNavItems;
   const allNavItems = [...navItems];
+
   if (isOwner) {
     allNavItems.push({ id: 'admin', label: 'Admin', icon: Shield, group: 'system' });
   }
@@ -104,8 +125,11 @@ export function DashboardSidebar({
         })}
       </nav>
 
-      {/* Footer Status */}
-      <div className="flex flex-col items-center gap-3 mt-auto pt-6 border-t border-sidebar-border w-full px-3">
+      {/* Footer Actions & Status */}
+      <div className="flex flex-col items-center gap-4 mt-auto pt-6 border-t border-sidebar-border w-full px-3">
+        {/* Workspace indicator or padding */}
+        <div className="py-2" />
+
         {/* Bot Health */}
         <div className="flex flex-col items-center gap-1.5">
           <div

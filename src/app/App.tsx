@@ -8,6 +8,7 @@ import { ToastProvider } from './components/ToastProvider';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useTenants } from './hooks/useTenants';
 import { useMe } from './hooks/useMe';
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { HeuteView } from './views/HeuteView';
 import { LoginView } from './views/LoginView';
 import { AuftraegeView } from './views/AuftraegeView';
@@ -17,17 +18,43 @@ import { LieferantenView } from './views/LieferantenView';
 import { StatusView } from './views/StatusView';
 import { CustomersInquiriesView } from './views/CustomersInquiriesView';
 import { DocumentsInvoicesView } from './views/DocumentsInvoicesView';
-import { WarehouseView } from './views/WarehouseView';
+import { WawiDashboardView } from './views/wawi/WawiDashboardView';
+import { ArticleListView } from './views/wawi/ArticleListView';
+import { ArticleDetailView } from './views/wawi/ArticleDetailView';
+import { InventoryMovementView } from './views/wawi/InventoryMovementView';
+import { SupplierListView } from './views/wawi/SupplierListView';
+import { ReorderWizardView } from './views/wawi/ReorderWizardView';
+import { GoodsReceiptView } from './views/wawi/GoodsReceiptView';
+import { ReportsView } from './views/wawi/ReportsView';
 import { SettingsView } from './views/SettingsView';
 import { AdminDashboardView } from './views/AdminDashboardView';
 
 export default function App() {
-  const [activeView, setActiveView] = useState('heute');
+  const navigate = useNavigate();
+  const location = useLocation();
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [language, setLanguage] = useState<'de' | 'en'>('de');
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('authToken'));
+
+  // Define activeView based on path for backward compatibility with components
+  const getActiveViewFromPath = (path: string) => {
+    if (path.startsWith('/bot/heute')) return 'heute';
+    if (path.startsWith('/bot/kunden')) return 'kunden';
+    if (path.startsWith('/bot/auftraege')) return 'auftraege';
+    if (path.startsWith('/bot/angebote')) return 'angebote';
+    if (path.startsWith('/bot/preise')) return 'preise';
+    if (path.startsWith('/bot/belege')) return 'belege';
+    if (path.startsWith('/bot/lieferanten')) return 'lieferanten';
+    if (path.startsWith('/bot/status')) return 'status';
+    if (path.startsWith('/bot/settings')) return 'settings';
+    if (path.startsWith('/bot/admin')) return 'admin';
+    if (path.startsWith('/wawi/dashboard')) return 'warenwirtschaft';
+    return 'heute';
+  };
+
+  const activeView = getActiveViewFromPath(location.pathname);
 
   // Load theme from localStorage
   useEffect(() => {
@@ -70,20 +97,31 @@ export default function App() {
 
   // Handle view navigation
   const handleNavigate = (view: string) => {
-    setActiveView(view);
-    const viewNames: Record<string, string> = {
-      heute: 'Heute',
-      kunden: 'Kunden & Anfragen',
-      angebote: 'Angebote',
-      auftraege: 'Aufträge',
-      preise: 'Preisprofile',
-      belege: 'Belege & Rechnungen',
-      lieferanten: 'Lieferanten',
-      status: 'Status & Analytics',
-      warenwirtschaft: 'Warenwirtschaft',
-      admin: 'Admin Dashboard',
+    const viewPaths: Record<string, string> = {
+      heute: '/bot/heute',
+      kunden: '/bot/kunden',
+      angebote: '/bot/angebote',
+      auftraege: '/bot/auftraege',
+      preise: '/bot/preise',
+      belege: '/bot/belege',
+      lieferanten: '/bot/lieferanten',
+      status: '/bot/status',
+      warenwirtschaft: '/wawi/dashboard',
+      bot_heute: '/bot/heute',
+      artikel: '/wawi/artikel',
+      lager: '/wawi/lager',
+      einkauf: '/wawi/einkauf',
+      lieferanten: '/wawi/lieferanten',
+      nachbestellung: '/wawi/nachbestellung',
+      wareneingang: '/wawi/wareneingang',
+      berichte: '/wawi/berichte',
+      admin: '/bot/admin',
+      settings: '/bot/settings',
     };
-    toast.success(`Zu ${viewNames[view] || view} gewechselt`);
+
+    if (viewPaths[view]) {
+      navigate(viewPaths[view]);
+    }
   };
 
   // Settings modal handler
@@ -102,17 +140,8 @@ export default function App() {
   // Listen for custom events
   useEffect(() => {
     const handleShowShortcuts = () => setShortcutsOpen(true);
-    const handleOpenSettingsEvent = () => {
-      // Trigger settings modal in header
-    };
-
     window.addEventListener('show-shortcuts', handleShowShortcuts);
-    window.addEventListener('open-settings', handleOpenSettingsEvent);
-
-    return () => {
-      window.removeEventListener('show-shortcuts', handleShowShortcuts);
-      window.removeEventListener('open-settings', handleOpenSettingsEvent);
-    };
+    return () => window.removeEventListener('show-shortcuts', handleShowShortcuts);
   }, []);
 
   const { tenants, currentTenant, switchTenant, loading: tenantsLoading } = useTenants();
@@ -127,49 +156,15 @@ export default function App() {
     );
   }
 
-  const renderView = () => {
-    if (tenantsLoading) return <div className="p-20 text-center">Lade Accounts...</div>;
-
-    switch (activeView) {
-      case 'heute':
-        return <HeuteView onNavigate={setActiveView} />;
-      case 'kunden':
-        return <CustomersInquiriesView onNavigate={setActiveView} />;
-      case 'auftraege':
-        return <AuftraegeView />;
-      case 'angebote':
-        return <AngeboteView />;
-      case 'preise':
-        return <PreisprofileView />;
-      case 'belege':
-        return <DocumentsInvoicesView />;
-      case 'warenwirtschaft':
-        return <WarehouseView />;
-      case 'lieferanten':
-        return <LieferantenView />;
-      case 'status':
-        return <StatusView />;
-      case 'settings':
-        return <SettingsView />;
-      case 'admin':
-        return <AdminDashboardView />;
-      default:
-        return <HeuteView onNavigate={setActiveView} />;
-    }
-  };
-
-  return (
+  const BotLayout = ({ children }: { children: React.ReactNode }) => (
     <div className="min-h-screen bg-background">
-      {/* Sidebar */}
       <DashboardSidebar
         activeView={activeView}
-        onNavigate={setActiveView}
+        onNavigate={handleNavigate}
         isOwner={me?.user?.is_owner}
         botStatus="online"
         environment={currentTenant ? 'live' : 'demo'}
       />
-
-      {/* Header */}
       <DashboardHeader
         theme={theme}
         onThemeChange={handleThemeChange}
@@ -179,36 +174,107 @@ export default function App() {
         userEmail={me?.user?.email || "admin@autoteile-assistent.com"}
         companyName={currentTenant?.tenant_name || "Autoteile ERP"}
         onOpenCommandPalette={() => setCommandPaletteOpen(true)}
-        onNavigate={setActiveView}
-        // Custom props for multi-account
+        onNavigate={handleNavigate}
         tenants={tenants}
         currentTenant={currentTenant}
         onSwitchTenant={switchTenant}
       />
-
-      {/* Main Content with Container */}
       <main className="ml-20 mt-16">
         <div className="max-w-[1440px] mx-auto px-12 py-12">
-          {renderView()}
+          {children}
         </div>
       </main>
-
-      {/* Command Palette */}
       <CommandPalette
         open={commandPaletteOpen}
         onOpenChange={setCommandPaletteOpen}
         onNavigate={handleNavigate}
         theme={theme}
       />
-
-      {/* Shortcuts Overlay */}
       <ShortcutsOverlay
         open={shortcutsOpen}
         onClose={() => setShortcutsOpen(false)}
       />
-
-      {/* Toast Provider */}
       <ToastProvider theme={theme} />
     </div>
+  );
+
+  const WawiLayout = ({ children }: { children: React.ReactNode }) => (
+    <div className="min-h-screen bg-background text-foreground">
+      <DashboardSidebar
+        activeView={activeView}
+        onNavigate={handleNavigate}
+        isOwner={me?.user?.is_owner}
+        botStatus="online"
+        environment={currentTenant ? 'live' : 'demo'}
+      />
+      <DashboardHeader
+        theme={theme}
+        onThemeChange={handleThemeChange}
+        language={language}
+        onLanguageChange={handleLanguageChange}
+        userName={me?.user?.first_name ? `${me.user.first_name} ${me.user.last_name}` : me?.user?.username || "Admin"}
+        userEmail={me?.user?.email || "admin@autoteile-assistent.com"}
+        companyName={currentTenant?.tenant_name || "WAWI Port"}
+        onOpenCommandPalette={() => setCommandPaletteOpen(true)}
+        onNavigate={handleNavigate}
+        tenants={tenants}
+        currentTenant={currentTenant}
+        onSwitchTenant={switchTenant}
+      />
+      <main className="ml-20 mt-16">
+        <div className="max-w-[1440px] mx-auto px-12 py-12">
+          <div className="mb-8">
+            <h2 className="text-sm font-medium text-primary mb-1 uppercase tracking-wider">WAWI Workspace</h2>
+            <div className="h-1 w-12 bg-primary rounded-full" />
+          </div>
+          {children}
+        </div>
+      </main>
+      <CommandPalette
+        open={commandPaletteOpen}
+        onOpenChange={setCommandPaletteOpen}
+        onNavigate={handleNavigate}
+        theme={theme}
+      />
+      <ShortcutsOverlay
+        open={shortcutsOpen}
+        onClose={() => setShortcutsOpen(false)}
+      />
+      <ToastProvider theme={theme} />
+    </div>
+  );
+
+  if (tenantsLoading) return <div className="p-20 text-center">Lade Accounts...</div>;
+
+  return (
+    <Routes>
+      {/* Bot Workspace */}
+      <Route path="/bot" element={<Navigate to="/bot/heute" replace />} />
+      <Route path="/bot/heute" element={<BotLayout><HeuteView onNavigate={handleNavigate} /></BotLayout>} />
+      <Route path="/bot/kunden" element={<BotLayout><CustomersInquiriesView onNavigate={handleNavigate} /></BotLayout>} />
+      <Route path="/bot/auftraege" element={<BotLayout><AuftraegeView /></BotLayout>} />
+      <Route path="/bot/angebote" element={<BotLayout><AngeboteView /></BotLayout>} />
+      <Route path="/bot/preise" element={<BotLayout><PreisprofileView /></BotLayout>} />
+      <Route path="/bot/belege" element={<BotLayout><DocumentsInvoicesView /></BotLayout>} />
+      <Route path="/bot/lieferanten" element={<BotLayout><LieferantenView /></BotLayout>} />
+      <Route path="/bot/status" element={<BotLayout><StatusView /></BotLayout>} />
+      <Route path="/bot/settings" element={<BotLayout><SettingsView /></BotLayout>} />
+      <Route path="/bot/admin" element={<BotLayout><AdminDashboardView /></BotLayout>} />
+
+      {/* WAWI Workspace */}
+      <Route path="/wawi" element={<Navigate to="/wawi/dashboard" replace />} />
+      <Route path="/wawi/dashboard" element={<WawiLayout><WawiDashboardView /></WawiLayout>} />
+      <Route path="/wawi/artikel" element={<WawiLayout><ArticleListView /></WawiLayout>} />
+      <Route path="/wawi/artikel/:id" element={<WawiLayout><ArticleDetailView /></WawiLayout>} />
+      <Route path="/wawi/lager" element={<WawiLayout><InventoryMovementView /></WawiLayout>} />
+      <Route path="/wawi/lieferanten" element={<WawiLayout><SupplierListView /></WawiLayout>} />
+      <Route path="/wawi/nachbestellung" element={<WawiLayout><ReorderWizardView /></WawiLayout>} />
+      <Route path="/wawi/wareneingang" element={<WawiLayout><GoodsReceiptView /></WawiLayout>} />
+      <Route path="/wawi/berichte" element={<WawiLayout><ReportsView /></WawiLayout>} />
+
+      {/* Catch all - Redirect to Bot */}
+      <Route path="/" element={<Navigate to="/bot/heute" replace />} />
+      <Route path="*" element={<Navigate to="/bot/heute" replace />} />
+    </Routes>
   );
 }
