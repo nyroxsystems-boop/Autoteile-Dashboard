@@ -6,7 +6,7 @@ import { DocumentStatusCard } from '../components/DocumentStatusCard';
 import { toast } from 'sonner';
 
 export function DocumentsInvoicesView() {
-  const { invoices, loading, error } = useInvoices();
+  const { invoices, loading } = useInvoices();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
 
@@ -67,7 +67,6 @@ export function DocumentsInvoicesView() {
   };
 
   if (loading) return <div className="p-20 text-center text-muted-foreground flex flex-col items-center gap-4"><Loader2 className="w-8 h-8 animate-spin" /> Lade Rechnungen...</div>;
-  if (error) return <div className="p-20 text-center text-red-500">{error}</div>;
 
   return (
     <div className="space-y-6">
