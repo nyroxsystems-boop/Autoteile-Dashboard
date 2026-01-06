@@ -5,6 +5,7 @@ import { CustomerThreadRow } from '../components/CustomerThreadRow';
 import { CustomerDetailPanel } from '../components/CustomerDetailPanel';
 import { TableDensityToggle, getTableDensityClasses, type TableDensity } from '../components/TableDensityToggle';
 import { useConversations } from '../hooks/useConversations';
+import { NewInquiryModal } from '../components/NewInquiryModal';
 
 interface CustomersInquiriesViewProps {
   onNavigate: (view: string) => void;
@@ -16,6 +17,7 @@ export function CustomersInquiriesView({ onNavigate: _onNavigate }: CustomersInq
   const [searchTerm, setSearchTerm] = useState('');
   const [density, setDensity] = useState<TableDensity>('comfortable');
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const [showNewInquiryModal, setShowNewInquiryModal] = useState(false);
 
   const mappedCustomers = useMemo(() => {
     return conversations.map((conv: any) => ({
@@ -90,13 +92,18 @@ export function CustomersInquiriesView({ onNavigate: _onNavigate }: CustomersInq
           </p>
         </div>
         <button
-          onClick={() => alert('Neue Anfrage: Diese Funktion wird über WhatsApp-Nachrichten automatisch erstellt')}
+          onClick={() => setShowNewInquiryModal(true)}
           className="h-10 px-6 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
           Neue Anfrage
         </button>
       </div>
+
+      <NewInquiryModal
+        open={showNewInquiryModal}
+        onOpenChange={setShowNewInquiryModal}
+      />
 
       {/* KPI Cards */}
       <div className="grid grid-cols-4 gap-6">

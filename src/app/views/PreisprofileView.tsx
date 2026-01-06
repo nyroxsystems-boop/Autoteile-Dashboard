@@ -5,11 +5,12 @@ import { StatusChip } from '../components/StatusChip';
 import { Percent, DollarSign, TrendingUp, Edit2, Trash2, Plus, Loader2 } from 'lucide-react';
 import { useMerchantSettings } from '../hooks/useMerchantSettings';
 import { useDashboardSummary } from '../hooks/useDashboardSummary';
-
+import { PriceGroupModal } from '../components/PriceGroupModal';
 export function PreisprofileView() {
   const { settings, loading, update: _update } = useMerchantSettings();
   const { summary, loading: _summaryLoading } = useDashboardSummary();
   const [profiles, setProfiles] = useState<any[]>([]);
+  const [showPriceGroupModal, setShowPriceGroupModal] = useState(false);
 
   useEffect(() => {
     if (settings) {
@@ -30,12 +31,17 @@ export function PreisprofileView() {
               Preislogik steuern – Wirkung sehen, nicht Technik
             </p>
           </div>
-          <Button onClick={() => alert('Preisgruppe anlegen: Diese Funktion kommt in einer zukünftigen Version')}>
+          <Button onClick={() => setShowPriceGroupModal(true)}>
             <Plus className="w-4 h-4 mr-2" />
             Preisgruppe anlegen
           </Button>
         </div>
       </div>
+
+      <PriceGroupModal
+        open={showPriceGroupModal}
+        onOpenChange={setShowPriceGroupModal}
+      />
 
       {/* Info Box */}
       <div className="p-5 bg-primary/5 border border-primary/20 rounded-xl">
