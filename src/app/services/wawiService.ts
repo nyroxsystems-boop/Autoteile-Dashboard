@@ -170,17 +170,40 @@ export const wawiService = {
     },
 
     getPurchaseOrders: async () => {
-        // Placeholder - will fetch all purchase orders
-        return [] as PurchaseOrder[];
+        return await apiFetch<PurchaseOrder[]>('/api/purchase-orders/');
     },
 
     createPurchaseOrder: async (order: Partial<PurchaseOrder>) => {
-        console.log('Creating purchase order:', order);
-        return { id: Date.now(), order_number: `PO-${Date.now()}`, ...order } as PurchaseOrder;
+        return await apiFetch<PurchaseOrder>('/api/purchase-orders/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(order)
+        });
+    },
+
+    updatePurchaseOrder: async (id: number | string, patch: Partial<PurchaseOrder>) => {
+        return await apiFetch<PurchaseOrder>(`/api/purchase-orders/${id}/`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(patch)
+        });
+    },
+
+    cancelPurchaseOrder: async (id: number | string) => {
+        await apiFetch(`/api/purchase-orders/${id}/`, {
+            method: 'DELETE'
+        });
+    },
+
+    receivePurchaseOrder: async (poId: number | string, data: any) => {
+        return await apiFetch(`/api/purchase-orders/${poId}/receive`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
     },
 
     getReorderSuggestions: async () => {
-        // Get articles below minimum stock
         const articles = await wawiService.getArticles();
         return articles
             .filter(a => a.total_in_stock < a.minimum_stock)
