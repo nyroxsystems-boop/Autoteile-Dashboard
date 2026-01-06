@@ -28,6 +28,8 @@ import { GoodsReceiptView } from './views/wawi/GoodsReceiptView';
 import { ReportsView } from './views/wawi/ReportsView';
 import { SettingsView } from './views/SettingsView';
 import { AdminDashboardView } from './views/AdminDashboardView';
+import TaxDashboardView from './views/tax/TaxDashboardView';
+import InvoiceListView from './views/tax/InvoiceListView';
 
 export default function App() {
   const navigate = useNavigate();
@@ -276,6 +278,11 @@ export default function App() {
       <Route path="/wawi/wareneingang" element={<WawiLayout><GoodsReceiptView /></WawiLayout>} />
       <Route path="/wawi/berichte" element={<WawiLayout><ReportsView /></WawiLayout>} />
       <Route path="/wawi/setup" element={<WawiLayout><SettingsView /></WawiLayout>} />
+
+      {/* Tax Module */}
+      <Route path="/tax" element={<Navigate to="/tax/dashboard" replace />} />
+      <Route path="/tax/dashboard" element={<BotLayout><TaxDashboardView /></BotLayout>} />
+      <Route path="/tax/invoices" element={<BotLayout><InvoiceListView /></BotLayout>} />
 
       {/* Catch all - Redirect to Bot */}
       <Route path="/" element={<Navigate to="/bot/heute" replace />} />
