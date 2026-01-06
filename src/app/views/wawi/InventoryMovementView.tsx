@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { ArrowDownLeft, ArrowUpRight, Repeat, Edit, Save, History } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { toast } from 'sonner';

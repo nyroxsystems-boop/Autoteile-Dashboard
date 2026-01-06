@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Warehouse, MapPin, Package, AlertCircle } from 'lucide-react';
 import { StockByLocation } from '../services/wawiService';
 

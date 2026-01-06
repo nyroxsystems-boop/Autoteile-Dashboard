@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
     Package, Warehouse, ShoppingCart, History, ArrowLeft,
     ExternalLink, Edit, Trash2, Truck, AlertTriangle, TrendingUp, ArrowRight

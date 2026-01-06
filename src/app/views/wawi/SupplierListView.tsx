@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Search, Phone, Mail, Building2, MoreVertical, CheckCircle2, XCircle } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { wawiService, Supplier } from '../../services/wawiService';
