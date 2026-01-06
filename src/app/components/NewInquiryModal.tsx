@@ -4,6 +4,7 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Loader2, MessageSquare, Car, Package } from 'lucide-react';
 import { toast } from 'sonner';
+import { VehicleSelect } from './VehicleSelect';
 
 interface NewInquiryModalProps {
     open: boolean;
@@ -101,23 +102,14 @@ export function NewInquiryModal({ open, onOpenChange, onSuccess }: NewInquiryMod
                             <Car className="w-4 h-4" />
                             Fahrzeug
                         </h4>
-                        <div className="grid grid-cols-3 gap-3">
-                            <Input
-                                value={formData.vehicleMake}
-                                onChange={(e) => setFormData({ ...formData, vehicleMake: e.target.value })}
-                                placeholder="Marke"
-                            />
-                            <Input
-                                value={formData.vehicleModel}
-                                onChange={(e) => setFormData({ ...formData, vehicleModel: e.target.value })}
-                                placeholder="Modell"
-                            />
-                            <Input
-                                value={formData.vehicleYear}
-                                onChange={(e) => setFormData({ ...formData, vehicleYear: e.target.value })}
-                                placeholder="Baujahr"
-                            />
-                        </div>
+                        <VehicleSelect
+                            make={formData.vehicleMake}
+                            model={formData.vehicleModel}
+                            year={formData.vehicleYear}
+                            onMakeChange={(make) => setFormData({ ...formData, vehicleMake: make })}
+                            onModelChange={(model) => setFormData({ ...formData, vehicleModel: model })}
+                            onYearChange={(year) => setFormData({ ...formData, vehicleYear: year })}
+                        />
                     </div>
 
                     {/* Part Info */}
