@@ -113,7 +113,6 @@ export default function App() {
       nachbestellung: '/wawi/nachbestellung',
       wareneingang: '/wawi/wareneingang',
       berichte: '/wawi/berichte',
-      lieferanten: '/wawi/lieferanten',
       admin: '/bot/admin',
       settings: '/bot/settings',
     };
