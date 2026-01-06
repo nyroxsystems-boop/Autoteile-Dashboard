@@ -121,12 +121,12 @@ export function PreisprofileView() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center justify-end gap-2">
-                      <Button size="sm" variant="outline">
+                      <Button size="sm" variant="outline" onClick={() => alert(`Bearbeiten: ${profile.name} - Diese Funktion kommt in einer zukünftigen Version`)}>
                         <Edit2 className="w-3.5 h-3.5 mr-1.5" />
                         Bearbeiten
                       </Button>
                       {!profile.isDefault && (
-                        <Button size="sm" variant="outline">
+                        <Button size="sm" variant="outline" onClick={() => alert(`Löschen: ${profile.name} - Diese Funktion kommt in einer zukünftigen Version`)}>
                           <Trash2 className="w-3.5 h-3.5 text-destructive" />
                         </Button>
                       )}

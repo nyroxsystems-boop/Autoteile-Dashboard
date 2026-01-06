@@ -140,12 +140,12 @@ export function HeuteView({
         />
         <MetricCard
           label="Offene Belege"
-          value={summary?.invoicesDraft.toString() || "0"}
+          value={summary?.invoicesDraft?.toString() || "0"}
           icon={<Clock className="w-5 h-5" />}
         />
         <MetricCard
           label="Umsatz (heute)"
-          value={`€${summary?.revenueToday.toLocaleString('de-DE', { minimumFractionDigits: 2 })}`}
+          value={`€${(summary?.revenueToday ?? 0).toLocaleString('de-DE', { minimumFractionDigits: 2 })}`}
           change={18}
           changeLabel="vs. gestern"
           icon={<TrendingUp className="w-5 h-5" />}
