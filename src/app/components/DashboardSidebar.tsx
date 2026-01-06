@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Package, FileText, Receipt, Store,
-  Activity, Plug, Lightbulb, TrendingUp, DollarSign, MessageSquare, Warehouse, Shield
+  Activity, Plug, Lightbulb, TrendingUp, DollarSign, MessageSquare, Warehouse, Shield, Settings
 } from 'lucide-react';
 
 interface NavItem {
@@ -28,6 +28,7 @@ const navItems: NavItem[] = [
   { id: 'warenwirtschaft', label: 'WWS', icon: Warehouse, group: 'partners' },
   { id: 'lieferanten', label: 'Lieferanten', icon: Store, group: 'partners' },
   { id: 'status', label: 'Status', icon: Activity, group: 'system' },
+  { id: 'settings', label: 'Einstellungen', icon: Settings, group: 'system' },
 ];
 
 export function DashboardSidebar({

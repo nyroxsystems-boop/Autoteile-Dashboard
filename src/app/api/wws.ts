@@ -225,7 +225,9 @@ export async function login(credentials: { email?: string, username?: string, pa
         body: JSON.stringify({ ...credentials, device_id }),
     });
     if (data.access) {
+        localStorage.setItem('authToken', data.access);  // For App.tsx isAuthenticated check
         localStorage.setItem('auth_access_token', data.access);
+        localStorage.setItem('token', data.access);  // For client.ts fallback
         if (data.refresh) localStorage.setItem('auth_refresh_token', data.refresh);
     }
     return data;
@@ -279,6 +281,28 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
 
 export async function getMe(): Promise<MeResponse> {
     return apiFetch<MeResponse>('/api/auth/me');
+}
+
+export async function updateProfile(data: {
+    first_name?: string;
+    last_name?: string;
+    email?: string;
+    phone?: string;
+}): Promise<MeResponse> {
+    return apiFetch<MeResponse>('/api/auth/me', {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+    });
+}
+
+export async function changePassword(data: {
+    current_password: string;
+    new_password: string;
+}): Promise<{ success: boolean }> {
+    return apiFetch<{ success: boolean }>('/api/auth/change-password', {
+        method: 'POST',
+        body: JSON.stringify(data),
+    });
 }
 
 export async function getBotHealth(): Promise<{ status: string }> {

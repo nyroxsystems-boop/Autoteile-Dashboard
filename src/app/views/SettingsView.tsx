@@ -29,7 +29,7 @@ import { useMe } from '../hooks/useMe';
 import { useTenants } from '../hooks/useTenants';
 import { useMerchantSettings } from '../hooks/useMerchantSettings';
 import { useBillingSettings } from '../hooks/useBillingSettings';
-import { getTeam } from '../api/wws';
+import { getTeam, updateProfile, changePassword } from '../api/wws';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 
@@ -140,6 +140,55 @@ export function SettingsView() {
   };
   console.log('Merchant Settings Save Handler ready', handleSaveMerchantSettings);
 
+  // Handle Profile Save
+  const handleSaveProfile = async () => {
+    setSavingProfile(true);
+    try {
+      await updateProfile({
+        first_name: firstName,
+        last_name: lastName,
+        email: profileEmail,
+        phone: profilePhone,
+      });
+      toast.success('Profil erfolgreich gespeichert');
+    } catch (err: any) {
+      toast.error(err.message || 'Fehler beim Speichern des Profils');
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  // Handle Password Change
+  const handleChangePassword = async () => {
+    if (!currentPassword || !newPassword) {
+      toast.error('Bitte alle Passwortfelder ausfüllen');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error('Die neuen Passwörter stimmen nicht überein');
+      return;
+    }
+    if (newPassword.length < 8) {
+      toast.error('Das neue Passwort muss mindestens 8 Zeichen haben');
+      return;
+    }
+    setSavingPassword(true);
+    try {
+      await changePassword({
+        current_password: currentPassword,
+        new_password: newPassword,
+      });
+      toast.success('Passwort erfolgreich geändert');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (err: any) {
+      toast.error(err.message || 'Fehler beim Ändern des Passworts');
+    } finally {
+      setSavingPassword(false);
+    }
+  };
+
   // Invoice Design State
   const [invoiceTemplate, setInvoiceTemplate] = useState('clean');
   const [invoiceColor, setInvoiceColor] = useState('#2563eb');
@@ -149,6 +198,29 @@ export function SettingsView() {
   const [invoiceAddressLayout, setInvoiceAddressLayout] = useState('two-column');
   const [invoiceTableStyle, setInvoiceTableStyle] = useState('grid');
   const [invoiceAccentColor, setInvoiceAccentColor] = useState('#f3f4f6');
+
+  // Profile Form State
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [profileEmail, setProfileEmail] = useState('');
+  const [profilePhone, setProfilePhone] = useState('');
+  const [savingProfile, setSavingProfile] = useState(false);
+
+  // Password Change State
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [savingPassword, setSavingPassword] = useState(false);
+
+  // Initialize profile form from me data
+  useEffect(() => {
+    if (me?.user) {
+      setFirstName(me.user.first_name || '');
+      setLastName(me.user.last_name || '');
+      setProfileEmail(me.user.email || '');
+      setProfilePhone('');
+    }
+  }, [me]);
 
   const tabs: { id: SettingsTab; label: string; shortLabel: string; icon: any }[] = [
     { id: 'profile', label: 'Mein Profil', shortLabel: 'Profil', icon: User },
@@ -251,10 +323,13 @@ export function SettingsView() {
                 <div className="mb-6">
                   <div className="flex items-center gap-6">
                     <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-white font-bold text-2xl ring-4 ring-primary/20">
-                      MM
+                      {firstName && lastName ? `${firstName[0]}${lastName[0]}`.toUpperCase() : 'MM'}
                     </div>
                     <div>
-                      <button className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
+                      <button
+                        onClick={() => toast.info('Foto-Upload kommt in einer zukünftigen Version')}
+                        className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
+                      >
                         Foto hochladen
                       </button>
                       <p className="text-xs text-muted-foreground mt-2">
@@ -272,7 +347,8 @@ export function SettingsView() {
                     </label>
                     <input
                       type="text"
-                      defaultValue={me?.user.first_name || ''}
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
                       className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                     />
                   </div>
@@ -282,7 +358,8 @@ export function SettingsView() {
                     </label>
                     <input
                       type="text"
-                      defaultValue={me?.user.last_name || ''}
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
                       className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                     />
                   </div>
@@ -293,7 +370,8 @@ export function SettingsView() {
                     </label>
                     <input
                       type="email"
-                      defaultValue={me?.user.email || ''}
+                      value={profileEmail}
+                      onChange={(e) => setProfileEmail(e.target.value)}
                       className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                     />
                   </div>
@@ -304,16 +382,31 @@ export function SettingsView() {
                     </label>
                     <input
                       type="tel"
-                      defaultValue={"+49 " + (me?.user.id || '171')}
+                      value={profilePhone}
+                      onChange={(e) => setProfilePhone(e.target.value)}
+                      placeholder="+49 171 1234567"
                       className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                     />
                   </div>
                 </div>
 
                 <div className="mt-6 flex justify-end">
-                  <button className="px-6 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors flex items-center gap-2">
-                    <Save className="w-4 h-4" />
-                    Änderungen speichern
+                  <button
+                    onClick={handleSaveProfile}
+                    disabled={savingProfile}
+                    className="px-6 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {savingProfile ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Speichern...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4" />
+                        Änderungen speichern
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
@@ -530,6 +623,8 @@ export function SettingsView() {
                     </label>
                     <input
                       type="password"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
                       className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                     />
                   </div>
@@ -539,6 +634,9 @@ export function SettingsView() {
                     </label>
                     <input
                       type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="Mindestens 8 Zeichen"
                       className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                     />
                   </div>
@@ -548,13 +646,26 @@ export function SettingsView() {
                     </label>
                     <input
                       type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
                       className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                     />
                   </div>
                 </div>
                 <div className="mt-6 flex justify-end">
-                  <button className="px-6 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors">
-                    Passwort aktualisieren
+                  <button
+                    onClick={handleChangePassword}
+                    disabled={savingPassword}
+                    className="px-6 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {savingPassword ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Speichern...
+                      </>
+                    ) : (
+                      'Passwort aktualisieren'
+                    )}
                   </button>
                 </div>
               </div>
@@ -565,7 +676,10 @@ export function SettingsView() {
                 <p className="text-sm text-muted-foreground mb-6">
                   Erhöhe die Sicherheit deines Accounts mit 2FA
                 </p>
-                <button className="px-6 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors">
+                <button
+                  onClick={() => toast.info('2FA-Aktivierung kommt in einer zukünftigen Version')}
+                  className="px-6 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors"
+                >
                   2FA aktivieren
                 </button>
               </div>

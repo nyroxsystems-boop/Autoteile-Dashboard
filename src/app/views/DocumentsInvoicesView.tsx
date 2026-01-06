@@ -79,7 +79,10 @@ export function DocumentsInvoicesView() {
             Kaufmännische Dokumente verwalten und Rechnungen erstellen
           </p>
         </div>
-        <button className="h-10 px-6 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors flex items-center gap-2">
+        <button
+          onClick={() => toast.info('Rechnung erstellen: Bitte wählen Sie erst eine Bestellung unter "Aufträge" aus')}
+          className="h-10 px-6 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors flex items-center gap-2"
+        >
           <Plus className="w-4 h-4" />
           Rechnung erstellen
         </button>

@@ -202,10 +202,10 @@ export function DashboardHeader({
                         <div className="text-sm text-muted-foreground truncate">{userEmail}</div>
                         <div className="flex items-center gap-2 mt-1">
                           <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${currentTenant?.role === 'owner'
-                              ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white'
-                              : currentTenant?.role === 'admin'
-                                ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white'
-                                : 'bg-gradient-to-r from-slate-500 to-slate-600 text-white'
+                            ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white'
+                            : currentTenant?.role === 'admin'
+                              ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white'
+                              : 'bg-gradient-to-r from-slate-500 to-slate-600 text-white'
                             }`}>
                             {currentTenant?.role ? roleLabels[currentTenant.role] : 'Benutzer'}
                           </span>
@@ -264,8 +264,13 @@ export function DashboardHeader({
                     <button
                       onClick={() => {
                         setShowUserMenu(false);
+                        // Clear all auth tokens
+                        localStorage.removeItem('authToken');
+                        localStorage.removeItem('auth_access_token');
+                        localStorage.removeItem('auth_refresh_token');
+                        localStorage.removeItem('token');
                         localStorage.removeItem('selectedTenantId');
-                        window.location.reload();
+                        window.location.href = '/';  // Redirect to trigger login
                       }}
                       className="w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-500/10 transition-colors flex items-center gap-3"
                     >
