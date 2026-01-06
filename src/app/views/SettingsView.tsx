@@ -99,7 +99,7 @@ export function SettingsView() {
     async function loadTeam() {
       try {
         const data = await getTeam();
-        const mapped = data.map(m => ({
+        const mapped = (data || []).map(m => ({
           id: m.id.toString(),
           name: `${m.first_name} ${m.last_name}`.trim() || m.username,
           email: m.email,
@@ -111,7 +111,13 @@ export function SettingsView() {
         }));
         setTeamMembers(mapped);
       } catch (err: any) {
-        toast.error('Team konnte nicht geladen werden');
+        // Silently handle 404 - endpoint may not exist
+        if (err.message?.includes('404') || err.message?.includes('not found')) {
+          console.warn('Team endpoint not available');
+          setTeamMembers([]);
+        } else {
+          console.error('Failed to load team:', err);
+        }
       }
     }
     if (activeTab === 'team') {

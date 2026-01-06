@@ -30,7 +30,7 @@ export function PreisprofileView() {
               Preislogik steuern – Wirkung sehen, nicht Technik
             </p>
           </div>
-          <Button>
+          <Button onClick={() => alert('Preisgruppe anlegen: Diese Funktion kommt in einer zukünftigen Version')}>
             <Plus className="w-4 h-4 mr-2" />
             Preisgruppe anlegen
           </Button>

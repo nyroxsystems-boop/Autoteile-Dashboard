@@ -89,7 +89,10 @@ export function CustomersInquiriesView({ onNavigate: _onNavigate }: CustomersInq
             WhatsApp-Kundenthreads und OEM-Anfragen verwalten
           </p>
         </div>
-        <button className="h-10 px-6 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors flex items-center gap-2">
+        <button
+          onClick={() => alert('Neue Anfrage: Diese Funktion wird über WhatsApp-Nachrichten automatisch erstellt')}
+          className="h-10 px-6 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors flex items-center gap-2"
+        >
           <Plus className="w-4 h-4" />
           Neue Anfrage
         </button>
