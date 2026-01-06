@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Plus, Trash2, Package, AlertTriangle } from 'lucide-react';
 import { Button } from './ui/button';
 import { wawiService, Part, BOMComponent } from '../services/wawiService';

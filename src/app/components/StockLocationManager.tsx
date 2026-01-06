@@ -1,4 +1,5 @@
-import { useState } from 'react';
+```javascript
+import React, { useState, useEffect } from 'react';
 import { Warehouse, MapPin, Package, AlertCircle } from 'lucide-react';
 import { StockByLocation } from '../services/wawiService';
 
@@ -53,7 +54,7 @@ export function StockLocationManager({ locations, totalStock, minimumStock }: St
                     </div>
                     <div>
                         <div className="text-xs font-bold text-primary/70 uppercase mb-1">Mindest</div>
-                        <div className={`text-3xl font-bold ${totalStock < minimumStock ? 'text-red-500' : 'text-primary'}`}>
+                        <div className={`text - 3xl font - bold ${ totalStock < minimumStock ? 'text-red-500' : 'text-primary' } `}>
                             {minimumStock}
                         </div>
                     </div>
@@ -71,11 +72,13 @@ export function StockLocationManager({ locations, totalStock, minimumStock }: St
                             key={location.location_id}
                             onClick={() => setSelectedLocation(isSelected ? null : location.location_id)}
                             className={`
-                p-4 rounded-2xl border-2 transition-all text-left
-                ${isSelected
-                                    ? 'border-primary bg-primary/5'
-                                    : 'border-border bg-card hover:border-primary/30 hover:bg-muted/20'}
-              `}
+p - 4 rounded - 2xl border - 2 transition - all text - left
+                ${
+    isSelected
+        ? 'border-primary bg-primary/5'
+        : 'border-border bg-card hover:border-primary/30 hover:bg-muted/20'
+}
+`}
                         >
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3 flex-1">
@@ -96,7 +99,7 @@ export function StockLocationManager({ locations, totalStock, minimumStock }: St
                             <div className="mt-3 h-2 bg-muted rounded-full overflow-hidden">
                                 <div
                                     className="h-full bg-primary transition-all duration-300"
-                                    style={{ width: `${percentage}%` }}
+                                    style={{ width: `${ percentage }% ` }}
                                 />
                             </div>
 

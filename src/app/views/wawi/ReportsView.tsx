@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown, DollarSign, Package, AlertTriangle, Download } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { wawiService, Part } from '../../services/wawiService';
