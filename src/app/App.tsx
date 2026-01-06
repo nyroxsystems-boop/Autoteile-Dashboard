@@ -110,11 +110,10 @@ export default function App() {
       bot_heute: '/bot/heute',
       artikel: '/wawi/artikel',
       lager: '/wawi/lager',
-      einkauf: '/wawi/einkauf',
-      lieferanten: '/wawi/lieferanten',
       nachbestellung: '/wawi/nachbestellung',
       wareneingang: '/wawi/wareneingang',
       berichte: '/wawi/berichte',
+      lieferanten: '/wawi/lieferanten',
       admin: '/bot/admin',
       settings: '/bot/settings',
     };
