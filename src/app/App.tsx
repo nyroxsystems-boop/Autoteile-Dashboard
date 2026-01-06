@@ -279,10 +279,10 @@ export default function App() {
       <Route path="/wawi/berichte" element={<WawiLayout><ReportsView /></WawiLayout>} />
       <Route path="/wawi/setup" element={<WawiLayout><SettingsView /></WawiLayout>} />
 
-      {/* Tax Module */}
-      <Route path="/tax" element={<Navigate to="/tax/dashboard" replace />} />
-      <Route path="/tax/dashboard" element={<BotLayout><TaxDashboardView /></BotLayout>} />
-      <Route path="/tax/invoices" element={<BotLayout><InvoiceListView /></BotLayout>} />
+      {/* Tax Module - Under Bot Workspace */}
+      <Route path="/bot/tax" element={<Navigate to="/bot/tax/dashboard" replace />} />
+      <Route path="/bot/tax/dashboard" element={<BotLayout><TaxDashboardView /></BotLayout>} />
+      <Route path="/bot/tax/invoices" element={<BotLayout><InvoiceListView /></BotLayout>} />
 
       {/* Catch all - Redirect to Bot */}
       <Route path="/" element={<Navigate to="/bot/heute" replace />} />

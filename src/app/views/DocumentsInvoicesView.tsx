@@ -99,7 +99,7 @@ export function DocumentsInvoicesView() {
           </p>
         </div>
         <button
-          onClick={() => window.location.hash = '/tax/dashboard'}
+          onClick={() => window.location.hash = '/bot/tax/dashboard'}
           className="h-10 px-6 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
@@ -347,7 +347,7 @@ export function DocumentsInvoicesView() {
             <div className="text-sm text-muted-foreground">
               Alle Rechnungen werden automatisch für die UStVA (Umsatzsteuervoranmeldung) erfasst.
               <button
-                onClick={() => window.location.hash = '/tax/dashboard'}
+                onClick={() => window.location.hash = '/bot/tax/dashboard'}
                 className="ml-2 text-primary hover:underline font-medium"
               >
                 Zum Steuer-Dashboard →
