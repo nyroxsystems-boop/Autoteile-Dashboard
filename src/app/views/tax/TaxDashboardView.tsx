@@ -1,16 +1,16 @@
 // Tax Dashboard View - Main tax management interface
 // Shows current period, tax profile, and quick actions
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
     getTaxProfile,
-    updateTaxProfile,
     calculatePeriod,
     listTaxPeriods,
     type TaxProfile,
     type PeriodCalculation,
     type TaxPeriod
 } from '../../services/taxService';
+import TaxProfileModal from '../../components/tax/TaxProfileModal';
 
 export default function TaxDashboardView() {
     const [profile, setProfile] = useState<TaxProfile | null>(null);
@@ -246,6 +246,17 @@ export default function TaxDashboardView() {
                     </div>
                 </div>
             </div>
+
+            {/* Tax Profile Modal */}
+            <TaxProfileModal
+                isOpen={showProfileEdit}
+                onClose={() => setShowProfileEdit(false)}
+                existingProfile={profile}
+                onSuccess={() => {
+                    loadData();
+                    setShowProfileEdit(false);
+                }}
+            />
         </div>
     );
 }
