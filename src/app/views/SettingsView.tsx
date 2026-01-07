@@ -956,7 +956,7 @@ export function SettingsView() {
                         <button
                           key={template}
                           onClick={() => setInvoiceTemplate(template)}
-                          className={`p-3 rounded-lg border-2 transition-all text-center ${invoiceTemplate === template
+                          className={`p-3 rounded-full border-2 transition-all text-center ${invoiceTemplate === template
                             ? 'border-primary bg-primary/10'
                             : 'border-border hover:border-border-strong'
                             }`}
