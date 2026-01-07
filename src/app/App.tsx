@@ -30,6 +30,7 @@ import { SettingsView } from './views/SettingsView';
 import { AdminDashboardView } from './views/AdminDashboardView';
 import TaxDashboardView from './views/tax/TaxDashboardView';
 import InvoiceListView from './views/tax/InvoiceListView';
+import TaxProfileCreateView from './views/tax/TaxProfileCreateView';
 
 export default function App() {
   const navigate = useNavigate();
@@ -282,6 +283,7 @@ export default function App() {
       {/* Tax Module - Under Bot Workspace */}
       <Route path="/bot/tax" element={<Navigate to="/bot/tax/dashboard" replace />} />
       <Route path="/bot/tax/dashboard" element={<BotLayout><TaxDashboardView /></BotLayout>} />
+      <Route path="/bot/tax/profile/create" element={<BotLayout><TaxProfileCreateView /></BotLayout>} />
       <Route path="/bot/tax/invoices" element={<BotLayout><InvoiceListView /></BotLayout>} />
 
       {/* Catch all - Redirect to Bot */}

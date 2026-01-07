@@ -85,10 +85,7 @@ export default function TaxDashboardView() {
                         Bitte konfigurieren Sie zuerst Ihr Steuer-Profil, um die Steuerfunktionen zu nutzen.
                     </p>
                     <button
-                        onClick={() => {
-                            console.log('[TaxDashboard] Button clicked, setting showProfileEdit to true');
-                            setShowProfileEdit(true);
-                        }}
+                        onClick={() => window.location.hash = '#/bot/tax/profile/create'}
                         className="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700"
                     >
                         Profil erstellen
