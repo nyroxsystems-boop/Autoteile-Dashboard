@@ -1028,7 +1028,7 @@ export function SettingsView() {
                         <button
                           key={position}
                           onClick={() => setInvoiceLogoPosition(position)}
-                          className={`p-2 rounded-lg border-2 transition-all text-center ${invoiceLogoPosition === position
+                          className={`p-2 rounded-full border-2 transition-all text-center ${invoiceLogoPosition === position
                             ? 'border-primary bg-primary/10'
                             : 'border-border hover:border-border-strong'
                             }`}
@@ -1090,7 +1090,7 @@ export function SettingsView() {
                         <button
                           key={option.value}
                           onClick={() => setInvoiceNumberPosition(option.value)}
-                          className={`p-2.5 rounded-lg border-2 transition-all text-center ${invoiceNumberPosition === option.value
+                          className={`p-2.5 rounded-full border-2 transition-all text-center ${invoiceNumberPosition === option.value
                             ? 'border-primary bg-primary/10'
                             : 'border-border hover:border-border-strong'
                             }`}
@@ -1112,7 +1112,7 @@ export function SettingsView() {
                         <button
                           key={option.value}
                           onClick={() => setInvoiceAddressLayout(option.value)}
-                          className={`p-2.5 rounded-lg border-2 transition-all text-center ${invoiceAddressLayout === option.value
+                          className={`p-2.5 rounded-full border-2 transition-all text-center ${invoiceAddressLayout === option.value
                             ? 'border-primary bg-primary/10'
                             : 'border-border hover:border-border-strong'
                             }`}
@@ -1135,7 +1135,7 @@ export function SettingsView() {
                         <button
                           key={option.value}
                           onClick={() => setInvoiceTableStyle(option.value)}
-                          className={`p-2.5 rounded-lg border-2 transition-all text-center ${invoiceTableStyle === option.value
+                          className={`p-2.5 rounded-full border-2 transition-all text-center ${invoiceTableStyle === option.value
                             ? 'border-primary bg-primary/10'
                             : 'border-border hover:border-border-strong'
                             }`}
