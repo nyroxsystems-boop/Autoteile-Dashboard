@@ -205,9 +205,31 @@ export function DocumentsInvoicesView() {
                       </button>
                     )}
                     <button
-                      onClick={() => {
-                        const url = `https://autoteile-bot-service-production.up.railway.app/api/invoices/${invoice.id}/pdf`;
-                        window.open(url, '_blank');
+                      onClick={async () => {
+                        try {
+                          const tenantId = localStorage.getItem('selectedTenantId');
+                          const token = localStorage.getItem('token');
+                          const url = `https://autoteile-bot-service-production.up.railway.app/api/invoices/${invoice.id}/pdf`;
+
+                          const response = await fetch(url, {
+                            headers: {
+                              'X-Tenant-ID': tenantId || '',
+                              'Authorization': `Token ${token}`
+                            }
+                          });
+
+                          if (!response.ok) throw new Error('Failed to load PDF');
+
+                          const blob = await response.blob();
+                          const blobUrl = window.URL.createObjectURL(blob);
+                          window.open(blobUrl, '_blank');
+
+                          // Clean up after a delay
+                          setTimeout(() => window.URL.revokeObjectURL(blobUrl), 1000);
+                        } catch (error) {
+                          console.error('PDF preview failed:', error);
+                          toast.error('PDF-Vorschau fehlgeschlagen');
+                        }
                       }}
                       className="p-1.5 text-blue-600 hover:bg-blue-50 rounded"
                       title="PDF anzeigen"
