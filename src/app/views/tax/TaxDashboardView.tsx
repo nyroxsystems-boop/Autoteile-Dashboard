@@ -10,19 +10,12 @@ import {
     type PeriodCalculation,
     type TaxPeriod
 } from '../../services/taxService';
-import TaxProfileModal from '../../components/tax/TaxProfileModal';
 
 export default function TaxDashboardView() {
     const [profile, setProfile] = useState<TaxProfile | null>(null);
     const [currentPeriod, setCurrentPeriod] = useState<PeriodCalculation | null>(null);
     const [periods, setPeriods] = useState<TaxPeriod[]>([]);
     const [loading, setLoading] = useState(true);
-    const [showProfileEdit, setShowProfileEdit] = useState(false);
-
-    // Debug: Track modal state changes
-    useEffect(() => {
-        console.log('[TaxDashboard] showProfileEdit changed to:', showProfileEdit);
-    }, [showProfileEdit]);
 
     useEffect(() => {
         loadData();
@@ -157,7 +150,7 @@ export default function TaxDashboardView() {
                 <div className="flex justify-between items-start mb-4">
                     <h2 className="text-lg font-semibold text-gray-900">Steuer-Profil</h2>
                     <button
-                        onClick={() => setShowProfileEdit(true)}
+                        onClick={() => window.location.hash = '#/bot/tax/profile/create'}
                         className="text-sm text-blue-600 hover:text-blue-700"
                     >
                         Bearbeiten
@@ -252,17 +245,6 @@ export default function TaxDashboardView() {
                 </div>
             </div>
 
-            {/* Tax Profile Modal */}
-            <TaxProfileModal
-                key={showProfileEdit ? 'open' : 'closed'}
-                isOpen={showProfileEdit}
-                onClose={() => setShowProfileEdit(false)}
-                existingProfile={profile}
-                onSuccess={() => {
-                    loadData();
-                    setShowProfileEdit(false);
-                }}
-            />
         </div>
     );
 }

@@ -376,6 +376,7 @@ export interface BillingSettings {
     address_layout: string;
     table_style: string;
     accent_color: string;
+    logo_base64?: string; // NEW: Logo as Base64 string
 }
 
 export async function getBillingSettings(): Promise<BillingSettings> {

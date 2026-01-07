@@ -92,6 +92,7 @@ export function SettingsView() {
       setInvoiceAddressLayout(billingSettings.address_layout || 'two-column');
       setInvoiceTableStyle(billingSettings.table_style || 'grid');
       setInvoiceAccentColor(billingSettings.accent_color || '#f3f4f6');
+      setLogoBase64(billingSettings.logo_base64 || null);
     }
   }, [billingSettings]);
 
@@ -142,7 +143,43 @@ export function SettingsView() {
       address_layout: invoiceAddressLayout,
       table_style: invoiceTableStyle,
       accent_color: invoiceAccentColor,
+      logo_base64: logoBase64 || undefined,
     });
+  };
+
+  // Logo Upload Handler
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Nur Bilddateien erlaubt (PNG, JPG, SVG)');
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Datei zu groß. Max. 2MB erlaubt.');
+      return;
+    }
+
+    // Convert to Base64
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result as string;
+      setLogoBase64(base64);
+      toast.success('Logo hochgeladen');
+    };
+    reader.onerror = () => {
+      toast.error('Fehler beim Lesen der Datei');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveLogo = () => {
+    setLogoBase64(null);
+    toast.info('Logo entfernt');
   };
   console.log('Merchant Settings Save Handler ready', handleSaveMerchantSettings);
 
@@ -204,6 +241,7 @@ export function SettingsView() {
   const [invoiceAddressLayout, setInvoiceAddressLayout] = useState('two-column');
   const [invoiceTableStyle, setInvoiceTableStyle] = useState('grid');
   const [invoiceAccentColor, setInvoiceAccentColor] = useState('#f3f4f6');
+  const [logoBase64, setLogoBase64] = useState<string | null>(null);
 
   // Profile Form State
   const [firstName, setFirstName] = useState('');
@@ -932,11 +970,52 @@ export function SettingsView() {
                   {/* Logo Upload */}
                   <div className="mb-4">
                     <label className="block text-sm font-medium text-foreground mb-3">Logo</label>
-                    <div className="border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-primary transition-colors cursor-pointer">
-                      <Upload className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                      <div className="text-sm text-foreground font-medium">Logo hochladen</div>
-                      <div className="text-xs text-muted-foreground mt-1">PNG, JPG oder SVG • Max. 2MB</div>
-                    </div>
+
+                    {logoBase64 ? (
+                      <div className="space-y-3">
+                        {/* Logo Preview */}
+                        <div className="border-2 border-border rounded-lg p-4 bg-background">
+                          <img
+                            src={logoBase64}
+                            alt="Logo Preview"
+                            className="max-h-32 mx-auto object-contain"
+                          />
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => document.getElementById('logo-upload')?.click()}
+                            className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
+                          >
+                            Erde Logo ändern
+                          </button>
+                          <button
+                            onClick={handleRemoveLogo}
+                            className="px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 transition-colors"
+                          >
+                            Entfernen
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <label
+                        htmlFor="logo-upload"
+                        className="block border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-primary transition-colors cursor-pointer"
+                      >
+                        <Upload className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                        <div className="text-sm text-foreground font-medium">Logo hochladen</div>
+                        <div className="text-xs text-muted-foreground mt-1">PNG, JPG oder SVG • Max. 2MB</div>
+                      </label>
+                    )}
+
+                    <input
+                      id="logo-upload"
+                      type="file"
+                      accept="image/png,image/jpeg,image/jpg,image/svg+xml"
+                      onChange={handleLogoUpload}
+                      className="hidden"
+                    />
                   </div>
 
                   {/* Logo Position */}
