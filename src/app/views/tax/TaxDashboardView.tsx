@@ -257,6 +257,7 @@ export default function TaxDashboardView() {
 
             {/* Tax Profile Modal */}
             <TaxProfileModal
+                key={showProfileEdit ? 'open' : 'closed'}
                 isOpen={showProfileEdit}
                 onClose={() => setShowProfileEdit(false)}
                 existingProfile={profile}

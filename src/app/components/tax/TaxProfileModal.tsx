@@ -54,6 +54,13 @@ export default function TaxProfileModal({ isOpen, onClose, existingProfile, onSu
         }
     };
 
+    // Debug: Track isOpen prop changes
+    useEffect(() => {
+        console.log('[TaxProfileModal] isOpen prop:', isOpen);
+    }, [isOpen]);
+
+    console.log('[TaxProfileModal] Rendering, isOpen=', isOpen);
+
     if (!isOpen) return null;
 
     return (
@@ -84,8 +91,8 @@ export default function TaxProfileModal({ isOpen, onClose, existingProfile, onSu
                                 type="button"
                                 onClick={() => setFormData({ ...formData, business_type: 'sole_trader' })}
                                 className={`px-4 py-3 border rounded-lg text-left transition ${formData.business_type === 'sole_trader'
-                                        ? 'border-blue-500 bg-blue-50 text-blue-700'
-                                        : 'border-gray-300 hover:border-gray-400'
+                                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                    : 'border-gray-300 hover:border-gray-400'
                                     }`}
                             >
                                 <div className="font-medium">Einzelunternehmen</div>
@@ -95,8 +102,8 @@ export default function TaxProfileModal({ isOpen, onClose, existingProfile, onSu
                                 type="button"
                                 onClick={() => setFormData({ ...formData, business_type: 'company' })}
                                 className={`px-4 py-3 border rounded-lg text-left transition ${formData.business_type === 'company'
-                                        ? 'border-blue-500 bg-blue-50 text-blue-700'
-                                        : 'border-gray-300 hover:border-gray-400'
+                                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                    : 'border-gray-300 hover:border-gray-400'
                                     }`}
                             >
                                 <div className="font-medium">Kapitalgesellschaft</div>
@@ -115,8 +122,8 @@ export default function TaxProfileModal({ isOpen, onClose, existingProfile, onSu
                                 type="button"
                                 onClick={() => setFormData({ ...formData, tax_method: 'IST' })}
                                 className={`px-4 py-3 border rounded-lg text-left transition ${formData.tax_method === 'IST'
-                                        ? 'border-blue-500 bg-blue-50 text-blue-700'
-                                        : 'border-gray-300 hover:border-gray-400'
+                                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                    : 'border-gray-300 hover:border-gray-400'
                                     }`}
                             >
                                 <div className="font-medium">Ist-Versteuerung</div>
@@ -126,8 +133,8 @@ export default function TaxProfileModal({ isOpen, onClose, existingProfile, onSu
                                 type="button"
                                 onClick={() => setFormData({ ...formData, tax_method: 'SOLL' })}
                                 className={`px-4 py-3 border rounded-lg text-left transition ${formData.tax_method === 'SOLL'
-                                        ? 'border-blue-500 bg-blue-50 text-blue-700'
-                                        : 'border-gray-300 hover:border-gray-400'
+                                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                    : 'border-gray-300 hover:border-gray-400'
                                     }`}
                             >
                                 <div className="font-medium">Soll-Versteuerung</div>
@@ -150,8 +157,8 @@ export default function TaxProfileModal({ isOpen, onClose, existingProfile, onSu
                                 type="button"
                                 onClick={() => setFormData({ ...formData, period_type: 'monthly' })}
                                 className={`px-4 py-3 border rounded-lg text-left transition ${formData.period_type === 'monthly'
-                                        ? 'border-blue-500 bg-blue-50 text-blue-700'
-                                        : 'border-gray-300 hover:border-gray-400'
+                                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                    : 'border-gray-300 hover:border-gray-400'
                                     }`}
                             >
                                 <div className="font-medium">Monatlich</div>
@@ -161,8 +168,8 @@ export default function TaxProfileModal({ isOpen, onClose, existingProfile, onSu
                                 type="button"
                                 onClick={() => setFormData({ ...formData, period_type: 'quarterly' })}
                                 className={`px-4 py-3 border rounded-lg text-left transition ${formData.period_type === 'quarterly'
-                                        ? 'border-blue-500 bg-blue-50 text-blue-700'
-                                        : 'border-gray-300 hover:border-gray-400'
+                                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                    : 'border-gray-300 hover:border-gray-400'
                                     }`}
                             >
                                 <div className="font-medium">Quartalsweise</div>
