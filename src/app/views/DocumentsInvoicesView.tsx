@@ -205,12 +205,46 @@ export function DocumentsInvoicesView() {
                       </button>
                     )}
                     <button
+                      onClick={() => {
+                        const url = `https://autoteile-bot-service-production.up.railway.app/api/invoices/${invoice.id}/pdf`;
+                        window.open(url, '_blank');
+                      }}
                       className="p-1.5 text-blue-600 hover:bg-blue-50 rounded"
                       title="PDF anzeigen"
                     >
                       <Eye className="w-4 h-4" />
                     </button>
                     <button
+                      onClick={async () => {
+                        try {
+                          const tenantId = localStorage.getItem('selectedTenantId');
+                          const token = localStorage.getItem('token');
+                          const url = `https://autoteile-bot-service-production.up.railway.app/api/invoices/${invoice.id}/pdf`;
+
+                          const response = await fetch(url, {
+                            headers: {
+                              'X-Tenant-ID': tenantId || '',
+                              'Authorization': `Token ${token}`
+                            }
+                          });
+
+                          if (!response.ok) throw new Error('Failed to download PDF');
+
+                          const blob = await response.blob();
+                          const downloadUrl = window.URL.createObjectURL(blob);
+                          const a = document.createElement('a');
+                          a.href = downloadUrl;
+                          a.download = `Rechnung-${invoice.invoice_number}.pdf`;
+                          document.body.appendChild(a);
+                          a.click();
+                          document.body.removeChild(a);
+                          window.URL.revokeObjectURL(downloadUrl);
+                          toast.success('PDF wird heruntergeladen...');
+                        } catch (error) {
+                          console.error('PDF download failed:', error);
+                          toast.error('PDF-Download fehlgeschlagen');
+                        }
+                      }}
                       className="p-1.5 text-gray-600 hover:bg-gray-50 rounded"
                       title="PDF herunterladen"
                     >
