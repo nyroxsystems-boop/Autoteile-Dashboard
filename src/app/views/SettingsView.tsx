@@ -982,17 +982,19 @@ export function SettingsView() {
                           />
                         </div>
 
-                        {/* Action Buttons */}
+                        {/* Action Buttons - Dashboard Style */}
                         <div className="flex gap-2">
                           <button
+                            type="button"
                             onClick={() => document.getElementById('logo-upload')?.click()}
-                            className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
+                            className="flex-1 px-3 py-1.5 bg-background border border-border rounded-full text-xs font-medium text-foreground hover:bg-accent hover:border-border-strong transition-all"
                           >
-                            Erde Logo ändern
+                            Logo ändern
                           </button>
                           <button
+                            type="button"
                             onClick={handleRemoveLogo}
-                            className="px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 transition-colors"
+                            className="px-4 py-1.5 bg-background border border-red-200 rounded-full text-xs font-medium text-red-600 hover:bg-red-50 hover:border-red-300 transition-all"
                           >
                             Entfernen
                           </button>
