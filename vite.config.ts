@@ -17,6 +17,15 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  // Explicitly embed environment variables in the build
+  define: {
+    'import.meta.env.VITE_API_BASE_URL': JSON.stringify(
+      process.env.VITE_API_BASE_URL || 'https://autoteile-bot-service-production.up.railway.app'
+    ),
+    'import.meta.env.VITE_WAWI_API_TOKEN': JSON.stringify(
+      process.env.VITE_WAWI_API_TOKEN || ''
+    ),
+  },
   build: {
     sourcemap: false,
     minify: 'esbuild',
