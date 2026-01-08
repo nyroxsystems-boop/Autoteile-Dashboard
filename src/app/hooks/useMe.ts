@@ -5,21 +5,28 @@ import { getMe, MeResponse } from '../api/wws';
 export function useMe() {
     const [me, setMe] = useState<MeResponse | null>(null);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const [error, setError] = useState<Error | null>(null);
 
     useEffect(() => {
-        async function load() {
+        async function loadMe() {
             try {
+                setLoading(true);
                 const data = await getMe();
                 setMe(data);
-            } catch (err: any) {
-                console.error('Failed to load user profile', err);
-                setError(err.message);
+
+                // Automatically persist tenant ID to localStorage for API requests
+                if (data?.tenant?.id) {
+                    localStorage.setItem('selectedTenantId', data.tenant.id.toString());
+                    console.log('[useMe] Tenant ID saved to localStorage:', data.tenant.id);
+                }
+            } catch (err) {
+                setError(err as Error);
             } finally {
                 setLoading(false);
             }
         }
-        load();
+
+        loadMe();
     }, []);
 
     return { me, loading, error };
