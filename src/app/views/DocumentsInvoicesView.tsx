@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { FileText, Download, Eye, Check, X, Plus, Upload, Building2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { listInvoices, markInvoiceAsPaid, cancelInvoice, type Invoice, type InvoiceStatus } from '../services/taxService';
 import InvoiceCreationModal from '../components/tax/InvoiceCreationModal';
 import { toast } from 'sonner';
@@ -10,6 +11,7 @@ import { toast } from 'sonner';
 type TabType = 'all' | 'outgoing' | 'incoming' | 'tax-office';
 
 export function DocumentsInvoicesView() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<TabType>('all');
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
@@ -116,7 +118,7 @@ export function DocumentsInvoicesView() {
             UStVA-Export, Quartalsberichte und Zusammenfassende Meldungen
           </p>
           <button
-            onClick={() => window.location.hash = '/bot/tax/dashboard'}
+            onClick={() => navigate('/bot/tax/dashboard')}
             className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
             Zum Steuer-Dashboard →
@@ -124,6 +126,7 @@ export function DocumentsInvoicesView() {
         </div>
       );
     }
+
 
     if (loading) {
       return (
