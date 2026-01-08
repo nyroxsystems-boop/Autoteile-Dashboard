@@ -380,12 +380,19 @@ export interface BillingSettings {
 }
 
 export async function getBillingSettings(): Promise<BillingSettings> {
-    return apiFetch<BillingSettings>('/api/billing/settings/billing/tenant/');
+    const me = await getMe();
+    const tenantId = me.tenant?.id;
+    if (!tenantId) throw new Error('Tenant ID is required');
+    return apiFetch<BillingSettings>(`/api/settings/billing/${tenantId}/`);
 }
 
 export async function updateBillingSettings(settings: Partial<BillingSettings>): Promise<void> {
-    return apiFetch('/api/billing/settings/billing/tenant/', {
+    const me = await getMe();
+    const tenantId = me.tenant?.id;
+    if (!tenantId) throw new Error('Tenant ID is required');
+    return apiFetch(`/api/settings/billing/${tenantId}/`, {
         method: 'PUT',
         body: JSON.stringify(settings),
     });
 }
+
