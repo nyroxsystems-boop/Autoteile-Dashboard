@@ -80,11 +80,18 @@ export function AuftraegeView() {
   const handleCreateInvoice = async () => {
     if (!selectedOrderId) return;
     try {
-      const inv = await createInvoice(selectedOrderId);
-      toast.success('Entwurf für Rechnung erstellt');
+      // Import the new API function
+      const { createInvoiceFromOrder } = await import('../api/wws');
+      const invoice = await createInvoiceFromOrder(selectedOrderId as string);
+      toast.success(`Rechnung ${invoice.invoice_number} erstellt!`);
       refresh(); // update status
-    } catch (err) {
-      toast.error('Fehler beim Erstellen der Rechnung');
+    } catch (err: any) {
+      // Check if it's a duplicate
+      if (err.message?.includes('already exists')) {
+        toast.info('Rechnung existiert bereits für diesen Auftrag');
+      } else {
+        toast.error(`Fehler: ${err.message || 'Unbekannter Fehler'}`);
+      }
     }
   };
 
@@ -326,9 +333,9 @@ export function AuftraegeView() {
                 <Button size="lg" className="w-full" onClick={handlePublish}>
                   An Kunden senden
                 </Button>
-              ) : selectedOrder.status === 'done' ? (
+              ) : (selectedOrder.status === 'done' || selectedOrder.status === 'shipped' || selectedOrder.status === 'confirmed') ? (
                 <Button size="lg" variant="outline" className="w-full" onClick={handleCreateInvoice}>
-                  Beleg / Rechnung erstellen
+                  Rechnung erstellen
                 </Button>
               ) : (
                 <Button size="lg" variant="ghost" className="w-full" disabled>
