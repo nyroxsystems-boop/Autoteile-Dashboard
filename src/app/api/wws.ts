@@ -396,3 +396,71 @@ export async function updateBillingSettings(settings: Partial<BillingSettings>):
     });
 }
 
+// Order-to-Invoice Conversion Functions
+export async function createInvoiceFromOrder(orderId: string): Promise<any> {
+    const token = localStorage.getItem('token');
+    const tenantId = localStorage.getItem('selectedTenantId');
+
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://autoteile-bot-service-production.up.railway.app'}/api/invoices/from-order/${orderId}`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Token ${token}`,
+            'X-Tenant-ID': tenantId || '',
+            'Content-Type': 'application/json'
+        }
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to create invoice from order');
+    }
+
+    return response.json();
+}
+
+export async function bulkCreateInvoicesFromOrders(orderIds: string[]): Promise<{
+    success: any[];
+    failed: { orderId: string; error: string }[];
+}> {
+    const token = localStorage.getItem('token');
+    const tenantId = localStorage.getItem('selectedTenantId');
+
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://autoteile-bot-service-production.up.railway.app'}/api/invoices/bulk-from-orders`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Token ${token}`,
+            'X-Tenant-ID': tenantId || '',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ orderIds })
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Bulk invoice creation failed');
+    }
+
+    return response.json();
+}
+
+export async function getInvoiceByOrderId(orderId: string): Promise<any | null> {
+    const token = localStorage.getItem('token');
+    const tenantId = localStorage.getItem('selectedTenantId');
+
+    try {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://autoteile-bot-service-production.up.railway.app'}/api/invoices/by-order/${orderId}`, {
+            headers: {
+                'Authorization': `Token ${token}`,
+                'X-Tenant-ID': tenantId || ''
+            }
+        });
+
+        if (response.status === 404) return null;
+        if (!response.ok) throw new Error('Failed to fetch invoice');
+
+        return response.json();
+    } catch (error) {
+        console.error('Error fetching invoice by order:', error);
+        return null;
+    }
+}
