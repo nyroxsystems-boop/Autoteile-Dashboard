@@ -82,7 +82,11 @@ export function AuftraegeView() {
     try {
       const invoice = await createInvoiceFromOrder(selectedOrderId as string);
       toast.success(`Rechnung ${invoice.invoice_number} erstellt!`);
-      refresh(); // update status
+
+      // Trigger global invoice list refresh
+      window.dispatchEvent(new CustomEvent('invoiceCreated', { detail: invoice }));
+
+      refresh(); // update order status
     } catch (err: any) {
       // Check if it's a duplicate
       if (err.message?.includes('already exists')) {

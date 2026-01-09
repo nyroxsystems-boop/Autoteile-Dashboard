@@ -21,6 +21,18 @@ export function DocumentsInvoicesView() {
 
   useEffect(() => {
     loadInvoices();
+
+    // Listen for invoice creation events from other views
+    const handleInvoiceCreated = () => {
+      console.log('[DocumentsInvoicesView] Invoice created event received, refreshing list...');
+      loadInvoices();
+    };
+
+    window.addEventListener('invoiceCreated', handleInvoiceCreated as EventListener);
+
+    return () => {
+      window.removeEventListener('invoiceCreated', handleInvoiceCreated as EventListener);
+    };
   }, []);
 
   const loadInvoices = async () => {
