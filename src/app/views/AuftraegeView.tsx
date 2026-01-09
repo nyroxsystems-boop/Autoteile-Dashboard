@@ -3,9 +3,9 @@ import { useState, useEffect } from 'react';
 import { StatusChip } from '../components/StatusChip';
 import { OrderTimeline } from '../components/OrderTimeline';
 import { Button } from '../components/ui/button';
-import { Car, MessageSquare, User, Truck, Clock, Download, AlertCircle } from 'lucide-react';
+import { Car, MessageSquare, User, Truck, Clock, AlertCircle } from 'lucide-react';
 import { useOrders } from '../hooks/useOrders';
-import { getOrderOffers, publishOffers, createInvoice, getOrderMessages, sendMessage, Offer, Order, Message } from '../api/wws';
+import { getOrderOffers, publishOffers, getOrderMessages, sendMessage, Offer, Order, Message, createInvoiceFromOrder } from '../api/wws';
 import { toast } from 'sonner';
 
 export function AuftraegeView() {
@@ -80,8 +80,6 @@ export function AuftraegeView() {
   const handleCreateInvoice = async () => {
     if (!selectedOrderId) return;
     try {
-      // Import the new API function
-      const { createInvoiceFromOrder } = await import('../api/wws');
       const invoice = await createInvoiceFromOrder(selectedOrderId as string);
       toast.success(`Rechnung ${invoice.invoice_number} erstellt!`);
       refresh(); // update status
