@@ -1130,7 +1130,7 @@ export function SettingsView() {
                       {[
                         { value: 'minimal', label: 'Minimal' },
                         { value: 'grid', label: 'Grid' },
-                        { value: 'striped', label: 'Gestreift' },
+                        { value: 'gestreift', label: 'Gestreift' },
                       ].map((option) => (
                         <button
                           key={option.value}
