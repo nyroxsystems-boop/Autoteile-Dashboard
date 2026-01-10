@@ -384,19 +384,47 @@ export interface BillingSettings {
 
 export async function getBillingSettings(): Promise<BillingSettings> {
     const me = await getMe();
-    const tenantId = me.tenant?.id;
-    if (!tenantId) throw new Error('Tenant ID is required');
-    return apiFetch<BillingSettings>(`/api/settings/billing/${tenantId}/`);
+    const tenantSlug = me.tenant?.slug;
+    if (!tenantSlug) throw new Error('Tenant slug is required');
+
+    // Use the bot service URL and correct endpoint path
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://autoteile-bot-service-production.up.railway.app'}/api/invoices/settings/billing`, {
+        headers: {
+            'Authorization': `Token ${token}`,
+            'X-Tenant-ID': tenantSlug,
+            'Content-Type': 'application/json'
+        }
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch billing settings');
+    }
+
+    return response.json();
 }
 
 export async function updateBillingSettings(settings: Partial<BillingSettings>): Promise<void> {
     const me = await getMe();
-    const tenantId = me.tenant?.id;
-    if (!tenantId) throw new Error('Tenant ID is required');
-    return apiFetch(`/api/settings/billing/${tenantId}/`, {
+    const tenantSlug = me.tenant?.slug;
+    if (!tenantSlug) throw new Error('Tenant slug is required');
+
+    // Use the bot service URL and correct endpoint path
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://autoteile-bot-service-production.up.railway.app'}/api/invoices/settings/billing`, {
         method: 'PUT',
-        body: JSON.stringify(settings),
+        headers: {
+            'Authorization': `Token ${token}`,
+            'X-Tenant-ID': tenantSlug,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(settings)
     });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to update billing settings');
+    }
 }
 
 // Order-to-Invoice Conversion Functions
