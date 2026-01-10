@@ -238,7 +238,7 @@ export function DocumentsInvoicesView() {
                         try {
                           const tenantId = localStorage.getItem('selectedTenantId');
                           const token = localStorage.getItem('token');
-                          const url = `https://autoteile-bot-service-production.up.railway.app/api/invoices/${invoice.id}/pdf`;
+                          const url = `https://autoteile-bot-service-production.up.railway.app/api/invoices/${invoice.invoice_number}/pdf`;
 
                           const response = await fetch(url, {
                             headers: {
@@ -270,7 +270,7 @@ export function DocumentsInvoicesView() {
                         try {
                           const tenantId = localStorage.getItem('selectedTenantId');
                           const token = localStorage.getItem('token');
-                          const url = `https://autoteile-bot-service-production.up.railway.app/api/invoices/${invoice.id}/pdf`;
+                          const url = `https://autoteile-bot-service-production.up.railway.app/api/invoices/${invoice.invoice_number}/pdf`;
 
                           const response = await fetch(url, {
                             headers: {
