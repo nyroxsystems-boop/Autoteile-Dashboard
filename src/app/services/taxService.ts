@@ -50,6 +50,9 @@ export interface Invoice {
     lines?: InvoiceLine[];
     created_at: string;
     updated_at: string;
+
+    // Order-Invoice Linking
+    source_order_id?: string | null; // Order ID if created from an order
 }
 
 export interface TaxPeriod {

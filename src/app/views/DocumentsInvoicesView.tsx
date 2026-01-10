@@ -176,6 +176,7 @@ export function DocumentsInvoicesView() {
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nr.</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Datum</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kunde</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Auftrag</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Betrag</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
               <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Aktionen</th>
@@ -192,6 +193,19 @@ export function DocumentsInvoicesView() {
                 </td>
                 <td className="px-4 py-3 text-sm text-gray-900">
                   {invoice.customer_name || '—'}
+                </td>
+                <td className="px-4 py-3 text-sm">
+                  {invoice.source_order_id ? (
+                    <button
+                      onClick={() => navigate('/bot/auftraege')}
+                      className="text-blue-600 hover:text-blue-800 hover:underline font-medium"
+                      title="Zum Auftrag navigieren"
+                    >
+                      {invoice.source_order_id}
+                    </button>
+                  ) : (
+                    <span className="text-gray-400">—</span>
+                  )}
                 </td>
                 <td className="px-4 py-3 text-sm font-semibold text-gray-900">
                   {formatCurrency(invoice.gross_amount)}

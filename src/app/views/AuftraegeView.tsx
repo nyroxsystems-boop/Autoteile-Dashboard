@@ -1,14 +1,16 @@
 
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { StatusChip } from '../components/StatusChip';
 import { OrderTimeline } from '../components/OrderTimeline';
 import { Button } from '../components/ui/button';
-import { Car, MessageSquare, User, Truck, Clock, AlertCircle } from 'lucide-react';
+import { Car, MessageSquare, User, Truck, Clock, AlertCircle, FileText } from 'lucide-react';
 import { useOrders } from '../hooks/useOrders';
 import { getOrderOffers, publishOffers, getOrderMessages, sendMessage, Offer, Order, Message, createInvoiceFromOrder } from '../api/wws';
 import { toast } from 'sonner';
 
 export function AuftraegeView() {
+  const navigate = useNavigate();
   const { orders, loading, error, refresh } = useOrders();
   const [selectedOrderId, setSelectedOrderId] = useState<string | number | null>(null);
   const [offers, setOffers] = useState<Offer[]>([]);
@@ -152,7 +154,22 @@ export function AuftraegeView() {
                       <span>{make} {model}</span>
                     </div>
                   </div>
-                  <StatusChip status={mapStatus(order.status).variant as any} label={mapStatus(order.status).label} size="sm" />
+                  <div className="flex flex-col items-end gap-2">
+                    <StatusChip status={mapStatus(order.status).variant as any} label={mapStatus(order.status).label} size="sm" />
+                    {order.generated_invoice_id && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate('/bot/belege');
+                        }}
+                        className="flex items-center gap-1.5 px-2.5 py-1 bg-green-100 text-green-700 rounded-md text-xs font-medium hover:bg-green-200 transition-colors"
+                        title="Zur Rechnung navigieren"
+                      >
+                        <FileText className="w-3 h-3" />
+                        Rechnung
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <code className="px-2.5 py-1 bg-muted rounded-md text-xs font-mono font-medium">

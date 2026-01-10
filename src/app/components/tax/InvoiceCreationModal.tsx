@@ -194,6 +194,15 @@ export default function InvoiceCreationModal({ isOpen, onClose, onSuccess, prefi
                             </button>
                         </div>
 
+                        {/* Column Headers */}
+                        <div className="grid grid-cols-12 gap-2 px-3 pb-2 text-xs font-medium text-gray-600">
+                            <div className="col-span-5">Beschreibung</div>
+                            <div className="col-span-2">Menge</div>
+                            <div className="col-span-2">Preis (€)</div>
+                            <div className="col-span-2">MwSt.</div>
+                            <div className="col-span-1 text-right">Summe</div>
+                        </div>
+
                         <div className="space-y-3">
                             {lines.map((line, index) => (
                                 <div key={index} className="flex items-start gap-2 p-3 bg-gray-50 rounded-lg">
@@ -295,14 +304,14 @@ export default function InvoiceCreationModal({ isOpen, onClose, onSuccess, prefi
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                         >
                             Abbrechen
                         </button>
                         <button
                             type="submit"
                             disabled={loading}
-                            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-6 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
                             {loading ? 'Wird erstellt...' : 'Rechnung erstellen'}
                         </button>

@@ -46,6 +46,9 @@ export interface Order {
     vehicle_json?: any; // To allow legacy code to compile, though undefined
     part_json?: any;
     oem?: string;
+
+    // Order-Invoice Linking
+    generated_invoice_id?: string | null; // Invoice ID if created from this order
 }
 
 export interface Offer {
