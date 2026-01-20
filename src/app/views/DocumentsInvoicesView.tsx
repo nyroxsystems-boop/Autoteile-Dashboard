@@ -236,7 +236,15 @@ export function DocumentsInvoicesView() {
                     <button
                       onClick={async () => {
                         try {
-                          const tenantId = localStorage.getItem('selectedTenantId');
+                          // Use tenant.slug from auth session to match settings save
+                          const authSession = localStorage.getItem('auth_session');
+                          let tenantId = localStorage.getItem('selectedTenantId') || '';
+                          if (authSession) {
+                            try {
+                              const session = JSON.parse(authSession);
+                              tenantId = session.tenant?.slug || session.user?.merchant_id || tenantId;
+                            } catch (e) { /* use fallback */ }
+                          }
                           const token = localStorage.getItem('token');
                           const url = `https://autoteile-bot-service-production.up.railway.app/api/invoices/${invoice.invoice_number}/pdf`;
 
@@ -268,7 +276,15 @@ export function DocumentsInvoicesView() {
                     <button
                       onClick={async () => {
                         try {
-                          const tenantId = localStorage.getItem('selectedTenantId');
+                          // Use tenant.slug from auth session to match settings save
+                          const authSession = localStorage.getItem('auth_session');
+                          let tenantId = localStorage.getItem('selectedTenantId') || '';
+                          if (authSession) {
+                            try {
+                              const session = JSON.parse(authSession);
+                              tenantId = session.tenant?.slug || session.user?.merchant_id || tenantId;
+                            } catch (e) { /* use fallback */ }
+                          }
                           const token = localStorage.getItem('token');
                           const url = `https://autoteile-bot-service-production.up.railway.app/api/invoices/${invoice.invoice_number}/pdf`;
 
