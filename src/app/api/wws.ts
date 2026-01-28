@@ -249,7 +249,7 @@ export async function getConversations(): Promise<any[]> {
 }
 
 export async function downloadInvoicePdf(id: number): Promise<void> {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('auth_access_token') || localStorage.getItem('token');
     const authSession = localStorage.getItem('auth_session');
     let tenantSlug = '';
 
@@ -388,7 +388,7 @@ export async function getBillingSettings(): Promise<BillingSettings> {
     if (!tenantSlug) throw new Error('Tenant slug is required');
 
     // Use the bot service URL and correct endpoint path
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('auth_access_token') || localStorage.getItem('token');
     const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://autoteile-bot-service-production.up.railway.app'}/api/invoices/settings/billing`, {
         headers: {
             'Authorization': `Token ${token}`,
@@ -410,7 +410,7 @@ export async function updateBillingSettings(settings: Partial<BillingSettings>):
     if (!tenantSlug) throw new Error('Tenant slug is required');
 
     // Use the bot service URL and correct endpoint path
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('auth_access_token') || localStorage.getItem('token');
     const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://autoteile-bot-service-production.up.railway.app'}/api/invoices/settings/billing`, {
         method: 'PUT',
         headers: {
@@ -429,7 +429,7 @@ export async function updateBillingSettings(settings: Partial<BillingSettings>):
 
 // Order-to-Invoice Conversion Functions
 export async function createInvoiceFromOrder(orderId: string): Promise<any> {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('auth_access_token') || localStorage.getItem('token');
     const tenantId = localStorage.getItem('selectedTenantId');
 
     const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://autoteile-bot-service-production.up.railway.app'}/api/invoices/from-order/${orderId}`, {
@@ -453,7 +453,7 @@ export async function bulkCreateInvoicesFromOrders(orderIds: string[]): Promise<
     success: any[];
     failed: { orderId: string; error: string }[];
 }> {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('auth_access_token') || localStorage.getItem('token');
     const tenantId = localStorage.getItem('selectedTenantId');
 
     const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://autoteile-bot-service-production.up.railway.app'}/api/invoices/bulk-from-orders`, {
@@ -475,7 +475,7 @@ export async function bulkCreateInvoicesFromOrders(orderIds: string[]): Promise<
 }
 
 export async function getInvoiceByOrderId(orderId: string): Promise<any | null> {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('auth_access_token') || localStorage.getItem('token');
     const tenantId = localStorage.getItem('selectedTenantId');
 
     try {

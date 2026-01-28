@@ -75,11 +75,11 @@ export function DashboardSidebar({
 
   return (
     <div
-      className="fixed left-0 top-0 h-screen w-20 bg-sidebar border-r border-sidebar-border flex flex-col items-center py-8 z-50"
+      className="fixed left-0 top-0 h-screen w-20 bg-sidebar/95 backdrop-blur-md border-r border-sidebar-border/60 flex flex-col items-center py-8 z-50"
     >
       {/* Logo/Brand */}
       <div
-        className="w-11 h-11 rounded-xl bg-primary flex items-center justify-center mb-12 transition-all duration-200 hover:shadow-lg cursor-pointer group"
+        className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center mb-12 transition-all duration-300 hover:shadow-glow-primary hover:scale-105 cursor-pointer group"
       >
         <span className="text-primary-foreground font-semibold text-base">AT</span>
       </div>
@@ -113,7 +113,7 @@ export function DashboardSidebar({
                   {item.label}
                 </span>
                 {isActive && (
-                  <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-0.5 h-8 bg-primary rounded-r-full" />
+                  <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-0.5 h-8 bg-gradient-to-b from-primary to-primary/60 rounded-r-full animate-fade-in" />
                 )}
               </button>
             </div>

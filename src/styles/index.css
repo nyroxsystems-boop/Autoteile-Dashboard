@@ -1,3 +1,10 @@
+/* Geist Font - Premium Typography */
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap');
+
+/* Import modular CSS */
+@import './premium-tokens.css';
+@import './animations.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -7,43 +14,30 @@
     /* LIGHT MODE - Default (with Blue accent) */
     :root {
         --background: 0 0% 100%;
-        /* white */
         --foreground: 222 47% 11%;
-        /* dark slate */
         --card: 0 0% 100%;
-        /* white */
         --card-foreground: 222 47% 11%;
         --popover: 0 0% 100%;
         --popover-foreground: 222 47% 11%;
         --primary: 221 83% 53%;
-        /* Vibrant Blue #3B82F6 */
         --primary-foreground: 0 0% 100%;
-        /* white text on blue */
         --secondary: 214 32% 91%;
-        /* light gray-blue */
         --secondary-foreground: 222 47% 11%;
         --muted: 210 40% 96%;
         --muted-foreground: 215 16% 47%;
         --accent: 221 83% 96%;
-        /* very light blue tint */
         --accent-foreground: 221 83% 53%;
-        /* blue text */
         --destructive: 0 84% 60%;
         --destructive-foreground: 0 0% 100%;
         --border: 214 32% 91%;
         --input: 214 32% 91%;
         --ring: 221 83% 53%;
-        /* blue focus ring */
-        --radius: 0.5rem;
+        --radius: 0.625rem;
         --sidebar-background: 0 0% 98%;
-        /* light sidebar for light mode */
         --sidebar-foreground: 222 47% 11%;
-        /* dark text */
         --sidebar-primary: 221 83% 53%;
-        /* blue accent */
         --sidebar-primary-foreground: 0 0% 100%;
         --sidebar-accent: 221 83% 96%;
-        /* light blue hover */
         --sidebar-accent-foreground: 221 83% 53%;
         --sidebar-border: 214 32% 91%;
         --sidebar-ring: 221 83% 53%;
@@ -85,78 +79,193 @@
     }
 
     body {
-        @apply bg-background text-foreground font-sans antialiased;
+        @apply bg-background text-foreground antialiased;
+        font-family: 'Geist', system-ui, sans-serif;
+    }
+
+    /* Smooth scrolling */
+    html {
+        scroll-behavior: smooth;
     }
 }
 
-/* Fonts */
-@font-face {
-    font-family: 'Inter';
-    font-style: normal;
-    font-weight: 100 900;
-    font-display: swap;
-    src: url('/fonts/Inter-VariableFont_slnt,wght.ttf') format('truetype');
-}
+/* ============================================
+   PREMIUM COMPONENT STYLES
+============================================ */
 
-/* Custom Animations */
-@keyframes fade-in {
-    from {
-        opacity: 0;
+@layer components {
+
+    /* Premium Card */
+    .card-premium {
+        @apply rounded-xl border border-border/50 bg-card;
+        box-shadow: var(--shadow-card);
+        transition: box-shadow var(--transition-base), transform var(--transition-base), border-color var(--transition-base);
     }
 
-    to {
-        opacity: 1;
-    }
-}
-
-@keyframes slide-up {
-    from {
-        transform: translateY(20px);
-        opacity: 0;
+    .card-premium:hover {
+        box-shadow: var(--shadow-card-hover);
+        transform: translateY(-1px);
+        border-color: hsl(var(--primary) / 0.2);
     }
 
-    to {
+    /* Glass Card */
+    .card-glass {
+        @apply rounded-xl border;
+        background: var(--glass-bg);
+        border-color: var(--glass-border);
+        backdrop-filter: blur(var(--glass-blur));
+        -webkit-backdrop-filter: blur(var(--glass-blur));
+    }
+
+    /* Premium Button */
+    .btn-premium {
+        @apply inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-all;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .btn-premium:hover {
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .btn-premium:active {
         transform: translateY(0);
-        opacity: 1;
+        box-shadow: var(--shadow-xs);
+    }
+
+    /* Gradient Button */
+    .btn-gradient {
+        background: var(--gradient-primary);
+        @apply text-white;
+    }
+
+    .btn-gradient:hover {
+        box-shadow: var(--shadow-glow-primary);
+    }
+
+    /* Status Dot */
+    .status-dot {
+        @apply w-2 h-2 rounded-full;
+    }
+
+    .status-dot-online {
+        @apply bg-green-500;
+        box-shadow: 0 0 0 2px hsl(142 76% 36% / 0.2);
+    }
+
+    .status-dot-offline {
+        @apply bg-red-500;
+        box-shadow: 0 0 0 2px hsl(0 84% 60% / 0.2);
+    }
+
+    /* KPI Card */
+    .kpi-card {
+        @apply card-premium p-5 relative overflow-hidden;
+    }
+
+    .kpi-card::before {
+        content: '';
+        @apply absolute top-0 right-0 w-24 h-24 rounded-full opacity-10;
+        background: var(--gradient-primary);
+        transform: translate(30%, -30%);
+    }
+
+    /* Input Premium */
+    .input-premium {
+        @apply w-full rounded-lg border border-input bg-background px-3 py-2 text-sm transition-all;
+        box-shadow: var(--shadow-xs);
+    }
+
+    .input-premium:focus {
+        @apply outline-none ring-2 ring-primary/20 border-primary;
+        box-shadow: var(--shadow-sm);
+    }
+
+    /* Sidebar Item */
+    .sidebar-item {
+        @apply relative flex flex-col items-center gap-1 p-2 rounded-lg transition-all;
+    }
+
+    .sidebar-item::before {
+        content: '';
+        @apply absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-0 bg-primary rounded-full transition-all;
+    }
+
+    .sidebar-item.active::before {
+        @apply h-6;
+    }
+
+    .sidebar-item:hover {
+        @apply bg-accent;
+    }
+
+    .sidebar-item.active {
+        @apply bg-primary/10 text-primary;
+    }
+
+    /* Table Row */
+    .table-row-premium {
+        @apply transition-colors;
+    }
+
+    .table-row-premium:hover {
+        @apply bg-muted/50;
+    }
+
+    /* Badge Premium */
+    .badge-premium {
+        @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium;
+    }
+
+    .badge-success {
+        @apply bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400;
+    }
+
+    .badge-warning {
+        @apply bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400;
+    }
+
+    .badge-danger {
+        @apply bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400;
+    }
+
+    .badge-info {
+        @apply bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400;
     }
 }
 
-@keyframes slide-down {
-    from {
-        transform: translateY(-20px);
-        opacity: 0;
-    }
+/* ============================================
+   CUSTOM SCROLLBAR
+============================================ */
 
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
 }
 
-@keyframes pulse-slow {
-
-    0%,
-    100% {
-        opacity: 1;
-    }
-
-    50% {
-        opacity: 0.5;
-    }
+::-webkit-scrollbar-track {
+    background: transparent;
 }
 
-.animate-fade-in {
-    animation: fade-in 0.5s ease-out;
+::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.3);
+    border-radius: 4px;
 }
 
-.animate-slide-up {
-    animation: slide-up 0.5s ease-out;
+::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.5);
 }
 
-.animate-slide-down {
-    animation: slide-down 0.3s ease-out;
+/* Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground) / 0.3) transparent;
 }
 
-.animate-pulse-slow {
-    animation: pulse-slow 3s infinite;
+/* ============================================
+   PAGE BACKGROUND
+============================================ */
+
+.page-gradient {
+    background-image: var(--gradient-page);
 }

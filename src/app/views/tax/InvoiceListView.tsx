@@ -1,15 +1,15 @@
 // Invoice List View - Invoice management interface
 // CRUD operations for invoices with filtering
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
     listInvoices,
-    createInvoice,
     markInvoiceAsPaid,
     cancelInvoice,
     type Invoice,
     type InvoiceStatus
 } from '../../services/taxService';
+import InvoiceCreationModal from '../../components/tax/InvoiceCreationModal';
 
 export default function InvoiceListView() {
     const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -111,8 +111,8 @@ export default function InvoiceListView() {
                         key={status}
                         onClick={() => setFilter(status)}
                         className={`px-4 py-2 rounded text-sm ${filter === status
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                             }`}
                     >
                         {status === 'all' && 'Alle'}
@@ -216,25 +216,12 @@ export default function InvoiceListView() {
                 </div>
             )}
 
-            {/* Create Invoice Modal (placeholder) */}
-            {showCreateModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg p-6 max-w-md w-full">
-                        <h3 className="text-lg font-semibold mb-4">Neue Rechnung</h3>
-                        <p className="text-gray-600 mb-4">
-                            Rechnungserstellung UI wird in Kürze verfügbar sein.
-                        </p>
-                        <div className="flex justify-end gap-2">
-                            <button
-                                onClick={() => setShowCreateModal(false)}
-                                className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-                            >
-                                Schließen
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/* Invoice Creation Modal */}
+            <InvoiceCreationModal
+                isOpen={showCreateModal}
+                onClose={() => setShowCreateModal(false)}
+                onSuccess={loadInvoices}
+            />
         </div>
     );
 }

@@ -76,7 +76,7 @@ export function DashboardHeader({
 
   return (
     <>
-      <header className="fixed top-0 right-0 left-20 h-16 bg-card border-b border-border z-30 flex items-center justify-between px-12">
+      <header className="fixed top-0 right-0 left-20 h-16 bg-card/80 backdrop-blur-md border-b border-border/60 z-30 flex items-center justify-between px-12">
         {/* Left: Keyboard Shortcut Hint & Back Button */}
         <div className="flex items-center gap-6">
           {isWawi && (
@@ -106,9 +106,9 @@ export function DashboardHeader({
             title="Benachrichtigungen"
             onClick={onOpenCommandPalette}
           >
-            <Bell className="w-5 h-5 text-muted-foreground group-hover:text-foreground" strokeWidth={1.5} />
+            <Bell className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" strokeWidth={1.5} />
             {notificationCount && notificationCount > 0 && (
-              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"></span>
+              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
             )}
           </button>
 
@@ -188,7 +188,7 @@ export function DashboardHeader({
                 <div className="text-sm font-medium text-foreground leading-none mb-1">{currentTenant?.tenant_name || userName}</div>
                 <div className="text-xs text-muted-foreground leading-none">{currentTenant?.role ? roleLabels[currentTenant.role] : 'Gast'}</div>
               </div>
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-white font-semibold text-sm ring-2 ring-primary/20">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary via-primary/80 to-blue-600 flex items-center justify-center text-white font-semibold text-sm ring-2 ring-primary/20 transition-all group-hover:ring-primary/40">
                 {getInitials(currentTenant?.tenant_name || userName)}
               </div>
               <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" strokeWidth={2} />

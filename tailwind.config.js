@@ -4,6 +4,10 @@ export default {
     content: ["./src/**/*.{ts,tsx}"],
     theme: {
         extend: {
+            fontFamily: {
+                sans: ['Geist', 'system-ui', 'sans-serif'],
+                mono: ['Geist Mono', 'SF Mono', 'monospace'],
+            },
             borderRadius: {
                 lg: 'var(--radius)',
                 md: 'calc(var(--radius) - 2px)',
@@ -40,6 +44,21 @@ export default {
                     DEFAULT: 'hsl(var(--destructive))',
                     foreground: 'hsl(var(--destructive-foreground))'
                 },
+                success: {
+                    DEFAULT: 'hsl(var(--success))',
+                    foreground: 'hsl(var(--success-foreground))',
+                    muted: 'hsl(var(--success-muted))'
+                },
+                warning: {
+                    DEFAULT: 'hsl(var(--warning))',
+                    foreground: 'hsl(var(--warning-foreground))',
+                    muted: 'hsl(var(--warning-muted))'
+                },
+                info: {
+                    DEFAULT: 'hsl(var(--info))',
+                    foreground: 'hsl(var(--info-foreground))',
+                    muted: 'hsl(var(--info-muted))'
+                },
                 border: 'hsl(var(--border))',
                 input: 'hsl(var(--input))',
                 ring: 'hsl(var(--ring))',
@@ -60,8 +79,35 @@ export default {
                     border: 'hsl(var(--sidebar-border))',
                     ring: 'hsl(var(--sidebar-ring))'
                 }
+            },
+            boxShadow: {
+                'xs': 'var(--shadow-xs)',
+                'card': 'var(--shadow-card)',
+                'card-hover': 'var(--shadow-card-hover)',
+                'glow-primary': 'var(--shadow-glow-primary)',
+                'glow-success': 'var(--shadow-glow-success)',
+                'glow-warning': 'var(--shadow-glow-warning)',
+            },
+            animation: {
+                'fade-in': 'fade-in 0.4s ease-out forwards',
+                'fade-in-up': 'fade-in-up 0.4s ease-out forwards',
+                'fade-in-down': 'fade-in-down 0.4s ease-out forwards',
+                'scale-in': 'scale-in 0.3s ease-out forwards',
+                'pulse-soft': 'pulse-soft 2s ease-in-out infinite',
+                'glow-pulse': 'glow-pulse 2s ease-in-out infinite',
+                'shimmer': 'shimmer 2s infinite',
+                'bounce-subtle': 'bounce-subtle 2s ease-in-out infinite',
+            },
+            transitionDuration: {
+                'fast': '150ms',
+                'base': '200ms',
+                'slow': '300ms',
+            },
+            transitionTimingFunction: {
+                'bounce': 'cubic-bezier(0.34, 1.56, 0.64, 1)',
             }
         }
     },
     plugins: [require("tailwindcss-animate")],
 }
+

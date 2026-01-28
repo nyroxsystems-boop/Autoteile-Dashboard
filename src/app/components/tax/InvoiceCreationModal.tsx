@@ -17,7 +17,7 @@ interface InvoiceCreationModalProps {
 }
 
 export default function InvoiceCreationModal({ isOpen, onClose, onSuccess, prefilledData }: InvoiceCreationModalProps) {
-    const [formData, setFormData] = useState({
+    const getInitialFormData = () => ({
         customer_name: prefilledData?.customerName || '',
         issue_date: new Date().toISOString().split('T')[0],
         due_date: '',
@@ -25,11 +25,22 @@ export default function InvoiceCreationModal({ isOpen, onClose, onSuccess, prefi
         notes: '',
     });
 
-    const [lines, setLines] = useState<InvoiceLine[]>(prefilledData?.lines || [
+    const getInitialLines = (): InvoiceLine[] => prefilledData?.lines || [
         { description: '', quantity: 1, unit_price: 0, tax_rate: 19 as TaxRate }
-    ]);
+    ];
 
+    const [formData, setFormData] = useState(getInitialFormData());
+    const [lines, setLines] = useState<InvoiceLine[]>(getInitialLines());
     const [loading, setLoading] = useState(false);
+
+    // Reset form when modal opens
+    React.useEffect(() => {
+        if (isOpen) {
+            setFormData(getInitialFormData());
+            setLines(getInitialLines());
+            setLoading(false);
+        }
+    }, [isOpen]);
 
     const addLine = () => {
         setLines([...lines, { description: '', quantity: 1, unit_price: 0, tax_rate: 19 as TaxRate }]);
@@ -77,6 +88,19 @@ export default function InvoiceCreationModal({ isOpen, onClose, onSuccess, prefi
             return;
         }
 
+        // Validate line items
+        const hasInvalidPrices = lines.some(l => l.unit_price < 0);
+        if (hasInvalidPrices) {
+            toast.error('Preise dürfen nicht negativ sein');
+            return;
+        }
+
+        const hasInvalidQuantities = lines.some(l => l.quantity <= 0);
+        if (hasInvalidQuantities) {
+            toast.error('Mengen müssen größer als 0 sein');
+            return;
+        }
+
         try {
             setLoading(true);
             await createInvoice({
@@ -93,7 +117,21 @@ export default function InvoiceCreationModal({ isOpen, onClose, onSuccess, prefi
             onClose();
         } catch (error: any) {
             console.error('Failed to create invoice:', error);
-            toast.error('Fehler beim Erstellen: ' + error.message);
+
+            // Provide specific error messages
+            let errorMessage = 'Fehler beim Erstellen der Rechnung';
+
+            if (error.message?.includes('network') || error.message?.includes('fetch')) {
+                errorMessage = 'Netzwerkfehler. Bitte Verbindung prüfen.';
+            } else if (error.message?.includes('401') || error.message?.includes('403')) {
+                errorMessage = 'Keine Berechtigung. Bitte neu anmelden.';
+            } else if (error.message?.includes('duplicate') || error.message?.includes('bereits')) {
+                errorMessage = 'Rechnung existiert bereits für diesen Auftrag';
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }

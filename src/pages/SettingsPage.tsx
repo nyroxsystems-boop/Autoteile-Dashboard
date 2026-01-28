@@ -39,7 +39,7 @@ const SettingsPage = () => {
         }
         try {
             const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://whatsapp-bot-oem-ermittlung.onrender.com';
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('auth_access_token') || localStorage.getItem('token');
             const res = await fetch(`${API_BASE}/api/auth/change-password`, {
                 method: 'POST',
                 headers: {
@@ -153,7 +153,7 @@ const SettingsPage = () => {
                                         onChange={(e) => handleChange('table_style', e.target.value)}
                                     >
                                         <option value="grid">Gitter (Grid)</option>
-                                        <option value="striped">Gestreift (Striped)</option>
+                                        <option value="gestreift">Gestreift</option>
                                         <option value="minimal">Minimalistisch</option>
                                     </select>
                                 </div>
@@ -219,7 +219,7 @@ const SettingsPage = () => {
                                 </thead>
                                 <tbody>
                                     {[1, 2].map(i => (
-                                        <tr key={i} style={{ background: (formData.table_style === 'striped' && i % 2 === 0) ? '#f9fafb' : 'transparent' }}>
+                                        <tr key={i} style={{ background: (formData.table_style === 'gestreift' && i % 2 === 0) ? '#f9fafb' : 'transparent' }}>
                                             <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{i}</td>
                                             <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>Bremsscheibe Vorderachse</td>
                                             <td style={{ padding: 8, borderBottom: '1px solid #eee', textAlign: 'right' }}>59.90 €</td>

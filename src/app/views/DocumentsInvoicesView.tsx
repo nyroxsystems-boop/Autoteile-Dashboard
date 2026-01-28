@@ -245,8 +245,9 @@ export function DocumentsInvoicesView() {
                               tenantId = session.tenant?.slug || session.user?.merchant_id || tenantId;
                             } catch (e) { /* use fallback */ }
                           }
-                          const token = localStorage.getItem('token');
-                          const url = `https://autoteile-bot-service-production.up.railway.app/api/invoices/${invoice.invoice_number}/pdf`;
+                          const token = localStorage.getItem('auth_access_token') || localStorage.getItem('token');
+                          const apiBase = import.meta.env.VITE_API_BASE_URL || 'https://autoteile-bot-service-production.up.railway.app';
+                          const url = `${apiBase}/api/invoices/${invoice.invoice_number}/pdf`;
 
                           const response = await fetch(url, {
                             headers: {
@@ -285,8 +286,9 @@ export function DocumentsInvoicesView() {
                               tenantId = session.tenant?.slug || session.user?.merchant_id || tenantId;
                             } catch (e) { /* use fallback */ }
                           }
-                          const token = localStorage.getItem('token');
-                          const url = `https://autoteile-bot-service-production.up.railway.app/api/invoices/${invoice.invoice_number}/pdf`;
+                          const token = localStorage.getItem('auth_access_token') || localStorage.getItem('token');
+                          const apiBase = import.meta.env.VITE_API_BASE_URL || 'https://autoteile-bot-service-production.up.railway.app';
+                          const url = `${apiBase}/api/invoices/${invoice.invoice_number}/pdf`;
 
                           const response = await fetch(url, {
                             headers: {
