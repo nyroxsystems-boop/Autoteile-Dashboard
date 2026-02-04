@@ -1,101 +1,66 @@
 import { useState, useEffect } from 'react';
 import { apiClient } from '../api/client';
 
-export interface B2BSupplier {
+export interface SupplierDefinition {
+    key: string;
     name: string;
-    displayName: string;
     description: string;
-    hasApi: boolean;
+    icon: string;
+    color: string;
     website: string;
-    config: B2BSupplierConfig | null;
+    country: string;
+    hasApi: boolean;
+    features: string[];
+    credentialFields: { key: string; label: string; type: 'text' | 'password'; required?: boolean }[];
+    settingFields: { key: string; label: string; type: 'number' | 'select' | 'toggle'; defaultValue?: any; options?: { value: string; label: string }[]; min?: number; max?: number }[];
+    config: SupplierConfig | null;
+    isEnabled: boolean;
 }
 
-export interface B2BSupplierConfig {
+export interface SupplierConfig {
     enabled: boolean;
-    price_tier: string;
-    margin_type: 'percentage' | 'fixed';
-    margin_value: number;
-    minimum_margin: number;
-    rounding_strategy: 'up' | 'down' | 'nearest';
-    round_to: number;
-    priority: number;
-    hasCredentials: boolean;
+    credentials: Record<string, string>;
+    settings: Record<string, any>;
+    status: 'connected' | 'disconnected' | 'error';
 }
 
-export interface PriceTier {
-    id: string;
-    name: string;
-    discount: number;
-    minOrders: number;
-}
-
-export function useB2BSuppliers() {
-    const [suppliers, setSuppliers] = useState<B2BSupplier[]>([]);
-    const [priceTiers, setPriceTiers] = useState<PriceTier[]>([]);
+export function useSuppliers() {
+    const [suppliers, setSuppliers] = useState<SupplierDefinition[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     const fetchSuppliers = async () => {
         try {
             setLoading(true);
-            const data = await apiClient.get<B2BSupplier[]>('/api/b2b/suppliers');
+            const data = await apiClient.get<SupplierDefinition[]>('/api/b2b/suppliers');
             setSuppliers(data || []);
             setError(null);
         } catch (err: any) {
-            setError(err.message || 'Fehler beim Laden der Lieferanten');
+            setError(err.message || 'Fehler beim Laden');
         } finally {
             setLoading(false);
         }
     };
 
-    const fetchPriceTiers = async () => {
+    const updateSupplier = async (key: string, data: { enabled?: boolean; credentials?: Record<string, string>; settings?: Record<string, any> }) => {
         try {
-            const data = await apiClient.get<PriceTier[]>('/api/b2b/price-tiers');
-            setPriceTiers(data || []);
-        } catch (err) {
-            console.error('Failed to fetch price tiers:', err);
-        }
-    };
-
-    const updateSupplier = async (name: string, config: Partial<B2BSupplierConfig & { api_key?: string; api_secret?: string; account_number?: string }>) => {
-        try {
-            await apiClient.put(`/api/b2b/suppliers/${name}`, config);
+            await apiClient.put(`/api/b2b/suppliers/${key}`, data);
             await fetchSuppliers();
-            return true;
+            return { success: true };
         } catch (err: any) {
-            setError(err.message || 'Fehler beim Speichern');
-            return false;
+            return { success: false, error: err.message };
         }
     };
 
-    const calculateMargin = async (purchasePrice: number, supplierName: string) => {
+    const calculateMargin = async (purchasePrice: number, marginPercent: number, minMargin: number) => {
         try {
-            const result = await apiClient.post<{
-                purchasePrice: number;
-                sellingPrice: number;
-                marginAmount: number;
-                marginPercent: number;
-                formatted: { purchase: string; selling: string; margin: string };
-            }>('/api/b2b/calculate-margin', { purchasePrice, supplierName });
-            return result;
-        } catch (err) {
-            console.error('Failed to calculate margin:', err);
+            return await apiClient.post<{ purchasePrice: number; sellingPrice: number; marginAmount: number; marginPercent: number }>('/api/b2b/calculate-margin', { purchasePrice, marginPercent, minMargin });
+        } catch {
             return null;
         }
     };
 
-    useEffect(() => {
-        fetchSuppliers();
-        fetchPriceTiers();
-    }, []);
+    useEffect(() => { fetchSuppliers(); }, []);
 
-    return {
-        suppliers,
-        priceTiers,
-        loading,
-        error,
-        updateSupplier,
-        calculateMargin,
-        refresh: fetchSuppliers
-    };
+    return { suppliers, loading, error, updateSupplier, calculateMargin, refresh: fetchSuppliers };
 }

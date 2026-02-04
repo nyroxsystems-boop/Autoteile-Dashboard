@@ -1,358 +1,305 @@
 import { useState } from 'react';
-import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Badge from '../ui/Badge';
-import { useB2BSuppliers, type B2BSupplier } from '../hooks/useB2BSuppliers';
+import { useSuppliers, type SupplierDefinition } from '../hooks/useB2BSuppliers';
 
-interface SupplierCardProps {
-    supplier: B2BSupplier;
-    priceTiers: Array<{ id: string; name: string; discount: number; minOrders: number }>;
-    onSave: (name: string, config: any) => Promise<boolean>;
-    onCalculate: (price: number, name: string) => Promise<any>;
-}
-
-const SupplierCard = ({ supplier, priceTiers, onSave, onCalculate }: SupplierCardProps) => {
+const SupplierCard = ({
+    supplier,
+    onSave
+}: {
+    supplier: SupplierDefinition;
+    onSave: (key: string, data: any) => Promise<{ success: boolean }>
+}) => {
     const [isEditing, setIsEditing] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
-    const [testPrice, setTestPrice] = useState('100');
-    const [testResult, setTestResult] = useState<any>(null);
 
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<Record<string, any>>({
         enabled: supplier.config?.enabled || false,
-        api_key: '',
-        api_secret: '',
-        account_number: '',
-        price_tier: supplier.config?.price_tier || 'basic',
-        margin_type: supplier.config?.margin_type || 'percentage',
-        margin_value: supplier.config?.margin_value || 15,
-        minimum_margin: supplier.config?.minimum_margin || 5,
-        rounding_strategy: supplier.config?.rounding_strategy || 'up',
-        round_to: supplier.config?.round_to || 0.99
+        ...Object.fromEntries(supplier.credentialFields.map(f => [f.key, ''])),
+        ...Object.fromEntries(supplier.settingFields.map(f => [f.key, supplier.config?.settings?.[f.key] ?? f.defaultValue ?? '']))
     });
 
     const handleSave = async () => {
         setIsSaving(true);
-        const success = await onSave(supplier.name, formData);
-        setIsSaving(false);
-        if (success) {
-            setIsEditing(false);
-        }
-    };
+        const credentials: Record<string, string> = {};
+        const settings: Record<string, any> = {};
 
-    const handleTestMargin = async () => {
-        const result = await onCalculate(parseFloat(testPrice), supplier.name);
-        setTestResult(result);
+        supplier.credentialFields.forEach(f => { if (formData[f.key]) credentials[f.key] = formData[f.key]; });
+        supplier.settingFields.forEach(f => { settings[f.key] = formData[f.key]; });
+
+        const result = await onSave(supplier.key, { enabled: formData.enabled, credentials, settings });
+        setIsSaving(false);
+        if (result.success) setIsEditing(false);
     };
 
     return (
-        <Card
-            title={supplier.displayName}
-            actions={
-                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                    {supplier.hasApi && <Badge variant="success">API verfügbar</Badge>}
-                    {supplier.config?.enabled && <Badge variant="info">Aktiv</Badge>}
-                    <a href={supplier.website} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', fontSize: 14 }}>
-                        Website →
-                    </a>
-                    <Button size="sm" variant={isEditing ? 'secondary' : 'primary'} onClick={() => setIsEditing(!isEditing)}>
-                        {isEditing ? 'Abbrechen' : 'Bearbeiten'}
-                    </Button>
-                </div>
-            }
+        <div
+            style={{
+                background: 'var(--bg-panel)',
+                borderRadius: 16,
+                border: `2px solid ${supplier.isEnabled ? supplier.color : 'var(--border)'}`,
+                overflow: 'hidden',
+                transition: 'all 0.3s ease',
+                boxShadow: supplier.isEnabled ? `0 0 20px ${supplier.color}30` : 'none'
+            }}
         >
-            <p style={{ color: 'var(--muted)', marginBottom: 16 }}>{supplier.description}</p>
-
-            {!isEditing ? (
-                // Display Mode
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 16 }}>
+            {/* Header */}
+            <div style={{
+                padding: 20,
+                background: `linear-gradient(135deg, ${supplier.color}15 0%, transparent 100%)`,
+                borderBottom: '1px solid var(--border)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <span style={{ fontSize: 32 }}>{supplier.icon}</span>
                     <div>
-                        <div style={styles.label}>Status</div>
-                        <div style={styles.value}>{supplier.config?.enabled ? '✅ Aktiviert' : '⏸️ Deaktiviert'}</div>
-                    </div>
-                    <div>
-                        <div style={styles.label}>Preisstufe</div>
-                        <div style={styles.value}>{supplier.config?.price_tier?.toUpperCase() || 'BASIC'}</div>
-                    </div>
-                    <div>
-                        <div style={styles.label}>Marge</div>
-                        <div style={styles.value}>
-                            {supplier.config?.margin_value || 15}
-                            {supplier.config?.margin_type === 'fixed' ? ' €' : ' %'}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <h3 style={{ margin: 0, fontSize: 18, fontWeight: 600 }}>{supplier.name}</h3>
+                            <span style={{
+                                background: 'rgba(255,255,255,0.1)',
+                                padding: '2px 6px',
+                                borderRadius: 4,
+                                fontSize: 11,
+                                fontWeight: 600
+                            }}>{supplier.country}</span>
                         </div>
-                    </div>
-                    <div>
-                        <div style={styles.label}>API-Zugangsdaten</div>
-                        <div style={styles.value}>{supplier.config?.hasCredentials ? '✅ Konfiguriert' : '❌ Nicht konfiguriert'}</div>
+                        <p style={{ margin: '4px 0 0', color: 'var(--muted)', fontSize: 13 }}>{supplier.description}</p>
                     </div>
                 </div>
-            ) : (
-                // Edit Mode
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                    {/* Enable Toggle */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <input
-                            type="checkbox"
-                            id={`enable-${supplier.name}`}
-                            checked={formData.enabled}
-                            onChange={(e) => setFormData({ ...formData, enabled: e.target.checked })}
-                            style={{ width: 20, height: 20 }}
-                        />
-                        <label htmlFor={`enable-${supplier.name}`} style={{ fontWeight: 600 }}>
-                            Lieferant aktivieren
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    {supplier.hasApi && <Badge variant="success">API</Badge>}
+                    {supplier.isEnabled && <Badge variant="info">Aktiv</Badge>}
+                </div>
+            </div>
+
+            {/* Features */}
+            <div style={{ padding: '12px 20px', display: 'flex', gap: 8, flexWrap: 'wrap', borderBottom: '1px solid var(--border)' }}>
+                {supplier.features.map(f => (
+                    <span key={f} style={{
+                        background: 'var(--bg)',
+                        padding: '4px 10px',
+                        borderRadius: 20,
+                        fontSize: 12,
+                        color: 'var(--muted)'
+                    }}>
+                        {f}
+                    </span>
+                ))}
+            </div>
+
+            {/* Content */}
+            <div style={{ padding: 20 }}>
+                {!isEditing ? (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', gap: 24 }}>
+                            <div>
+                                <div style={styles.label}>Status</div>
+                                <div style={styles.value}>{supplier.isEnabled ? '✅ Aktiviert' : '⏸️ Deaktiviert'}</div>
+                            </div>
+                            <div>
+                                <div style={styles.label}>Marge</div>
+                                <div style={styles.value}>{supplier.config?.settings?.margin_percent || 15}%</div>
+                            </div>
+                            <div>
+                                <div style={styles.label}>Zugangsdaten</div>
+                                <div style={styles.value}>{Object.keys(supplier.config?.credentials || {}).length > 0 ? '✅ Hinterlegt' : '❌ Fehlt'}</div>
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: 8 }}>
+                            <a href={supplier.website} target="_blank" rel="noopener noreferrer">
+                                <Button size="sm" variant="ghost">Website</Button>
+                            </a>
+                            <Button size="sm" variant="primary" onClick={() => setIsEditing(true)}>
+                                Konfigurieren
+                            </Button>
+                        </div>
+                    </div>
+                ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                        {/* Enable Toggle */}
+                        <label style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}>
+                            <input
+                                type="checkbox"
+                                checked={formData.enabled}
+                                onChange={(e) => setFormData({ ...formData, enabled: e.target.checked })}
+                                style={{ width: 20, height: 20, accentColor: supplier.color }}
+                            />
+                            <span style={{ fontWeight: 600, fontSize: 15 }}>Lieferant aktivieren</span>
                         </label>
-                    </div>
 
-                    {/* API Credentials */}
-                    {supplier.hasApi && (
-                        <div style={{ background: 'rgba(255,255,255,0.03)', padding: 16, borderRadius: 8, border: '1px solid var(--border)' }}>
-                            <h4 style={{ margin: '0 0 12px 0', color: 'var(--text)' }}>🔑 API-Zugangsdaten</h4>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                                <div>
-                                    <label style={styles.label}>API Key</label>
-                                    <input
-                                        type="password"
-                                        placeholder="API-Schlüssel eingeben"
-                                        value={formData.api_key}
-                                        onChange={(e) => setFormData({ ...formData, api_key: e.target.value })}
-                                        style={styles.input}
-                                    />
-                                </div>
-                                <div>
-                                    <label style={styles.label}>API Secret</label>
-                                    <input
-                                        type="password"
-                                        placeholder="API-Geheimnis eingeben"
-                                        value={formData.api_secret}
-                                        onChange={(e) => setFormData({ ...formData, api_secret: e.target.value })}
-                                        style={styles.input}
-                                    />
-                                </div>
-                                <div>
-                                    <label style={styles.label}>Kontonummer</label>
-                                    <input
-                                        placeholder="Ihre Kundennummer"
-                                        value={formData.account_number}
-                                        onChange={(e) => setFormData({ ...formData, account_number: e.target.value })}
-                                        style={styles.input}
-                                    />
-                                </div>
-                            </div>
-                            {supplier.config?.hasCredentials && (
-                                <p style={{ color: 'var(--success)', marginTop: 8, fontSize: 13 }}>
-                                    ✅ Zugangsdaten bereits konfiguriert. Leer lassen um beizubehalten.
-                                </p>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Pricing Configuration */}
-                    <div style={{ background: 'rgba(255,255,255,0.03)', padding: 16, borderRadius: 8, border: '1px solid var(--border)' }}>
-                        <h4 style={{ margin: '0 0 12px 0', color: 'var(--text)' }}>💰 Preiskonfiguration</h4>
-
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
-                            <div>
-                                <label style={styles.label}>Preisstufe</label>
-                                <select
-                                    value={formData.price_tier}
-                                    onChange={(e) => setFormData({ ...formData, price_tier: e.target.value })}
-                                    style={styles.select}
-                                >
-                                    {priceTiers.map(tier => (
-                                        <option key={tier.id} value={tier.id}>
-                                            {tier.name} ({tier.discount}% Rabatt, ab {tier.minOrders} Bestellungen/Monat)
-                                        </option>
+                        {/* Credentials */}
+                        {supplier.credentialFields.length > 0 && (
+                            <div style={styles.section}>
+                                <h4 style={styles.sectionTitle}>🔑 Zugangsdaten</h4>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
+                                    {supplier.credentialFields.map(field => (
+                                        <div key={field.key}>
+                                            <label style={styles.label}>{field.label} {field.required && <span style={{ color: supplier.color }}>*</span>}</label>
+                                            <input
+                                                type={field.type}
+                                                placeholder={`${field.label} eingeben`}
+                                                value={formData[field.key] || ''}
+                                                onChange={(e) => setFormData({ ...formData, [field.key]: e.target.value })}
+                                                style={styles.input}
+                                            />
+                                        </div>
                                     ))}
-                                </select>
-                            </div>
-
-                            <div>
-                                <label style={styles.label}>Margentyp</label>
-                                <select
-                                    value={formData.margin_type}
-                                    onChange={(e) => setFormData({ ...formData, margin_type: e.target.value as any })}
-                                    style={styles.select}
-                                >
-                                    <option value="percentage">Prozentual (%)</option>
-                                    <option value="fixed">Fixbetrag (€)</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label style={styles.label}>{formData.margin_type === 'percentage' ? 'Marge (%)' : 'Marge (€)'}</label>
-                                <input
-                                    type="number"
-                                    min={0}
-                                    step={0.5}
-                                    value={formData.margin_value}
-                                    onChange={(e) => setFormData({ ...formData, margin_value: parseFloat(e.target.value) || 0 })}
-                                    style={styles.input}
-                                />
-                            </div>
-
-                            <div>
-                                <label style={styles.label}>Mindestmarge (€)</label>
-                                <input
-                                    type="number"
-                                    min={0}
-                                    step={0.5}
-                                    value={formData.minimum_margin}
-                                    onChange={(e) => setFormData({ ...formData, minimum_margin: parseFloat(e.target.value) || 0 })}
-                                    style={styles.input}
-                                />
-                            </div>
-
-                            <div>
-                                <label style={styles.label}>Rundung</label>
-                                <select
-                                    value={formData.rounding_strategy}
-                                    onChange={(e) => setFormData({ ...formData, rounding_strategy: e.target.value as any })}
-                                    style={styles.select}
-                                >
-                                    <option value="up">Aufrunden</option>
-                                    <option value="down">Abrunden</option>
-                                    <option value="nearest">Kaufmännisch</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label style={styles.label}>Runden auf</label>
-                                <select
-                                    value={formData.round_to}
-                                    onChange={(e) => setFormData({ ...formData, round_to: parseFloat(e.target.value) })}
-                                    style={styles.select}
-                                >
-                                    <option value={0.99}>.99 € (z.B. 49,99 €)</option>
-                                    <option value={0.49}>.49 € (z.B. 49,49 €)</option>
-                                    <option value={0.5}>0.50 € (z.B. 50,00 €)</option>
-                                    <option value={1}>1.00 € (ganze Euro)</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Margin Test */}
-                    <div style={{ background: 'rgba(37,99,235,0.1)', padding: 16, borderRadius: 8, border: '1px solid rgba(37,99,235,0.3)' }}>
-                        <h4 style={{ margin: '0 0 12px 0', color: 'var(--text)' }}>🧪 Marge testen</h4>
-                        <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end' }}>
-                            <div>
-                                <label style={styles.label}>Einkaufspreis (€)</label>
-                                <input
-                                    type="number"
-                                    min={0}
-                                    step={0.01}
-                                    value={testPrice}
-                                    onChange={(e) => setTestPrice(e.target.value)}
-                                    style={{ ...styles.input, width: 150 }}
-                                />
-                            </div>
-                            <Button onClick={handleTestMargin}>Berechnen</Button>
-                        </div>
-                        {testResult && (
-                            <div style={{ marginTop: 16, display: 'flex', gap: 24 }}>
-                                <div>
-                                    <div style={styles.label}>Einkauf</div>
-                                    <div style={{ ...styles.value, color: '#ef4444' }}>{testResult.formatted?.purchase}</div>
                                 </div>
-                                <div>
-                                    <div style={styles.label}>+ Marge</div>
-                                    <div style={{ ...styles.value, color: '#f59e0b' }}>{testResult.formatted?.margin} ({testResult.marginPercent}%)</div>
-                                </div>
-                                <div>
-                                    <div style={styles.label}>= Verkauf</div>
-                                    <div style={{ ...styles.value, color: '#22c55e', fontWeight: 700 }}>{testResult.formatted?.selling}</div>
+                                {Object.keys(supplier.config?.credentials || {}).length > 0 && (
+                                    <p style={{ color: 'var(--success)', marginTop: 8, fontSize: 12 }}>
+                                        ✅ Zugangsdaten hinterlegt. Leer lassen um beizubehalten.
+                                    </p>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Settings */}
+                        {supplier.settingFields.length > 0 && (
+                            <div style={styles.section}>
+                                <h4 style={styles.sectionTitle}>⚙️ Einstellungen</h4>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
+                                    {supplier.settingFields.map(field => (
+                                        <div key={field.key}>
+                                            <label style={styles.label}>{field.label}</label>
+                                            {field.type === 'number' && (
+                                                <input
+                                                    type="number"
+                                                    min={field.min}
+                                                    max={field.max}
+                                                    value={formData[field.key] ?? field.defaultValue ?? 0}
+                                                    onChange={(e) => setFormData({ ...formData, [field.key]: parseFloat(e.target.value) || 0 })}
+                                                    style={styles.input}
+                                                />
+                                            )}
+                                            {field.type === 'select' && (
+                                                <select
+                                                    value={formData[field.key] ?? field.defaultValue}
+                                                    onChange={(e) => setFormData({ ...formData, [field.key]: e.target.value })}
+                                                    style={styles.select}
+                                                >
+                                                    {field.options?.map(opt => (
+                                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                                    ))}
+                                                </select>
+                                            )}
+                                            {field.type === 'toggle' && (
+                                                <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={formData[field.key] ?? field.defaultValue ?? false}
+                                                        onChange={(e) => setFormData({ ...formData, [field.key]: e.target.checked })}
+                                                        style={{ width: 18, height: 18, accentColor: supplier.color }}
+                                                    />
+                                                    <span style={{ fontSize: 13, color: 'var(--muted)' }}>Aktiviert</span>
+                                                </label>
+                                            )}
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
                         )}
-                    </div>
 
-                    {/* Save Button */}
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
-                        <Button variant="secondary" onClick={() => setIsEditing(false)}>
-                            Abbrechen
-                        </Button>
-                        <Button variant="primary" onClick={handleSave} disabled={isSaving}>
-                            {isSaving ? 'Speichern...' : 'Speichern'}
-                        </Button>
+                        {/* Actions */}
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
+                            <Button variant="ghost" onClick={() => setIsEditing(false)}>Abbrechen</Button>
+                            <Button variant="primary" onClick={handleSave} disabled={isSaving} style={{ background: supplier.color }}>
+                                {isSaving ? 'Speichern...' : 'Speichern'}
+                            </Button>
+                        </div>
                     </div>
-                </div>
-            )}
-        </Card>
+                )}
+            </div>
+        </div>
     );
 };
 
 const SuppliersSettings = () => {
-    const { suppliers, priceTiers, loading, error, updateSupplier, calculateMargin } = useB2BSuppliers();
+    const { suppliers, loading, error, updateSupplier } = useSuppliers();
 
-    if (loading) {
-        return <div style={{ padding: 20 }}>Lade Lieferanten...</div>;
-    }
+    if (loading) return <div style={{ padding: 40, textAlign: 'center', color: 'var(--muted)' }}>Lade Lieferanten...</div>;
+    if (error) return <div style={{ padding: 40, textAlign: 'center', color: 'var(--danger)' }}>Fehler: {error}</div>;
 
-    if (error) {
-        return <div style={{ padding: 20, color: 'var(--danger)' }}>Fehler: {error}</div>;
-    }
+    const enabledCount = suppliers.filter(s => s.isEnabled).length;
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-            <div>
-                <h2 style={{ margin: '0 0 8px 0' }}>B2B-Lieferanten</h2>
-                <p style={{ color: 'var(--muted)', margin: 0 }}>
-                    Konfigurieren Sie Ihre polnischen Großhändler für automatische Teilebestellung mit Marge.
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+            {/* Header */}
+            <div style={{
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                padding: 24,
+                borderRadius: 16,
+                color: 'white'
+            }}>
+                <h2 style={{ margin: 0, fontSize: 24, fontWeight: 700 }}>🏭 B2B Lieferanten</h2>
+                <p style={{ margin: '8px 0 0', opacity: 0.9 }}>
+                    Verbinde polnische Großhändler für automatische Teilebestellung mit Marge.
                 </p>
+                <div style={{ marginTop: 16, display: 'flex', gap: 24 }}>
+                    <div>
+                        <div style={{ fontSize: 28, fontWeight: 700 }}>{enabledCount}</div>
+                        <div style={{ fontSize: 12, opacity: 0.8 }}>Aktiv</div>
+                    </div>
+                    <div>
+                        <div style={{ fontSize: 28, fontWeight: 700 }}>{suppliers.length}</div>
+                        <div style={{ fontSize: 12, opacity: 0.8 }}>Verfügbar</div>
+                    </div>
+                </div>
             </div>
 
+            {/* Supplier Cards */}
             {suppliers.map(supplier => (
-                <SupplierCard
-                    key={supplier.name}
-                    supplier={supplier}
-                    priceTiers={priceTiers}
-                    onSave={updateSupplier}
-                    onCalculate={calculateMargin}
-                />
+                <SupplierCard key={supplier.key} supplier={supplier} onSave={updateSupplier} />
             ))}
-
-            {suppliers.length === 0 && (
-                <Card>
-                    <div style={{ textAlign: 'center', padding: 40 }}>
-                        <p style={{ color: 'var(--muted)' }}>Keine Lieferanten verfügbar.</p>
-                    </div>
-                </Card>
-            )}
         </div>
     );
 };
 
 const styles: Record<string, React.CSSProperties> = {
     label: {
-        fontSize: 12,
+        fontSize: 11,
         color: 'var(--muted)',
         marginBottom: 4,
         display: 'block',
         textTransform: 'uppercase',
-        letterSpacing: 0.5
+        letterSpacing: 0.5,
+        fontWeight: 600
     },
     value: {
-        fontSize: 15,
+        fontSize: 14,
         fontWeight: 600,
         color: 'var(--text)'
     },
-    select: {
-        width: '100%',
-        padding: '10px 12px',
-        borderRadius: 8,
-        border: '1px solid var(--border)',
-        background: 'var(--bg-panel)',
-        color: 'var(--text)',
+    section: {
+        background: 'rgba(255,255,255,0.03)',
+        padding: 16,
+        borderRadius: 12,
+        border: '1px solid var(--border)'
+    },
+    sectionTitle: {
+        margin: '0 0 12px 0',
         fontSize: 14,
-        cursor: 'pointer'
+        fontWeight: 600
     },
     input: {
         width: '100%',
         padding: '10px 12px',
         borderRadius: 8,
         border: '1px solid var(--border)',
-        background: 'var(--bg-panel)',
+        background: 'var(--bg)',
         color: 'var(--text)',
         fontSize: 14
+    },
+    select: {
+        width: '100%',
+        padding: '10px 12px',
+        borderRadius: 8,
+        border: '1px solid var(--border)',
+        background: 'var(--bg)',
+        color: 'var(--text)',
+        fontSize: 14,
+        cursor: 'pointer'
     }
 };
 
