@@ -46,16 +46,36 @@ const SalesTeamPage: React.FC = () => {
 
     const fetchUsers = async () => {
         try {
-            const { data } = await apiClient.get('/api/admin/users');
+            // Use team endpoint for regular users (not admin-only)
+            const { data } = await apiClient.get('/api/auth/team');
             if (data) setUsers(Array.isArray(data) ? data : []);
-        } catch (e) { console.error(e); }
+        } catch (e) { console.error('Could not load team members:', e); }
     };
 
     const fetchStats = async () => {
         try {
-            const { data } = await apiClient.get('/api/admin/kpis');
-            if (data) setStats(data as KPIStats);
-        } catch (e) { console.error(e); }
+            // Use dashboard stats for regular users
+            const { data } = await apiClient.get('/api/dashboard/stats');
+            if (data) {
+                setStats({
+                    sales: {
+                        totalOrders: data.ordersTotal || 0,
+                        ordersToday: data.ordersToday || 0,
+                        revenue: data.revenueToday || 0,
+                        conversionRate: 0
+                    },
+                    team: {
+                        activeUsers: users.length,
+                        callsMade: 0,
+                        messagesSent: 0
+                    },
+                    oem: {
+                        resolvedCount: 0,
+                        successRate: 0
+                    }
+                });
+            }
+        } catch (e) { console.error('Could not load stats:', e); }
     };
 
     useEffect(() => {
