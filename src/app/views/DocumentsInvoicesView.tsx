@@ -71,9 +71,10 @@ export function DocumentsInvoicesView() {
   };
 
   const filteredInvoices = invoices.filter(inv => {
-    // Tab filter (for future: add type field to distinguish incoming/outgoing)
-    // if (activeTab === 'outgoing') return inv.type === 'outgoing';
-    // if (activeTab === 'incoming') return inv.type === 'incoming';
+    // Tab filter - all created invoices are outgoing (invoices TO customers)
+    // Incoming invoices (from suppliers) would require a separate table/workflow
+    if (activeTab === 'incoming') return false; // No incoming invoices yet
+    // 'all' and 'outgoing' show all invoices
 
     // Status filter
     if (filterStatus !== 'all' && inv.status !== filterStatus) return false;
@@ -89,6 +90,7 @@ export function DocumentsInvoicesView() {
 
     return true;
   });
+
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(amount);
@@ -135,6 +137,22 @@ export function DocumentsInvoicesView() {
           >
             Zum Steuer-Dashboard →
           </button>
+        </div>
+      );
+    }
+
+    // Incoming invoices - Coming Soon
+    if (activeTab === 'incoming') {
+      return (
+        <div className="p-8 text-center">
+          <Upload className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Eingangsrechnungen</h3>
+          <p className="text-gray-600 mb-4">
+            Erfassen Sie Rechnungen von Lieferanten für die Vorsteuer-Berechnung.
+          </p>
+          <span className="inline-block px-4 py-2 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">
+            🚧 Kommt bald
+          </span>
         </div>
       );
     }
