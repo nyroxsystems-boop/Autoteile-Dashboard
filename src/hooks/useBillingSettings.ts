@@ -34,7 +34,7 @@ export const useBillingSettings = () => {
     const fetchSettings = async () => {
         try {
             setLoading(true);
-            const data = await apiClient.get<BillingSettings>('/api/settings/billing');
+            const data = await apiClient.get<BillingSettings>('/api/invoices/settings/billing');
             setSettings(data);
             setError(null);
         } catch (err: any) {
@@ -46,7 +46,7 @@ export const useBillingSettings = () => {
 
     const update = async (updates: Partial<BillingSettings>) => {
         try {
-            await apiClient.patch('/api/settings/billing', updates);
+            await apiClient.put('/api/invoices/settings/billing', updates);
             setSettings((prev) => (prev ? { ...prev, ...updates } : null));
             return true;
         } catch (err: any) {

@@ -90,5 +90,8 @@ export const downloadInvoicePdf = async (id: string | number) => {
   document.body.removeChild(a);
 };
 
-export const createInvoiceFromOrder = async (orderId: string | number): Promise<Invoice> =>
-  getInvoice(orderId);
+export const createInvoiceFromOrder = async (orderId: string | number): Promise<Invoice> => {
+  const created = await apiClient.post<Invoice>(`/api/invoices/from-order/${orderId}`, {});
+  return created;
+};
+
