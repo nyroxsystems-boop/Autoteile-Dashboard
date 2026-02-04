@@ -16,7 +16,7 @@ const AuthPage = () => {
         setLoading(true);
 
         try {
-            const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://whatsapp-bot-oem-ermittlung.onrender.com';
+            const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://autoteile-bot-service-production.up.railway.app';
             const res = await axios.post(`${API_BASE}/api/auth/login`, {
                 email,
                 password

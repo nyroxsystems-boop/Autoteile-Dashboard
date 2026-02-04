@@ -1,7 +1,7 @@
 import React from 'react';
 
 const DevInfo: React.FC = () => {
-    const apiBase = import.meta.env.VITE_API_BASE_URL || 'https://whatsapp-bot-oem-ermittlung.onrender.com';
+    const apiBase = import.meta.env.VITE_API_BASE_URL || 'https://autoteile-bot-service-production.up.railway.app';
     const mode = import.meta.env.MODE || 'development';
     const isDev = import.meta.env.DEV;
 

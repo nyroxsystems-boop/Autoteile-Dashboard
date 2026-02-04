@@ -8,7 +8,7 @@ class ApiClient {
     private baseUrl: string;
 
     constructor() {
-        this.baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://whatsapp-bot-oem-ermittlung.onrender.com';
+        this.baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://autoteile-bot-service-production.up.railway.app';
     }
 
     private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
