@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
+import { Package, ChevronRight } from 'lucide-react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
+import Badge from '../ui/Badge';
 import PageHeader from '../ui/PageHeader';
 import { useTimeframe } from '../features/timeframe/TimeframeContext';
 import { listOrders } from '../api/orders';
@@ -26,12 +28,34 @@ const OrdersListPage = () => {
         load();
     }, []);
 
+    const getStatusBadge = (status: string) => {
+        const statusMap: Record<string, { variant: 'success' | 'warning' | 'danger' | 'default'; label: string }> = {
+            'new': { variant: 'warning', label: 'Neu' },
+            'pending': { variant: 'warning', label: 'Ausstehend' },
+            'processing': { variant: 'default', label: 'In Bearbeitung' },
+            'completed': { variant: 'success', label: 'Abgeschlossen' },
+            'done': { variant: 'success', label: 'Erledigt' },
+            'cancelled': { variant: 'danger', label: 'Storniert' },
+        };
+        const config = statusMap[status?.toLowerCase()] || { variant: 'default' as const, label: status };
+        return <Badge variant={config.variant}>{config.label}</Badge>;
+    };
+
     if (loading) {
-        return <div style={{ padding: 20 }}>Lade Bestellungen...</div>;
+        return (
+            <div className="flex flex-col gap-5">
+                <PageHeader title="Bestellungen" subtitle="Lade..." />
+                <Card hover={false}>
+                    <div className="empty-state">
+                        <div className="empty-state-title">Lade Bestellungen...</div>
+                    </div>
+                </Card>
+            </div>
+        );
     }
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div className="flex flex-col gap-5">
             <PageHeader
                 title="Bestellungen"
                 subtitle={`Alle Bestellungen · ${timeframe}`}
@@ -43,38 +67,40 @@ const OrdersListPage = () => {
                 }
             />
 
-            <Card title={`${orders.length} Bestellungen`}>
+            <Card
+                title={`${orders.length} Bestellungen`}
+                hover={false}
+            >
                 {orders.length === 0 ? (
-                    <div style={{ padding: 40, textAlign: 'center', color: 'var(--muted)' }}>
-                        Keine Bestellungen gefunden
+                    <div className="empty-state">
+                        <Package className="empty-state-icon" />
+                        <div className="empty-state-title">Keine Bestellungen gefunden</div>
+                        <div className="empty-state-description">Neue Bestellungen erscheinen hier</div>
                     </div>
                 ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <div className="-mx-5 -mb-5">
                         {orders.map((order) => (
                             <a
                                 key={order.id}
                                 href={`/orders/${order.id}`}
-                                style={{
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    padding: 12,
-                                    borderRadius: 8,
-                                    border: '1px solid var(--border)',
-                                    textDecoration: 'none',
-                                    color: 'inherit',
-                                }}
+                                className="list-item group"
                             >
-                                <div>
-                                    <div style={{ fontWeight: 600 }}>{order.customer_name || 'Unbekannter Kunde'}</div>
-                                    <div style={{ fontSize: 12, color: 'var(--muted)' }}>
+                                <div className="flex-1 min-w-0">
+                                    <div className="list-item-title truncate">
+                                        {order.customer_name || 'Unbekannter Kunde'}
+                                    </div>
+                                    <div className="list-item-subtitle">
                                         {order.vehicle_make} {order.vehicle_model} · {order.part_name}
                                     </div>
                                 </div>
-                                <div style={{ textAlign: 'right' }}>
-                                    <div style={{ fontWeight: 600 }}>{order.status}</div>
-                                    <div style={{ fontSize: 12, color: 'var(--muted)' }}>
-                                        {new Date(order.created_at).toLocaleDateString('de-DE')}
+                                <div className="flex items-center gap-3 shrink-0">
+                                    <div className="text-right hidden sm:block">
+                                        {getStatusBadge(order.status)}
+                                        <div className="text-xs text-muted-foreground mt-1">
+                                            {new Date(order.created_at).toLocaleDateString('de-DE')}
+                                        </div>
                                     </div>
+                                    <ChevronRight className="w-4 h-4 text-muted-foreground/50 group-hover:text-foreground transition-colors" />
                                 </div>
                             </a>
                         ))}

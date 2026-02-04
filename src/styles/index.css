@@ -232,6 +232,138 @@
     .badge-info {
         @apply bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400;
     }
+
+    /* ============================================
+       PROFESSIONAL TABLE STYLING
+    ============================================ */
+    .table-premium {
+        @apply w-full border-collapse;
+    }
+
+    .table-premium thead {
+        @apply border-b border-border;
+    }
+
+    .table-premium th {
+        @apply px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground;
+        letter-spacing: 0.05em;
+    }
+
+    .table-premium tbody tr {
+        @apply border-b border-border/50 transition-colors;
+    }
+
+    .table-premium tbody tr:hover {
+        @apply bg-muted/30;
+    }
+
+    .table-premium td {
+        @apply px-4 py-3 text-sm;
+    }
+
+    /* Stat Card - Professional KPI Display */
+    .stat-card {
+        @apply rounded-xl p-5 border border-border/50 bg-card relative overflow-hidden;
+        box-shadow: var(--shadow-card);
+    }
+
+    .stat-card::after {
+        content: '';
+        @apply absolute -top-8 -right-8 w-24 h-24 rounded-full;
+        background: linear-gradient(135deg, hsl(var(--primary) / 0.08), transparent);
+    }
+
+    .stat-card-label {
+        @apply text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2;
+        letter-spacing: 0.08em;
+    }
+
+    .stat-card-value {
+        @apply text-2xl font-bold tracking-tight text-foreground;
+    }
+
+    .stat-card-unit {
+        @apply text-sm font-normal text-muted-foreground ml-1;
+    }
+
+    .stat-card-footer {
+        @apply text-xs text-muted-foreground mt-2;
+    }
+
+    /* Success Stat Card Variant */
+    .stat-card-success {
+        @apply border-green-200/50 dark:border-green-800/30;
+    }
+
+    .stat-card-success::after {
+        background: linear-gradient(135deg, hsl(142 76% 36% / 0.1), transparent);
+    }
+
+    .stat-card-success .stat-card-value {
+        @apply text-green-600 dark:text-green-400;
+    }
+
+    /* Danger Stat Card Variant */
+    .stat-card-danger {
+        @apply border-red-200/50 dark:border-red-800/30;
+    }
+
+    .stat-card-danger::after {
+        background: linear-gradient(135deg, hsl(0 84% 60% / 0.1), transparent);
+    }
+
+    .stat-card-danger .stat-card-value {
+        @apply text-red-600 dark:text-red-400;
+    }
+
+    /* Section Header */
+    .section-header {
+        @apply text-lg font-semibold text-foreground tracking-tight mb-4;
+    }
+
+    /* Empty State */
+    .empty-state {
+        @apply py-12 text-center;
+    }
+
+    .empty-state-icon {
+        @apply w-12 h-12 mx-auto mb-4 text-muted-foreground/40;
+    }
+
+    .empty-state-title {
+        @apply text-sm font-medium text-muted-foreground mb-1;
+    }
+
+    .empty-state-description {
+        @apply text-xs text-muted-foreground/70;
+    }
+
+    /* List Item */
+    .list-item {
+        @apply flex justify-between items-center px-4 py-3 border-b border-border/50 last:border-b-0 transition-colors hover:bg-muted/30;
+    }
+
+    .list-item-title {
+        @apply font-medium text-foreground;
+    }
+
+    .list-item-subtitle {
+        @apply text-xs text-muted-foreground mt-0.5;
+    }
+
+    /* Form Label */
+    .form-label {
+        @apply block text-sm font-medium text-foreground mb-1.5;
+    }
+
+    /* Panel Header */
+    .panel-header {
+        @apply flex justify-between items-center px-5 py-4 border-b border-border;
+    }
+
+    .panel-header-title {
+        @apply font-semibold text-foreground;
+    }
 }
 
 /* ============================================

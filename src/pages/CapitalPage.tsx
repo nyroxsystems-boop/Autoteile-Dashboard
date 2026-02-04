@@ -1,3 +1,4 @@
+import { Wallet, AlertTriangle, Clock, Download } from 'lucide-react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import PageHeader from '../ui/PageHeader';
@@ -7,36 +8,52 @@ const CapitalPage = () => {
     const { timeframe } = useTimeframe();
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div className="flex flex-col gap-5">
             <PageHeader
                 title="Gebundenes Kapital Radar"
                 subtitle={`Lagerkapital-Analyse · ${timeframe}`}
                 actions={
                     <>
-                        <Button variant="secondary" size="sm">PDF Export</Button>
+                        <Button variant="secondary" size="sm" icon={<Download className="w-3.5 h-3.5" />}>
+                            PDF Export
+                        </Button>
                         <Button variant="primary" size="sm">Optimierung starten</Button>
                     </>
                 }
             />
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
-                <Card title="Gesamtwert Lager">
-                    <div style={{ fontSize: 28, fontWeight: 800 }}>— €</div>
-                    <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 6 }}>Aktueller Bestand</div>
-                </Card>
-                <Card title="Langsam drehend">
-                    <div style={{ fontSize: 28, fontWeight: 800 }}>— €</div>
-                    <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 6 }}>&gt;90 Tage im Lager</div>
-                </Card>
-                <Card title="Totes Kapital">
-                    <div style={{ fontSize: 28, fontWeight: 800 }}>— €</div>
-                    <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 6 }}>&gt;180 Tage im Lager</div>
-                </Card>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="stat-card">
+                    <div className="flex items-start justify-between mb-2">
+                        <div className="stat-card-label">Gesamtwert Lager</div>
+                        <Wallet className="w-4 h-4 text-muted-foreground/50" />
+                    </div>
+                    <div className="stat-card-value">— €</div>
+                    <div className="stat-card-footer">Aktueller Bestand</div>
+                </div>
+                <div className="stat-card stat-card-danger">
+                    <div className="flex items-start justify-between mb-2">
+                        <div className="stat-card-label">Langsam drehend</div>
+                        <Clock className="w-4 h-4 text-muted-foreground/50" />
+                    </div>
+                    <div className="stat-card-value">— €</div>
+                    <div className="stat-card-footer">&gt;90 Tage im Lager</div>
+                </div>
+                <div className="stat-card stat-card-danger">
+                    <div className="flex items-start justify-between mb-2">
+                        <div className="stat-card-label">Totes Kapital</div>
+                        <AlertTriangle className="w-4 h-4 text-muted-foreground/50" />
+                    </div>
+                    <div className="stat-card-value">— €</div>
+                    <div className="stat-card-footer">&gt;180 Tage im Lager</div>
+                </div>
             </div>
 
-            <Card title="Kritische Artikel">
-                <div style={{ padding: 40, textAlign: 'center', color: 'var(--muted)' }}>
-                    Keine Daten verfügbar
+            <Card title="Kritische Artikel" hover={false}>
+                <div className="empty-state">
+                    <Wallet className="empty-state-icon" />
+                    <div className="empty-state-title">Keine Daten verfügbar</div>
+                    <div className="empty-state-description">Kapital-Analyse wird geladen</div>
                 </div>
             </Card>
         </div>

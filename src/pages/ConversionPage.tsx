@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { TrendingDown, BarChart3 } from 'lucide-react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Badge from '../ui/Badge';
@@ -33,10 +34,21 @@ const ConversionPage = () => {
   const sessions = data?.history || [];
   const reasons = data?.reasons || [];
 
-  if (loading) return <div style={{ padding: 20 }}>Lade Konversions-Daten...</div>;
+  if (loading) {
+    return (
+      <div className="flex flex-col gap-5">
+        <PageHeader title="Konversion & Abbrüche" subtitle="Lade Daten..." />
+        <Card hover={false}>
+          <div className="empty-state">
+            <div className="empty-state-title">Lade Konversions-Daten...</div>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+    <div className="flex flex-col gap-5">
       <PageHeader
         title="Konversion & Abbrüche"
         subtitle={`Trichter, Abbruchgründe und Verlauf · ${timeframe}`}
@@ -48,64 +60,77 @@ const ConversionPage = () => {
         }
       />
 
-      <Card title="Trichter" subtitle="Besucher bis Bestellung">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
-          {funnel.map((s, idx) => (
-            <Card key={s.stage}>
-              <div style={{ color: 'var(--muted)', fontSize: 12 }}>{s.stage}</div>
-              <div style={{ fontSize: 22, fontWeight: 800 }}>{s.value}</div>
-              <div style={{ height: 8, borderRadius: 999, background: 'rgba(255,255,255,0.05)', overflow: 'hidden', marginTop: 6 }}>
-                <div
-                  style={{
-                    width: `${Math.max(20, 100 - idx * 25)}%`,
-                    height: '100%',
-                    background: 'linear-gradient(90deg, #2563eb, #8b5cf6)'
-                  }}
-                />
-              </div>
-            </Card>
-          ))}
-          {funnel.length === 0 && <div>Keine Daten</div>}
-        </div>
-      </Card>
-
-      <Card title="Verlauf Sitzungen / abgeschlossene Bestellungen">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <div style={{ display: 'flex', gap: 6, color: 'var(--muted)', fontSize: 12 }}>
-            <Badge variant="neutral">Sitzungen</Badge>
-            <Badge variant="warning">Bestellungen</Badge>
-          </div>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', height: 100 }}>
-            {sessions.length === 0 && <div style={{ color: 'var(--muted)', alignSelf: 'center' }}>Keine Historie verfügbar</div>}
-            {sessions.map((d) => (
-              <div key={d.date} style={{ flex: 1 }}>
-                {d.date}
+      {/* Funnel Stats */}
+      <Card title="Trichter" subtitle="Besucher bis Bestellung" hover={false}>
+        {funnel.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {funnel.map((s, idx) => (
+              <div key={s.stage} className="stat-card">
+                <div className="stat-card-label">{s.stage}</div>
+                <div className="stat-card-value">{s.value}</div>
+                <div className="h-1.5 rounded-full bg-muted/50 mt-3 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-primary to-violet-500 transition-all duration-500"
+                    style={{ width: `${Math.max(20, 100 - idx * 25)}%` }}
+                  />
+                </div>
               </div>
             ))}
           </div>
+        ) : (
+          <div className="empty-state">
+            <BarChart3 className="empty-state-icon" />
+            <div className="empty-state-title">Keine Trichter-Daten</div>
+          </div>
+        )}
+      </Card>
+
+      {/* Session History */}
+      <Card title="Verlauf Sitzungen / abgeschlossene Bestellungen" hover={false}>
+        <div className="flex flex-col gap-4">
+          <div className="flex gap-2">
+            <Badge variant="default">Sitzungen</Badge>
+            <Badge variant="warning">Bestellungen</Badge>
+          </div>
+          {sessions.length > 0 ? (
+            <div className="flex gap-2 items-end h-24">
+              {sessions.map((d) => (
+                <div key={d.date} className="flex-1 text-center">
+                  <div className="text-xs text-muted-foreground">{d.date}</div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="empty-state">
+              <div className="empty-state-title">Keine Historie verfügbar</div>
+            </div>
+          )}
         </div>
       </Card>
 
-      <Card title="Top Abbruchgründe" subtitle="Anteil in %">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {reasons.length === 0 && <div style={{ color: 'var(--muted)' }}>Keine Daten</div>}
-          {reasons.map((r) => (
-            <div key={r.label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{ width: 200, color: 'var(--muted)', fontSize: 13 }}>{r.label}</div>
-              <div style={{ flex: 1, height: 10, borderRadius: 999, background: 'rgba(255,255,255,0.05)', overflow: 'hidden' }}>
-                <div
-                  style={{
-                    width: `${r.value}%`,
-                    height: '100%',
-                    borderRadius: 999,
-                    background: 'linear-gradient(90deg, #f97316, #ef4444)'
-                  }}
-                />
+      {/* Abandonment Reasons */}
+      <Card title="Top Abbruchgründe" subtitle="Anteil in %" hover={false}>
+        {reasons.length > 0 ? (
+          <div className="space-y-3">
+            {reasons.map((r) => (
+              <div key={r.label} className="flex items-center gap-3">
+                <div className="w-40 text-sm text-muted-foreground truncate">{r.label}</div>
+                <div className="flex-1 h-2.5 rounded-full bg-muted/50 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-orange-500 to-red-500 transition-all duration-500"
+                    style={{ width: `${r.value}%` }}
+                  />
+                </div>
+                <div className="w-12 text-right text-sm font-medium text-foreground">{r.value}%</div>
               </div>
-              <div style={{ width: 50, textAlign: 'right', color: 'var(--muted)', fontSize: 13 }}>{r.value}%</div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="empty-state">
+            <TrendingDown className="empty-state-icon" />
+            <div className="empty-state-title">Keine Abbruch-Daten</div>
+          </div>
+        )}
       </Card>
     </div>
   );

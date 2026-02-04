@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Truck, RefreshCw, Plus, Star } from 'lucide-react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Badge from '../ui/Badge';
@@ -33,73 +34,93 @@ const SuppliersPage = () => {
         ? Math.round(suppliers.reduce((acc, s) => acc + (s.reliability || 95), 0) / suppliers.length)
         : 0;
 
+    const renderRating = (rating: string | number | undefined) => {
+        const stars = typeof rating === 'number' ? rating : 4;
+        return (
+            <div className="flex items-center gap-0.5">
+                {[...Array(5)].map((_, i) => (
+                    <Star
+                        key={i}
+                        className={`w-3.5 h-3.5 ${i < stars ? 'text-amber-400 fill-amber-400' : 'text-muted-foreground/30'}`}
+                    />
+                ))}
+            </div>
+        );
+    };
+
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div className="flex flex-col gap-5">
             <PageHeader
                 title="Lieferanten"
                 subtitle="Lieferantenbeziehungen verwalten"
                 actions={
                     <>
-                        <Button variant="secondary" size="sm" onClick={loadData}>Aktualisieren</Button>
-                        <Button variant="primary" size="sm">Neuer Lieferant</Button>
+                        <Button variant="secondary" size="sm" icon={<RefreshCw className="w-3.5 h-3.5" />} onClick={loadData}>
+                            Aktualisieren
+                        </Button>
+                        <Button variant="primary" size="sm" icon={<Plus className="w-3.5 h-3.5" />}>
+                            Neuer Lieferant
+                        </Button>
                     </>
                 }
             />
 
             {error && (
-                <Card>
-                    <div style={{ padding: 20, textAlign: 'center', color: 'var(--danger)' }}>
-                        ⚠️ {error}
+                <Card hover={false}>
+                    <div className="flex items-center gap-3 text-red-600 dark:text-red-400">
+                        <span className="text-sm">{error}</span>
                     </div>
                 </Card>
             )}
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
-                <Card title="Aktive Lieferanten">
-                    <div style={{ fontSize: 28, fontWeight: 800 }}>
-                        {loading ? '...' : activeSuppliers.length}
+            {/* Stat Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="stat-card">
+                    <div className="stat-card-label">Aktive Lieferanten</div>
+                    <div className="stat-card-value">{loading ? '—' : activeSuppliers.length}</div>
+                    <div className="stat-card-footer">Verbunden</div>
+                </div>
+                <div className="stat-card">
+                    <div className="stat-card-label">Durchschn. Lieferzeit</div>
+                    <div className="stat-card-value">
+                        {loading ? '—' : '2-3'}
+                        <span className="stat-card-unit">Tage</span>
                     </div>
-                    <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 6 }}>Verbunden</div>
-                </Card>
-                <Card title="Durchschn. Lieferzeit">
-                    <div style={{ fontSize: 28, fontWeight: 800 }}>
-                        {loading ? '...' : '2-3'} Tage
-                    </div>
-                    <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 6 }}>Median</div>
-                </Card>
-                <Card title="Zuverlässigkeit">
-                    <div style={{ fontSize: 28, fontWeight: 800 }}>
-                        {loading ? '...' : `${avgReliability}%`}
-                    </div>
-                    <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 6 }}>Pünktliche Lieferungen</div>
-                </Card>
+                    <div className="stat-card-footer">Median</div>
+                </div>
+                <div className="stat-card stat-card-success">
+                    <div className="stat-card-label">Zuverlässigkeit</div>
+                    <div className="stat-card-value">{loading ? '—' : `${avgReliability}%`}</div>
+                    <div className="stat-card-footer">Pünktliche Lieferungen</div>
+                </div>
             </div>
 
-            <Card title="Lieferantenliste">
+            {/* Suppliers Table */}
+            <Card title="Lieferantenliste" hover={false}>
                 {loading ? (
-                    <div style={{ padding: 40, textAlign: 'center', color: 'var(--muted)' }}>
-                        Lade Lieferanten...
+                    <div className="empty-state">
+                        <div className="empty-state-title">Lade Lieferanten...</div>
                     </div>
                 ) : suppliers.length > 0 ? (
-                    <div style={{ overflowX: 'auto' }}>
-                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <div className="-mx-5 -mb-5 overflow-x-auto">
+                        <table className="table-premium">
                             <thead>
-                                <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                                    <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, color: 'var(--muted)' }}>Name</th>
-                                    <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, color: 'var(--muted)' }}>API-Typ</th>
-                                    <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, color: 'var(--muted)' }}>Bewertung</th>
-                                    <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, color: 'var(--muted)' }}>Status</th>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>API-Typ</th>
+                                    <th>Bewertung</th>
+                                    <th>Status</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {suppliers.map((supplier) => (
-                                    <tr key={supplier.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                                        <td style={{ padding: '12px', fontWeight: 600 }}>{supplier.name}</td>
-                                        <td style={{ padding: '12px' }}>
-                                            <Badge variant="neutral">{supplier.api_type || 'REST'}</Badge>
+                                    <tr key={supplier.id}>
+                                        <td className="font-medium text-foreground">{supplier.name}</td>
+                                        <td>
+                                            <Badge variant="default">{supplier.api_type || 'REST'}</Badge>
                                         </td>
-                                        <td style={{ padding: '12px' }}>{supplier.rating || '⭐⭐⭐⭐'}</td>
-                                        <td style={{ padding: '12px' }}>
+                                        <td>{renderRating(supplier.rating)}</td>
+                                        <td>
                                             <Badge variant={supplier.status === 'inactive' ? 'danger' : 'success'}>
                                                 {supplier.status === 'inactive' ? 'Inaktiv' : 'Aktiv'}
                                             </Badge>
@@ -110,8 +131,10 @@ const SuppliersPage = () => {
                         </table>
                     </div>
                 ) : (
-                    <div style={{ padding: 40, textAlign: 'center', color: 'var(--muted)' }}>
-                        Keine Lieferanten konfiguriert
+                    <div className="empty-state">
+                        <Truck className="empty-state-icon" />
+                        <div className="empty-state-title">Keine Lieferanten konfiguriert</div>
+                        <div className="empty-state-description">Fügen Sie Ihren ersten Lieferanten hinzu</div>
                     </div>
                 )}
             </Card>
@@ -120,4 +143,3 @@ const SuppliersPage = () => {
 };
 
 export default SuppliersPage;
-

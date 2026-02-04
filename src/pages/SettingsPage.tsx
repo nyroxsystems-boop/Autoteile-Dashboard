@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Settings, FileText, Building2, Shield, Truck } from 'lucide-react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
@@ -8,7 +9,6 @@ import SuppliersSettings from '../components/SuppliersSettings';
 const SettingsPage = () => {
     const { settings, update, loading } = useBillingSettings();
     const [activeTab, setActiveTab] = useState('invoice');
-
 
     // Password Change State
     const [oldPassword, setOldPassword] = useState('');
@@ -63,43 +63,65 @@ const SettingsPage = () => {
         }
     };
 
-    if (loading) return <div>Lade Einstellungen...</div>;
+    const tabs = [
+        { id: 'invoice', label: 'Rechnungsdesign', icon: FileText },
+        { id: 'company', label: 'Firmendaten', icon: Building2 },
+        { id: 'security', label: 'Sicherheit', icon: Shield },
+        { id: 'suppliers', label: 'Lieferanten', icon: Truck },
+    ];
+
+    if (loading) {
+        return (
+            <div className="flex flex-col gap-5">
+                <div>
+                    <h1 className="text-xl font-semibold tracking-tight text-foreground">Einstellungen</h1>
+                    <p className="text-sm text-muted-foreground mt-1">Lade...</p>
+                </div>
+                <Card hover={false}>
+                    <div className="empty-state">
+                        <div className="empty-state-title">Lade Einstellungen...</div>
+                    </div>
+                </Card>
+            </div>
+        );
+    }
 
     return (
-        <div style={{ paddingBottom: 40 }}>
+        <div className="flex flex-col gap-6 pb-10">
             {/* Header */}
-            <div style={{ marginBottom: 20 }}>
-                <h1 style={{ fontSize: 24, fontWeight: 'bold' }}>Einstellungen</h1>
-                <p style={{ color: 'var(--muted)' }}>Verwalte dein Rechnungsdesign und Firmendaten.</p>
+            <div>
+                <h1 className="text-xl font-semibold tracking-tight text-foreground">Einstellungen</h1>
+                <p className="text-sm text-muted-foreground mt-1">Verwalte dein Rechnungsdesign und Firmendaten.</p>
             </div>
 
             {/* Tabs */}
-            <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
-                <Button variant={activeTab === 'invoice' ? 'primary' : 'ghost'} onClick={() => setActiveTab('invoice')}>
-                    Rechnungsdesign
-                </Button>
-                <Button variant={activeTab === 'company' ? 'primary' : 'ghost'} onClick={() => setActiveTab('company')}>
-                    Firmendaten
-                </Button>
-                <Button variant={activeTab === 'security' ? 'primary' : 'ghost'} onClick={() => setActiveTab('security')}>
-                    Sicherheit
-                </Button>
-                <Button variant={activeTab === 'suppliers' ? 'primary' : 'ghost'} onClick={() => setActiveTab('suppliers')}>
-                    Lieferanten
-                </Button>
+            <div className="flex gap-1 p-1 rounded-lg bg-muted/50 w-fit">
+                {tabs.map((tab) => (
+                    <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === tab.id
+                                ? 'bg-card text-foreground shadow-sm'
+                                : 'text-muted-foreground hover:text-foreground'
+                            }`}
+                    >
+                        <tab.icon className="w-4 h-4" />
+                        <span className="hidden sm:inline">{tab.label}</span>
+                    </button>
+                ))}
             </div>
 
             {/* Invoice Builder Tab */}
             {activeTab === 'invoice' && (
-                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 1fr) 1fr', gap: 20 }}>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Controls */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                        <Card title="Grundeinstellungen">
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    <div className="flex flex-col gap-5">
+                        <Card title="Grundeinstellungen" hover={false}>
+                            <div className="space-y-5">
                                 <div>
-                                    <label style={{ fontSize: 13, display: 'block', marginBottom: 6 }}>Vorlage</label>
+                                    <label className="form-label">Vorlage</label>
                                     <select
-                                        style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid var(--border)' }}
+                                        className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
                                         value={formData.invoice_template || 'clean'}
                                         onChange={(e) => handleChange('invoice_template', e.target.value)}
                                     >
@@ -109,34 +131,35 @@ const SettingsPage = () => {
                                     </select>
                                 </div>
                                 <div>
-                                    <label style={{ fontSize: 13, display: 'block', marginBottom: 6 }}>Primärfarbe</label>
-                                    <div style={{ display: 'flex', gap: 8 }}>
+                                    <label className="form-label">Primärfarbe</label>
+                                    <div className="flex gap-2 items-center">
                                         {['#2563eb', '#dc2626', '#16a34a', '#000000'].map(c => (
-                                            <div
+                                            <button
                                                 key={c}
                                                 onClick={() => handleChange('invoice_color', c)}
-                                                style={{
-                                                    width: 30, height: 30, borderRadius: '50%', background: c,
-                                                    cursor: 'pointer', border: formData.invoice_color === c ? '2px solid white' : 'none',
-                                                    boxShadow: formData.invoice_color === c ? '0 0 0 2px var(--primary)' : 'none'
-                                                }}
+                                                className={`w-8 h-8 rounded-full transition-all ${formData.invoice_color === c
+                                                        ? 'ring-2 ring-offset-2 ring-primary'
+                                                        : 'hover:scale-110'
+                                                    }`}
+                                                style={{ backgroundColor: c }}
                                             />
                                         ))}
                                         <input
                                             type="color"
                                             value={formData.invoice_color || '#2563eb'}
                                             onChange={(e) => handleChange('invoice_color', e.target.value)}
+                                            className="w-8 h-8 rounded cursor-pointer"
                                         />
                                     </div>
                                 </div>
                             </div>
                         </Card>
 
-                        <Card title="Layout Optionen">
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                        <Card title="Layout Optionen" hover={false}>
+                            <div className="space-y-5">
                                 <div>
-                                    <label style={{ fontSize: 13, display: 'block', marginBottom: 6 }}>Logo Position</label>
-                                    <div style={{ display: 'flex', gap: 10 }}>
+                                    <label className="form-label">Logo Position</label>
+                                    <div className="flex gap-2">
                                         {['left', 'center', 'right'].map(pos => (
                                             <Button
                                                 key={pos}
@@ -150,9 +173,9 @@ const SettingsPage = () => {
                                     </div>
                                 </div>
                                 <div>
-                                    <label style={{ fontSize: 13, display: 'block', marginBottom: 6 }}>Tabellenstil</label>
+                                    <label className="form-label">Tabellenstil</label>
                                     <select
-                                        style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid var(--border)' }}
+                                        className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
                                         value={formData.table_style || 'grid'}
                                         onChange={(e) => handleChange('table_style', e.target.value)}
                                     >
@@ -167,66 +190,63 @@ const SettingsPage = () => {
                         <Button onClick={handleSave} fullWidth>Speichern</Button>
                     </div>
 
-                    {/* Live Preview (Mockup) */}
-                    <Card title="Vorschau" style={{ height: 'fit-content', minHeight: 600, background: '#555' }}>
-                        <div style={{
-                            background: 'white',
-                            color: 'black',
-                            padding: 40,
-                            borderRadius: 2,
-                            boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
-                            minHeight: 500,
-                            fontFamily: formData.invoice_font || 'sans-serif'
-                        }}>
+                    {/* Live Preview */}
+                    <Card title="Vorschau" hover={false} className="h-fit">
+                        <div
+                            className="bg-white text-black rounded-lg shadow-xl p-8"
+                            style={{ fontFamily: formData.invoice_font || 'sans-serif' }}
+                        >
                             {/* Header Mockup */}
-                            <div style={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                flexDirection: formData.logo_position === 'center' ? 'column' : (formData.logo_position === 'right' ? 'row-reverse' : 'row'),
-                                alignItems: formData.logo_position === 'center' ? 'center' : 'flex-start',
-                                borderBottom: `2px solid ${formData.invoice_color || '#2563eb'}`,
-                                paddingBottom: 20,
-                                marginBottom: 30
-                            }}>
-                                <div style={{
-                                    width: 60, height: 60, background: '#eee', borderRadius: 8,
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999',
-                                    marginBottom: formData.logo_position === 'center' ? 20 : 0
-                                }}>LOGO</div>
-                                <div style={{ textAlign: 'right' }}>
-                                    <h2 style={{ color: formData.invoice_color || '#2563eb', margin: 0 }}>RECHNUNG</h2>
-                                    <p style={{ margin: 0, fontSize: 12 }}>RE-2025-0001</p>
+                            <div
+                                className="flex pb-5 mb-6"
+                                style={{
+                                    flexDirection: formData.logo_position === 'center' ? 'column' : (formData.logo_position === 'right' ? 'row-reverse' : 'row'),
+                                    justifyContent: 'space-between',
+                                    alignItems: formData.logo_position === 'center' ? 'center' : 'flex-start',
+                                    borderBottom: `2px solid ${formData.invoice_color || '#2563eb'}`,
+                                }}
+                            >
+                                <div
+                                    className="w-14 h-14 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400 text-xs font-medium"
+                                    style={{ marginBottom: formData.logo_position === 'center' ? 16 : 0 }}
+                                >
+                                    LOGO
+                                </div>
+                                <div className="text-right">
+                                    <h2 className="text-lg font-bold m-0" style={{ color: formData.invoice_color || '#2563eb' }}>
+                                        RECHNUNG
+                                    </h2>
+                                    <p className="text-xs text-gray-500 m-0">RE-2025-0001</p>
                                 </div>
                             </div>
 
                             {/* Body Mockup */}
-                            <div style={{ marginBottom: 40, display: 'flex', justifyContent: 'space-between' }}>
-                                <div>
-                                    <p style={{ fontSize: 10, textTransform: 'uppercase', color: '#666' }}>Empfänger</p>
+                            <div className="mb-6">
+                                <p className="text-[10px] uppercase text-gray-500 mb-1">Empfänger</p>
+                                <p className="text-sm leading-relaxed">
                                     <strong>Max Mustermann</strong><br />
                                     Musterstraße 1<br />
                                     12345 Berlin
-                                </div>
+                                </p>
                             </div>
 
-                            <table style={{
-                                width: '100%',
-                                borderCollapse: 'collapse',
-                                border: formData.table_style === 'grid' ? '1px solid #eee' : 'none'
-                            }}>
+                            <table className="w-full text-sm" style={{ borderCollapse: 'collapse' }}>
                                 <thead>
-                                    <tr style={{ background: formData.table_style === 'grid' ? (formData.accent_color || '#f3f4f6') : 'white' }}>
-                                        <th style={{ textAlign: 'left', padding: 8, borderBottom: `2px solid ${formData.invoice_color}` }}>Pos</th>
-                                        <th style={{ textAlign: 'left', padding: 8, borderBottom: `2px solid ${formData.invoice_color}` }}>Beschreibung</th>
-                                        <th style={{ textAlign: 'right', padding: 8, borderBottom: `2px solid ${formData.invoice_color}` }}>Preis</th>
+                                    <tr style={{ background: formData.table_style === 'grid' ? '#f3f4f6' : 'transparent' }}>
+                                        <th className="text-left p-2" style={{ borderBottom: `2px solid ${formData.invoice_color || '#2563eb'}` }}>Pos</th>
+                                        <th className="text-left p-2" style={{ borderBottom: `2px solid ${formData.invoice_color || '#2563eb'}` }}>Beschreibung</th>
+                                        <th className="text-right p-2" style={{ borderBottom: `2px solid ${formData.invoice_color || '#2563eb'}` }}>Preis</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {[1, 2].map(i => (
-                                        <tr key={i} style={{ background: (formData.table_style === 'gestreift' && i % 2 === 0) ? '#f9fafb' : 'transparent' }}>
-                                            <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{i}</td>
-                                            <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>Bremsscheibe Vorderachse</td>
-                                            <td style={{ padding: 8, borderBottom: '1px solid #eee', textAlign: 'right' }}>59.90 €</td>
+                                        <tr
+                                            key={i}
+                                            style={{ background: (formData.table_style === 'gestreift' && i % 2 === 0) ? '#f9fafb' : 'transparent' }}
+                                        >
+                                            <td className="p-2 border-b border-gray-200">{i}</td>
+                                            <td className="p-2 border-b border-gray-200">Bremsscheibe Vorderachse</td>
+                                            <td className="p-2 border-b border-gray-200 text-right">59.90 €</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -238,38 +258,38 @@ const SettingsPage = () => {
 
             {/* Company Data Tab */}
             {activeTab === 'company' && (
-                <Card title="Firmendaten">
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                <Card title="Firmendaten" hover={false}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div>
-                            <label style={{ fontSize: 13, display: 'block', marginBottom: 6 }}>Firmenname</label>
+                            <label className="form-label">Firmenname</label>
                             <Input value={formData.company_name || ''} onChange={(e) => handleChange('company_name', e.target.value)} />
                         </div>
                         <div>
-                            <label style={{ fontSize: 13, display: 'block', marginBottom: 6 }}>E-Mail</label>
+                            <label className="form-label">E-Mail</label>
                             <Input value={formData.email || ''} onChange={(e) => handleChange('email', e.target.value)} />
                         </div>
-                        <div style={{ gridColumn: 'span 2' }}>
-                            <label style={{ fontSize: 13, display: 'block', marginBottom: 6 }}>Straße</label>
+                        <div className="md:col-span-2">
+                            <label className="form-label">Straße</label>
                             <Input value={formData.address_line1 || ''} onChange={(e) => handleChange('address_line1', e.target.value)} />
                         </div>
                         <div>
-                            <label style={{ fontSize: 13, display: 'block', marginBottom: 6 }}>PLZ</label>
+                            <label className="form-label">PLZ</label>
                             <Input value={formData.postal_code || ''} onChange={(e) => handleChange('postal_code', e.target.value)} />
                         </div>
                         <div>
-                            <label style={{ fontSize: 13, display: 'block', marginBottom: 6 }}>Stadt</label>
+                            <label className="form-label">Stadt</label>
                             <Input value={formData.city || ''} onChange={(e) => handleChange('city', e.target.value)} />
                         </div>
                         <div>
-                            <label style={{ fontSize: 13, display: 'block', marginBottom: 6 }}>IBAN</label>
+                            <label className="form-label">IBAN</label>
                             <Input value={formData.iban || ''} onChange={(e) => handleChange('iban', e.target.value)} />
                         </div>
                         <div>
-                            <label style={{ fontSize: 13, display: 'block', marginBottom: 6 }}>USt-ID</label>
+                            <label className="form-label">USt-ID</label>
                             <Input value={formData.tax_id || ''} onChange={(e) => handleChange('tax_id', e.target.value)} />
                         </div>
                     </div>
-                    <div style={{ marginTop: 20, textAlign: 'right' }}>
+                    <div className="mt-6 flex justify-end">
                         <Button onClick={handleSave}>Änderungen speichern</Button>
                     </div>
                 </Card>
@@ -277,28 +297,26 @@ const SettingsPage = () => {
 
             {/* Security Tab */}
             {activeTab === 'security' && (
-                <Card title="Sicherheit">
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 400 }}>
-                        <p style={{ fontSize: 14, color: 'var(--muted)' }}>Ändern Sie hier Ihr Passwort.</p>
+                <Card title="Sicherheit" hover={false}>
+                    <div className="max-w-md space-y-5">
+                        <p className="text-sm text-muted-foreground">Ändern Sie hier Ihr Passwort.</p>
 
                         <div>
-                            <label style={{ fontSize: 13, display: 'block', marginBottom: 6 }}>Aktuelles Passwort</label>
+                            <label className="form-label">Aktuelles Passwort</label>
                             <Input type="password" value={oldPassword} onChange={(e: any) => setOldPassword(e.target.value)} />
                         </div>
 
                         <div>
-                            <label style={{ fontSize: 13, display: 'block', marginBottom: 6 }}>Neues Passwort</label>
+                            <label className="form-label">Neues Passwort</label>
                             <Input type="password" value={newPassword} onChange={(e: any) => setNewPassword(e.target.value)} />
                         </div>
 
                         <div>
-                            <label style={{ fontSize: 13, display: 'block', marginBottom: 6 }}>Passwort bestätigen</label>
+                            <label className="form-label">Passwort bestätigen</label>
                             <Input type="password" value={confirmPassword} onChange={(e: any) => setConfirmPassword(e.target.value)} />
                         </div>
 
-                        <div style={{ marginTop: 10 }}>
-                            <Button onClick={handleChangePassword}>Passwort ändern</Button>
-                        </div>
+                        <Button onClick={handleChangePassword}>Passwort ändern</Button>
                     </div>
                 </Card>
             )}

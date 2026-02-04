@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Lightbulb, RefreshCw, Sparkles, Target } from 'lucide-react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Badge from '../ui/Badge';
@@ -30,12 +31,10 @@ const RecommendationsPage = () => {
             if (data && Array.isArray(data)) {
                 setRecommendations(data);
             } else {
-                // No recommendations endpoint yet - show empty state
                 setRecommendations([]);
             }
         } catch (err: any) {
             console.log('Recommendations not available:', err);
-            // API endpoint not available - show empty state
             setRecommendations([]);
         } finally {
             setLoading(false);
@@ -45,58 +44,64 @@ const RecommendationsPage = () => {
     const getPriorityBadge = (priority: string) => {
         if (priority === 'high') return <Badge variant="danger">Hoch</Badge>;
         if (priority === 'medium') return <Badge variant="warning">Mittel</Badge>;
-        return <Badge variant="neutral">Niedrig</Badge>;
+        return <Badge variant="default">Niedrig</Badge>;
     };
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div className="flex flex-col gap-5">
             <PageHeader
                 title="Empfehlungen"
                 subtitle={`KI-gestützte Optimierungsvorschläge · ${timeframe}`}
                 actions={
                     <>
-                        <Button variant="secondary" size="sm" onClick={loadRecommendations}>Aktualisieren</Button>
-                        <Button variant="primary" size="sm" disabled={recommendations.length === 0}>Alle umsetzen</Button>
+                        <Button variant="secondary" size="sm" icon={<RefreshCw className="w-3.5 h-3.5" />} onClick={loadRecommendations}>
+                            Aktualisieren
+                        </Button>
+                        <Button variant="primary" size="sm" disabled={recommendations.length === 0}>
+                            Alle umsetzen
+                        </Button>
                     </>
                 }
             />
 
-            <Card title={loading ? 'Lade Empfehlungen...' : `${recommendations.length} aktive Empfehlungen`}>
+            <Card
+                title={loading ? 'Lade Empfehlungen...' : `${recommendations.length} aktive Empfehlungen`}
+                hover={false}
+            >
                 {loading ? (
-                    <div style={{ padding: 40, textAlign: 'center', color: 'var(--muted)' }}>
-                        Analysiere Daten...
+                    <div className="empty-state">
+                        <Sparkles className="empty-state-icon animate-pulse" />
+                        <div className="empty-state-title">Analysiere Daten...</div>
                     </div>
                 ) : recommendations.length > 0 ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <div className="space-y-3 -mx-5 -mb-5">
                         {recommendations.map((rec) => (
                             <div
                                 key={rec.id}
-                                style={{
-                                    padding: 16,
-                                    borderRadius: 10,
-                                    border: '1px solid var(--border)',
-                                    background: 'rgba(255, 255, 255, 0.02)'
-                                }}
+                                className="px-5 py-4 border-t border-border hover:bg-muted/30 transition-colors"
                             >
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-                                    <div>
-                                        <div style={{ fontWeight: 700, marginBottom: 4 }}>{rec.title}</div>
-                                        <div style={{ fontSize: 13, color: 'var(--muted)' }}>{rec.description}</div>
+                                <div className="flex justify-between items-start mb-2">
+                                    <div className="flex-1 min-w-0">
+                                        <div className="font-semibold text-foreground mb-1">{rec.title}</div>
+                                        <div className="text-sm text-muted-foreground">{rec.description}</div>
                                     </div>
-                                    {getPriorityBadge(rec.priority)}
+                                    <div className="ml-4">{getPriorityBadge(rec.priority)}</div>
                                 </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 }}>
-                                    <div style={{ fontSize: 13, color: 'var(--success)' }}>💡 {rec.impact}</div>
+                                <div className="flex justify-between items-center mt-3">
+                                    <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
+                                        <Lightbulb className="w-4 h-4" />
+                                        <span>{rec.impact}</span>
+                                    </div>
                                     <Button size="sm" variant="primary">Umsetzen</Button>
                                 </div>
                             </div>
                         ))}
                     </div>
                 ) : (
-                    <div style={{ padding: 40, textAlign: 'center', color: 'var(--muted)' }}>
-                        <div style={{ fontSize: 40, marginBottom: 16 }}>🎯</div>
-                        <div style={{ fontWeight: 600, marginBottom: 8 }}>Keine Empfehlungen verfügbar</div>
-                        <div style={{ fontSize: 13 }}>
+                    <div className="empty-state">
+                        <Target className="empty-state-icon" />
+                        <div className="empty-state-title">Keine Empfehlungen verfügbar</div>
+                        <div className="empty-state-description">
                             KI-Empfehlungen werden generiert, sobald genügend Daten vorhanden sind.
                         </div>
                     </div>
@@ -107,4 +112,3 @@ const RecommendationsPage = () => {
 };
 
 export default RecommendationsPage;
-

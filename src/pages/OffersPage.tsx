@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { FileText, RefreshCw, Plus } from 'lucide-react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Badge from '../ui/Badge';
@@ -49,85 +50,87 @@ const OffersPage = () => {
         return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(value);
     };
 
+    const getStatusBadge = (status: string) => {
+        const statusMap: Record<string, { variant: 'success' | 'warning' | 'default'; label: string }> = {
+            'accepted': { variant: 'success', label: 'Angenommen' },
+            'draft': { variant: 'warning', label: 'Entwurf' },
+            'pending': { variant: 'warning', label: 'Ausstehend' },
+        };
+        const config = statusMap[status] || { variant: 'default' as const, label: status };
+        return <Badge variant={config.variant}>{config.label}</Badge>;
+    };
+
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div className="flex flex-col gap-5">
             <PageHeader
                 title="Angebote"
                 subtitle={`Kundenangebote verwalten · ${timeframe}`}
                 actions={
                     <>
-                        <Button variant="secondary" size="sm" onClick={loadData}>Aktualisieren</Button>
-                        <Button variant="primary" size="sm">Neues Angebot</Button>
+                        <Button variant="secondary" size="sm" icon={<RefreshCw className="w-3.5 h-3.5" />} onClick={loadData}>
+                            Aktualisieren
+                        </Button>
+                        <Button variant="primary" size="sm" icon={<Plus className="w-3.5 h-3.5" />}>
+                            Neues Angebot
+                        </Button>
                     </>
                 }
             />
 
             {error && (
-                <Card>
-                    <div style={{ padding: 20, textAlign: 'center', color: 'var(--danger)' }}>
-                        ⚠️ {error}
+                <Card hover={false}>
+                    <div className="flex items-center gap-3 text-red-600 dark:text-red-400">
+                        <span className="text-sm">{error}</span>
                     </div>
                 </Card>
             )}
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
-                <Card title="Offene Angebote">
-                    <div style={{ fontSize: 28, fontWeight: 800 }}>
-                        {loading ? '...' : openOffers.length}
-                    </div>
-                    <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 6 }}>Warten auf Antwort</div>
-                </Card>
-                <Card title="Angenommen">
-                    <div style={{ fontSize: 28, fontWeight: 800 }}>
-                        {loading ? '...' : acceptedOffers.length}
-                    </div>
-                    <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 6 }}>Erfolgreich</div>
-                </Card>
-                <Card title="Gesamtwert">
-                    <div style={{ fontSize: 28, fontWeight: 800 }}>
-                        {loading ? '...' : formatCurrency(totalValue)}
-                    </div>
-                    <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 6 }}>Alle Angebote</div>
-                </Card>
+            {/* Stat Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="stat-card">
+                    <div className="stat-card-label">Offene Angebote</div>
+                    <div className="stat-card-value">{loading ? '—' : openOffers.length}</div>
+                    <div className="stat-card-footer">Warten auf Antwort</div>
+                </div>
+                <div className="stat-card stat-card-success">
+                    <div className="stat-card-label">Angenommen</div>
+                    <div className="stat-card-value">{loading ? '—' : acceptedOffers.length}</div>
+                    <div className="stat-card-footer">Erfolgreich</div>
+                </div>
+                <div className="stat-card">
+                    <div className="stat-card-label">Gesamtwert</div>
+                    <div className="stat-card-value">{loading ? '—' : formatCurrency(totalValue)}</div>
+                    <div className="stat-card-footer">Alle Angebote</div>
+                </div>
             </div>
 
-            <Card title="Letzte Angebote">
+            {/* Offers List */}
+            <Card title="Letzte Angebote" hover={false}>
                 {loading ? (
-                    <div style={{ padding: 40, textAlign: 'center', color: 'var(--muted)' }}>
-                        Lade Angebote...
+                    <div className="empty-state">
+                        <div className="empty-state-title">Lade Angebote...</div>
                     </div>
                 ) : offers.length > 0 ? (
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        {offers.slice(0, 10).map((offer, i) => (
-                            <div
-                                key={offer.id}
-                                style={{
-                                    padding: '12px 16px',
-                                    borderBottom: i < Math.min(offers.length, 10) - 1 ? '1px solid var(--border)' : 'none',
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center'
-                                }}
-                            >
-                                <div>
-                                    <div style={{ fontWeight: 600 }}>{offer.productName || offer.shopName}</div>
-                                    <div style={{ fontSize: 12, color: 'var(--muted)' }}>
+                    <div className="-mx-5 -mb-5">
+                        {offers.slice(0, 10).map((offer) => (
+                            <div key={offer.id} className="list-item">
+                                <div className="flex-1 min-w-0">
+                                    <div className="list-item-title truncate">
+                                        {offer.productName || offer.shopName}
+                                    </div>
+                                    <div className="list-item-subtitle">
                                         {formatCurrency(offer.basePrice)} · {offer.shopName}
                                     </div>
                                 </div>
-                                <Badge variant={
-                                    offer.status === 'accepted' ? 'success' :
-                                        offer.status === 'draft' ? 'warning' : 'neutral'
-                                }>
-                                    {offer.status === 'accepted' ? 'Angenommen' :
-                                        offer.status === 'draft' ? 'Entwurf' : offer.status}
-                                </Badge>
+                                {getStatusBadge(offer.status)}
                             </div>
                         ))}
                     </div>
                 ) : (
-                    <div style={{ padding: 40, textAlign: 'center', color: 'var(--muted)' }}>
-                        Keine Angebote vorhanden
+                    <div className="empty-state">
+                        <FileText className="empty-state-icon" />
+                        <div className="empty-state-title">Keine Angebote vorhanden</div>
+                        <div className="empty-state-description">Erstellen Sie Ihr erstes Angebot</div>
                     </div>
                 )}
             </Card>
@@ -136,4 +139,3 @@ const OffersPage = () => {
 };
 
 export default OffersPage;
-

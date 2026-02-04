@@ -1,10 +1,10 @@
-
 import React, { useEffect, useState } from 'react';
 import { Package, Search, Plus, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Product, ProductService } from '../services/productService';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
+import Badge from '../ui/Badge';
 
 export default function ProductsPage() {
     const navigate = useNavigate();
@@ -32,106 +32,103 @@ export default function ProductsPage() {
     };
 
     return (
-        <div className="space-y-6">
-            <div className="flex justify-between items-center">
+        <div className="flex flex-col gap-5">
+            {/* Header */}
+            <div className="flex justify-between items-start">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Artikelverwaltung</h1>
-                    <p className="text-slate-500">
+                    <h1 className="text-xl font-semibold tracking-tight text-foreground">Artikelverwaltung</h1>
+                    <p className="text-sm text-muted-foreground mt-1">
                         Verwalten Sie Ihren lokalen Artikelstamm und Preise.
                     </p>
                 </div>
-                <Button>
-                    <Plus className="w-4 h-4 mr-2" />
+                <Button icon={<Plus className="w-4 h-4" />}>
                     Neuer Artikel
                 </Button>
             </div>
 
-            {/* ERROR BANNER */}
+            {/* Error Banner */}
             {error && (
-                <div className="bg-red-50 text-red-600 p-4 rounded-lg flex items-center">
-                    <AlertCircle className="w-5 h-5 mr-3" />
-                    {error}
+                <div className="flex items-center gap-3 p-4 rounded-lg border border-red-200 bg-red-50 dark:border-red-800/50 dark:bg-red-900/20">
+                    <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0" />
+                    <span className="text-sm text-red-700 dark:text-red-300">{error}</span>
                 </div>
             )}
 
-            {/* FILTERS */}
-            <div className="flex gap-4">
-                <div className="relative flex-1">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                    <Input
-                        placeholder="Suchen nach Name, Art-Nr. oder EAN..."
-                        className="pl-9"
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                    />
-                </div>
+            {/* Search */}
+            <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                    placeholder="Suchen nach Name, Art-Nr. oder EAN..."
+                    className="pl-9"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                />
             </div>
 
-            {/* PRODUCT LIST */}
-            <div className="bg-white rounded-lg border shadow-sm">
-                <table className="w-full text-sm text-left">
-                    <thead className="bg-slate-50 text-slate-500 font-medium border-b">
+            {/* Product Table */}
+            <div className="rounded-xl border border-border bg-card overflow-hidden">
+                <table className="table-premium">
+                    <thead>
                         <tr>
-                            <th className="px-6 py-3">Produkt</th>
-                            <th className="px-6 py-3">Art-Nr. (IPN)</th>
-                            <th className="px-6 py-3">Bestand</th>
-                            <th className="px-6 py-3">Status</th>
-                            <th className="px-6 py-3 text-right">Aktionen</th>
+                            <th>Produkt</th>
+                            <th>Art-Nr. (IPN)</th>
+                            <th>Bestand</th>
+                            <th>Status</th>
+                            <th className="text-right">Aktionen</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y">
+                    <tbody>
                         {loading ? (
                             <tr>
-                                <td colSpan={5} className="p-8 text-center text-slate-500">
-                                    Lade Artikel...
+                                <td colSpan={5}>
+                                    <div className="empty-state">
+                                        <div className="empty-state-title">Lade Artikel...</div>
+                                    </div>
                                 </td>
                             </tr>
                         ) : products.length === 0 ? (
                             <tr>
-                                <td colSpan={5} className="p-8 text-center text-slate-500">
-                                    Keine Artikel gefunden.
+                                <td colSpan={5}>
+                                    <div className="empty-state">
+                                        <Package className="empty-state-icon" />
+                                        <div className="empty-state-title">Keine Artikel gefunden</div>
+                                        <div className="empty-state-description">Erstellen Sie Ihren ersten Artikel</div>
+                                    </div>
                                 </td>
                             </tr>
                         ) : (
                             products.map((product) => (
-                                <tr key={product.pk} className="hover:bg-slate-50">
-                                    <td className="px-6 py-4 font-medium text-slate-900">
+                                <tr key={product.pk}>
+                                    <td>
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 bg-slate-100 rounded flex items-center justify-center text-slate-400">
-                                                <Package className="w-5 h-5" />
+                                            <div className="w-10 h-10 rounded-lg bg-muted/50 flex items-center justify-center">
+                                                <Package className="w-5 h-5 text-muted-foreground" />
                                             </div>
-                                            <div>
-                                                <div className="font-semibold">{product.name}</div>
-                                                <div className="text-xs text-slate-500 truncate max-w-[200px]">{product.description}</div>
+                                            <div className="min-w-0">
+                                                <div className="font-medium text-foreground truncate">{product.name}</div>
+                                                <div className="text-xs text-muted-foreground truncate max-w-[200px]">{product.description}</div>
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 text-slate-600">
-                                        {product.IPN || '-'}
+                                    <td className="text-muted-foreground font-mono text-sm">
+                                        {product.IPN || '—'}
                                     </td>
-                                    <td className="px-6 py-4">
+                                    <td>
                                         <div className="flex items-center gap-2">
-                                            <div className={`w-2 h-2 rounded-full ${(product.stock || 0) > 0 ? 'bg-green-500' : 'bg-red-500'
-                                                }`} />
-                                            <span>{product.stock || 0} Stk.</span>
+                                            <span className={`w-2 h-2 rounded-full ${(product.stock || 0) > 0 ? 'bg-green-500' : 'bg-red-500'}`} />
+                                            <span className="text-foreground">{product.stock || 0} Stk.</span>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4">
-                                        {product.active ? (
-                                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700">
-                                                Aktiv
-                                            </span>
-                                        ) : (
-                                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
-                                                Archiviert
-                                            </span>
-                                        )}
+                                    <td>
+                                        <Badge variant={product.active ? 'success' : 'default'}>
+                                            {product.active ? 'Aktiv' : 'Archiviert'}
+                                        </Badge>
                                     </td>
-                                    <td className="px-6 py-4 text-right">
+                                    <td className="text-right">
                                         <Button
                                             variant="ghost"
                                             size="sm"
-                                            onClick={() => window.location.href = `/products/${product.pk}`}
+                                            onClick={() => navigate(`/products/${product.pk}`)}
                                         >
                                             Bearbeiten
                                         </Button>

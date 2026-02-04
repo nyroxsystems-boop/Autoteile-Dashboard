@@ -1,3 +1,4 @@
+import { RotateCcw, Clock, TrendingDown } from 'lucide-react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import PageHeader from '../ui/PageHeader';
@@ -7,7 +8,7 @@ const ReturnsPage = () => {
     const { timeframe } = useTimeframe();
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div className="flex flex-col gap-5">
             <PageHeader
                 title="Retouren"
                 subtitle={`Rücksendungen und Reklamationen · ${timeframe}`}
@@ -19,24 +20,40 @@ const ReturnsPage = () => {
                 }
             />
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
-                <Card title="Offene Retouren">
-                    <div style={{ fontSize: 28, fontWeight: 800 }}>—</div>
-                    <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 6 }}>In Bearbeitung</div>
-                </Card>
-                <Card title="Retourenquote">
-                    <div style={{ fontSize: 28, fontWeight: 800 }}>—%</div>
-                    <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 6 }}>Letzten 30 Tage</div>
-                </Card>
-                <Card title="Durchschn. Bear­beitungszeit">
-                    <div style={{ fontSize: 28, fontWeight: 800 }}>— Tage</div>
-                    <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 6 }}>Median</div>
-                </Card>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="stat-card">
+                    <div className="flex items-start justify-between mb-2">
+                        <div className="stat-card-label">Offene Retouren</div>
+                        <RotateCcw className="w-4 h-4 text-muted-foreground/50" />
+                    </div>
+                    <div className="stat-card-value">—</div>
+                    <div className="stat-card-footer">In Bearbeitung</div>
+                </div>
+                <div className="stat-card stat-card-danger">
+                    <div className="flex items-start justify-between mb-2">
+                        <div className="stat-card-label">Retourenquote</div>
+                        <TrendingDown className="w-4 h-4 text-muted-foreground/50" />
+                    </div>
+                    <div className="stat-card-value">—%</div>
+                    <div className="stat-card-footer">Letzten 30 Tage</div>
+                </div>
+                <div className="stat-card">
+                    <div className="flex items-start justify-between mb-2">
+                        <div className="stat-card-label">Ø Bearbeitungszeit</div>
+                        <Clock className="w-4 h-4 text-muted-foreground/50" />
+                    </div>
+                    <div className="stat-card-value">
+                        —<span className="stat-card-unit">Tage</span>
+                    </div>
+                    <div className="stat-card-footer">Median</div>
+                </div>
             </div>
 
-            <Card title="Letzte Retouren">
-                <div style={{ padding: 40, textAlign: 'center', color: 'var(--muted)' }}>
-                    Keine Retouren vorhanden
+            <Card title="Letzte Retouren" hover={false}>
+                <div className="empty-state">
+                    <RotateCcw className="empty-state-icon" />
+                    <div className="empty-state-title">Keine Retouren vorhanden</div>
+                    <div className="empty-state-description">Retouren werden hier aufgelistet</div>
                 </div>
             </Card>
         </div>
