@@ -3,6 +3,7 @@ import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import { useBillingSettings } from '../hooks/useBillingSettings';
+import SuppliersSettings from '../components/SuppliersSettings';
 
 const SettingsPage = () => {
     const { settings, update, loading } = useBillingSettings();
@@ -82,6 +83,9 @@ const SettingsPage = () => {
                 </Button>
                 <Button variant={activeTab === 'security' ? 'primary' : 'ghost'} onClick={() => setActiveTab('security')}>
                     Sicherheit
+                </Button>
+                <Button variant={activeTab === 'suppliers' ? 'primary' : 'ghost'} onClick={() => setActiveTab('suppliers')}>
+                    Lieferanten
                 </Button>
             </div>
 
@@ -297,6 +301,11 @@ const SettingsPage = () => {
                         </div>
                     </div>
                 </Card>
+            )}
+
+            {/* Suppliers Tab */}
+            {activeTab === 'suppliers' && (
+                <SuppliersSettings />
             )}
         </div>
     );
