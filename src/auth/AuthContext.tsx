@@ -154,6 +154,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             expiresAt
         });
 
+        // Store tenant ID for X-Tenant-ID header in API calls
+        if (newUser.merchant_id) {
+            localStorage.setItem('selectedTenantId', newUser.merchant_id);
+        }
+
         navigate('/overview');
     };
 
