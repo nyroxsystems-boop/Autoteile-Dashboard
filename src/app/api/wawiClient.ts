@@ -57,8 +57,17 @@ export async function wawiFetch<T>(endpoint: string, options: RequestInit = {}):
     });
 
     if (!response.ok) {
-        const error = await response.json().catch(() => ({ detail: 'Unknown error' }));
-        throw new Error(error.detail || `Request failed with status ${response.status}`);
+        const errorData = await response.json().catch(() => ({ detail: 'Unknown error' }));
+        // Create an error with all the response data attached
+        // so callers (like LoginView) can detect specific error codes
+        const error: any = new Error(errorData.detail || errorData.message || errorData.error || `Request failed with status ${response.status}`);
+        error.code = errorData.code || errorData.error;
+        error.current_devices = errorData.current_devices;
+        error.max_devices = errorData.max_devices;
+        error.current_users = errorData.current_users;
+        error.max_users = errorData.max_users;
+        error.status = response.status;
+        throw error;
     }
 
     if (response.status === 204) {
