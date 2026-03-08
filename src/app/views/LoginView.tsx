@@ -127,7 +127,7 @@ export function LoginView({ onLoginSuccess }: LoginViewProps) {
 
                         {/* Contact Sales Button */}
                         <a
-                            href="mailto:vertrieb@partsunion.de?subject=Gerätelimit%20erhöhen"
+                            href="mailto:info@partsunion.de?subject=Gerätelimit%20erhöhen"
                             className="flex items-center justify-center gap-2 w-full h-11 bg-primary text-white rounded-xl font-medium hover:bg-primary/90 transition-colors"
                         >
                             <Phone className="w-4 h-4" />
