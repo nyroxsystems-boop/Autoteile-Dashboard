@@ -12,8 +12,11 @@ export interface Part {
     brand?: string;
     status?: 'active' | 'inactive';
     article_type?: 'standard' | 'set' | 'deposit';
+    purchase_price?: number;
+    sale_price?: number;
+    weight?: number;
     bom_components?: BOMComponent[];
-    stock_locations?: StockByLocation[]; // New: Stock distributed across locations
+    stock_locations?: StockByLocation[]; // Stock distributed across locations
 }
 
 export interface BOMComponent {
@@ -33,8 +36,10 @@ export interface StockMovement {
     quantity: number;
     reference?: string;
     notes?: string;
-    from_location?: string;
-    to_location?: string;
+    from_location?: number;
+    to_location?: number;
+    from_location_name?: string;
+    to_location_name?: string;
     created_at: string;
     created_by: string;
     created_by_name?: string;
@@ -73,20 +78,21 @@ export interface Supplier {
 
 export interface SupplierArticle {
     id: number;
-    supplier_id: number;
+    supplier: number;
     supplier_name: string;
-    part_id: number;
+    product: number;
     supplier_sku: string;
     purchase_price: number;
     currency: string;
     lead_time_days?: number;
     minimum_order_quantity?: number;
+    is_preferred?: boolean;
 }
 
 export interface PurchaseOrder {
     id: number;
     order_number: string;
-    supplier_id: number;
+    supplier: number;
     supplier_name: string;
     status: 'draft' | 'sent' | 'confirmed' | 'received' | 'cancelled';
     order_date: string;
@@ -99,15 +105,17 @@ export interface PurchaseOrder {
 
 export interface PurchaseOrderItem {
     id: number;
-    part_id: number;
+    product: number;
     part_name: string;
     part_ipn: string;
     quantity: number;
     unit_price: number;
     total_price: number;
+    received_quantity?: number;
 }
 
 export const wawiService = {
+    // ── Products ──────────────────────────────────────────────
     getArticles: async () => {
         return await apiFetch<Part[]>('/api/products/');
     },
@@ -116,27 +124,29 @@ export const wawiService = {
         return await apiFetch<Part>(`/api/products/${id}/`);
     },
 
+    // ── Stock Movements ──────────────────────────────────────
     getRecentMovements: async () => {
-        return await apiFetch<StockMovement[]>('/api/stock/movements?limit=50');
+        return await apiFetch<StockMovement[]>('/api/stock-movements/?limit=50');
     },
 
     getMovementHistory: async (partId: number | string) => {
-        return await apiFetch<StockMovement[]>(`/api/stock/movements?part_id=${partId}`);
+        return await apiFetch<StockMovement[]>(`/api/stock-movements/?part_id=${partId}`);
     },
 
     createMovement: async (movement: Partial<StockMovement>) => {
-        return await apiFetch<StockMovement>('/api/stock/movements', {
+        return await apiFetch<StockMovement>('/api/stock-movements/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(movement)
         });
     },
 
+    // ── Locations ─────────────────────────────────────────────
     getLocations: async () => {
-        return await apiFetch<WarehouseLocation[]>('/api/stock/locations');
+        return await apiFetch<WarehouseLocation[]>('/api/stock-locations/');
     },
 
-    // Procurement methods
+    // ── Suppliers ─────────────────────────────────────────────
     getSuppliers: async () => {
         return await apiFetch<Supplier[]>('/api/suppliers/');
     },
@@ -168,10 +178,13 @@ export const wawiService = {
     },
 
     getSupplierArticles: async (supplierId?: number) => {
-        // Placeholder - will fetch supplier-article relationships
-        return [] as SupplierArticle[];
+        const url = supplierId
+            ? `/api/supplier-articles/?supplier_id=${supplierId}`
+            : '/api/supplier-articles/';
+        return await apiFetch<SupplierArticle[]>(url);
     },
 
+    // ── Purchase Orders ──────────────────────────────────────
     getPurchaseOrders: async () => {
         return await apiFetch<PurchaseOrder[]>('/api/purchase-orders/');
     },
@@ -199,32 +212,23 @@ export const wawiService = {
     },
 
     receivePurchaseOrder: async (poId: number | string, data: any) => {
-        return await apiFetch(`/api/purchase-orders/${poId}/receive`, {
+        return await apiFetch(`/api/purchase-orders/${poId}/receive/`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         });
     },
 
+    // ── Server-side Stats & Suggestions ──────────────────────
     getReorderSuggestions: async () => {
-        const articles = await wawiService.getArticles();
-        return articles
-            .filter(a => a.total_in_stock < a.minimum_stock)
-            .map(a => ({
-                part: a,
-                current_stock: a.total_in_stock,
-                minimum_stock: a.minimum_stock,
-                suggested_order_quantity: Math.max(a.minimum_stock - a.total_in_stock, a.minimum_stock),
-            }));
+        return await apiFetch('/api/products/reorder-suggestions/');
     },
 
     getStats: async () => {
-        const articles = await apiFetch<Part[]>('/api/products/');
-        const lowStock = articles.filter(p => p.total_in_stock < p.minimum_stock).length;
-        return {
-            totalArticles: articles.length,
-            lowStockCount: lowStock,
-            totalValue: 0 // Will need backend support for EK calculation
-        };
-    }
+        return await apiFetch<{
+            totalArticles: number;
+            lowStockCount: number;
+            totalValue: number;
+        }>('/api/products/stats/');
+    },
 };
