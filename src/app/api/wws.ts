@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
-import { apiFetch } from './client';
+import { wawiFetch, wawiFetchBlob } from './wawiClient';
 
 // Aligned with bot-service/src/types/dashboard.ts
 
@@ -175,115 +175,96 @@ export interface ActiveDevice {
 }
 
 export async function getOrders(): Promise<Order[]> {
-    return apiFetch<Order[]>('/api/dashboard/orders');
+    return wawiFetch<Order[]>('/api/orders/');
 }
 
 export async function getOrderMessages(orderId: string | number): Promise<Message[]> {
-    return apiFetch<Message[]>(`/api/dashboard/orders/${orderId}/messages`);
+    return wawiFetch<Message[]>(`/api/orders/${orderId}/messages/`);
 }
 
 export async function sendMessage(orderId: string | number, content: string): Promise<Message> {
-    return apiFetch<Message>(`/api/dashboard/orders/${orderId}/messages`, {
+    return wawiFetch<Message>(`/api/orders/${orderId}/messages/`, {
         method: 'POST',
         body: JSON.stringify({ content })
     });
 }
 
 export async function getOrderOffers(orderId: string | number): Promise<Offer[]> {
-    return apiFetch<Offer[]>(`/api/offers?orderId=${orderId}`);
+    return wawiFetch<Offer[]>(`/api/orders/${orderId}/offers/`);
 }
 
 export async function createOffer(orderId: string | number, offerData: any): Promise<Offer> {
-    return apiFetch<Offer>(`/api/dashboard/orders/${orderId}/offers`, {
+    return wawiFetch<Offer>(`/api/orders/${orderId}/offers/`, {
         method: 'POST',
         body: JSON.stringify(offerData)
     });
 }
 
 export async function publishOffers(orderId: string | number, offerIds: (string | number)[]): Promise<{ success: boolean }> {
-    return apiFetch<{ success: boolean }>(`/api/dashboard/orders/${orderId}/offers/publish`, {
+    return wawiFetch<{ success: boolean }>(`/api/orders/${orderId}/offers/publish/`, {
         method: 'POST',
         body: JSON.stringify({ offerIds }),
     });
 }
 
 export async function createInvoice(orderId: string | number): Promise<Invoice> {
-    return apiFetch(`/api/dashboard/orders/${orderId}/create-invoice`, {
+    return wawiFetch(`/api/orders/${orderId}/create-invoice/`, {
         method: 'POST',
     });
 }
 
 export async function getInvoices(): Promise<Invoice[]> {
-    return apiFetch<Invoice[]>('/api/billing/invoices');
+    return wawiFetch<Invoice[]>('/api/billing/invoices/');
 }
 
 export async function getSuppliers(): Promise<Supplier[]> {
-    return apiFetch<Supplier[]>('/api/suppliers');
+    return wawiFetch<Supplier[]>('/api/suppliers/');
 }
 
 export async function login(credentials: { email?: string, username?: string, password?: string, tenant?: string }): Promise<any> {
     const device_id = localStorage.getItem('deviceId');
-    const data = await apiFetch<any>('/api/auth/login', {
+    const data = await wawiFetch<any>('/api/auth/login/', {
         method: 'POST',
         body: JSON.stringify({ ...credentials, device_id }),
     });
     if (data.access) {
-        localStorage.setItem('authToken', data.access);  // For App.tsx isAuthenticated check
         localStorage.setItem('auth_access_token', data.access);
-        localStorage.setItem('token', data.access);  // For client.ts fallback
+        // Legacy keys for backward compatibility
+        localStorage.setItem('authToken', data.access);
+        localStorage.setItem('token', data.access);
         if (data.refresh) localStorage.setItem('auth_refresh_token', data.refresh);
     }
     return data;
 }
 
 export async function getMeTenants(): Promise<any[]> {
-    return apiFetch<any[]>('/api/auth/me/tenants');
+    return wawiFetch<any[]>('/api/auth/me/tenants/');
 }
 
 export async function getCustomers(): Promise<any[]> {
-    return apiFetch<any[]>('/api/customers');
+    return wawiFetch<any[]>('/api/customers/');
 }
 
 export async function getConversations(): Promise<any[]> {
-    return apiFetch<any[]>('/api/conversations');
+    return wawiFetch<any[]>('/api/conversations/');
 }
 
 export async function downloadInvoicePdf(id: number): Promise<void> {
-    const token = localStorage.getItem('auth_access_token') || localStorage.getItem('token');
-    const authSession = localStorage.getItem('auth_session');
-    let tenantSlug = '';
-
-    // Extract tenant slug from session if available
-    if (authSession) {
-        try {
-            const session = JSON.parse(authSession);
-            tenantSlug = session.user?.merchant_id || '';
-        } catch (e) {
-            console.error('Failed to parse auth session', e);
-        }
-    }
-
-    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'}/api/billing/invoices/${id}/pdf`, {
-        headers: {
-            'Authorization': `Token ${token}`,
-            ...(tenantSlug ? { 'X-Tenant-ID': tenantSlug } : {})
-        }
-    });
-    if (!response.ok) throw new Error('PDF download failed');
-    const blob = await response.blob();
+    const blob = await wawiFetchBlob(`/api/billing/invoices/${id}/pdf/`);
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = `invoice-${id}.pdf`;
     a.click();
+    window.URL.revokeObjectURL(url);
 }
 
 export async function getDashboardSummary(): Promise<DashboardSummary> {
-    return apiFetch<DashboardSummary>('/api/dashboard/stats');
+    return wawiFetch<DashboardSummary>('/api/dashboard/summary/');
 }
 
 export async function getMe(): Promise<MeResponse> {
-    return apiFetch<MeResponse>('/api/auth/me');
+    return wawiFetch<MeResponse>('/api/auth/me/');
 }
 
 export async function updateProfile(data: {
@@ -292,7 +273,7 @@ export async function updateProfile(data: {
     email?: string;
     phone?: string;
 }): Promise<MeResponse> {
-    return apiFetch<MeResponse>('/api/auth/me', {
+    return wawiFetch<MeResponse>('/api/auth/me/', {
         method: 'PATCH',
         body: JSON.stringify(data),
     });
@@ -302,62 +283,60 @@ export async function changePassword(data: {
     current_password: string;
     new_password: string;
 }): Promise<{ success: boolean }> {
-    return apiFetch<{ success: boolean }>('/api/auth/change-password', {
+    return wawiFetch<{ success: boolean }>('/api/auth/change-password/', {
         method: 'POST',
         body: JSON.stringify(data),
     });
 }
 
 export async function getBotHealth(): Promise<{ status: string }> {
-    return apiFetch<{ status: string }>('/api/bot/health');
+    return wawiFetch<{ status: string }>('/api/bot/health/');
 }
 
 export async function getMerchantSettings(): Promise<MerchantSettings> {
-    // Get tenant slug dynamically from auth
     const me = await getMe();
     const tenantSlug = me.tenant?.slug || 'default';
-    return apiFetch<MerchantSettings>(`/api/dashboard/merchant/settings/${tenantSlug}`);
+    return wawiFetch<MerchantSettings>(`/api/dashboard/merchant/settings/${tenantSlug}`);
 }
 
 export async function updateMerchantSettings(settings: Partial<MerchantSettings>): Promise<{ ok: boolean }> {
-    // Get tenant slug dynamically from auth
     const me = await getMe();
     const tenantSlug = me.tenant?.slug || 'default';
-    return apiFetch<{ ok: boolean }>(`/api/dashboard/merchant/settings/${tenantSlug}`, {
+    return wawiFetch<{ ok: boolean }>(`/api/dashboard/merchant/settings/${tenantSlug}`, {
         method: 'POST',
         body: JSON.stringify(settings),
     });
 }
 export async function getAdminStats(): Promise<AdminStats> {
-    return apiFetch<AdminStats>('/api/admin/kpis');
+    return wawiFetch<AdminStats>('/api/admin-stats/');
 }
 
 export async function listActiveDevices(tenantId: number): Promise<ActiveDevice[]> {
-    return apiFetch<ActiveDevice[]>(`/api/admin/tenants/${tenantId}/devices`);
+    return wawiFetch<ActiveDevice[]>(`/api/admin/tenants/${tenantId}/devices`);
 }
 
 export async function removeActiveDevice(tenantId: number, deviceId: string): Promise<void> {
-    return apiFetch(`/api/admin/tenants/${tenantId}/devices/${deviceId}`, {
+    return wawiFetch(`/api/admin/tenants/${tenantId}/devices/${deviceId}`, {
         method: 'DELETE'
     });
 }
 
 export async function updateTenantLimits(tenantId: number, limits: { max_users: number, max_devices: number }): Promise<void> {
-    return apiFetch(`/api/admin/tenants/${tenantId}/limits`, {
+    return wawiFetch(`/api/admin/tenants/${tenantId}/limits`, {
         method: 'PATCH',
         body: JSON.stringify(limits),
     });
 }
 
 export async function createTenantUser(tenantId: number, userData: any): Promise<void> {
-    return apiFetch(`/api/admin/users`, {
+    return wawiFetch(`/api/admin/users`, {
         method: 'POST',
         body: JSON.stringify({ ...userData, tenant_id: tenantId }),
     });
 }
 
 export async function getTeam(): Promise<any[]> {
-    return apiFetch<any[]>('/api/auth/team/');
+    return wawiFetch<any[]>('/api/auth/team/');
 }
 
 export interface BillingSettings {
@@ -386,110 +365,39 @@ export async function getBillingSettings(): Promise<BillingSettings> {
     const me = await getMe();
     const tenantSlug = me.tenant?.slug;
     if (!tenantSlug) throw new Error('Tenant slug is required');
-
-    // Use the bot service URL and correct endpoint path
-    const token = localStorage.getItem('auth_access_token') || localStorage.getItem('token');
-    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://autoteile-bot-service-production.up.railway.app'}/api/invoices/settings/billing`, {
-        headers: {
-            'Authorization': `Token ${token}`,
-            'X-Tenant-ID': tenantSlug,
-            'Content-Type': 'application/json'
-        }
-    });
-
-    if (!response.ok) {
-        throw new Error('Failed to fetch billing settings');
-    }
-
-    return response.json();
+    return wawiFetch<BillingSettings>('/api/billing/settings/');
 }
 
 export async function updateBillingSettings(settings: Partial<BillingSettings>): Promise<void> {
     const me = await getMe();
     const tenantSlug = me.tenant?.slug;
     if (!tenantSlug) throw new Error('Tenant slug is required');
-
-    // Use the bot service URL and correct endpoint path
-    const token = localStorage.getItem('auth_access_token') || localStorage.getItem('token');
-    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://autoteile-bot-service-production.up.railway.app'}/api/invoices/settings/billing`, {
+    await wawiFetch('/api/billing/settings/', {
         method: 'PUT',
-        headers: {
-            'Authorization': `Token ${token}`,
-            'X-Tenant-ID': tenantSlug,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(settings)
+        body: JSON.stringify(settings),
     });
-
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to update billing settings');
-    }
 }
 
 // Order-to-Invoice Conversion Functions
 export async function createInvoiceFromOrder(orderId: string): Promise<any> {
-    const token = localStorage.getItem('auth_access_token') || localStorage.getItem('token');
-    const tenantId = localStorage.getItem('selectedTenantId');
-
-    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://autoteile-bot-service-production.up.railway.app'}/api/invoices/from-order/${orderId}`, {
+    return wawiFetch(`/api/orders/${orderId}/create-invoice/`, {
         method: 'POST',
-        headers: {
-            'Authorization': `Token ${token}`,
-            'X-Tenant-ID': tenantId || '',
-            'Content-Type': 'application/json'
-        }
     });
-
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to create invoice from order');
-    }
-
-    return response.json();
 }
 
 export async function bulkCreateInvoicesFromOrders(orderIds: string[]): Promise<{
     success: any[];
     failed: { orderId: string; error: string }[];
 }> {
-    const token = localStorage.getItem('auth_access_token') || localStorage.getItem('token');
-    const tenantId = localStorage.getItem('selectedTenantId');
-
-    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://autoteile-bot-service-production.up.railway.app'}/api/invoices/bulk-from-orders`, {
+    return wawiFetch('/api/billing/invoices/bulk-create/', {
         method: 'POST',
-        headers: {
-            'Authorization': `Token ${token}`,
-            'X-Tenant-ID': tenantId || '',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ orderIds })
+        body: JSON.stringify({ orderIds }),
     });
-
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Bulk invoice creation failed');
-    }
-
-    return response.json();
 }
 
 export async function getInvoiceByOrderId(orderId: string): Promise<any | null> {
-    const token = localStorage.getItem('auth_access_token') || localStorage.getItem('token');
-    const tenantId = localStorage.getItem('selectedTenantId');
-
     try {
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://autoteile-bot-service-production.up.railway.app'}/api/invoices/by-order/${orderId}`, {
-            headers: {
-                'Authorization': `Token ${token}`,
-                'X-Tenant-ID': tenantId || ''
-            }
-        });
-
-        if (response.status === 404) return null;
-        if (!response.ok) throw new Error('Failed to fetch invoice');
-
-        return response.json();
+        return await wawiFetch(`/api/billing/invoices/?order=${orderId}`);
     } catch (error) {
         console.error('Error fetching invoice by order:', error);
         return null;
