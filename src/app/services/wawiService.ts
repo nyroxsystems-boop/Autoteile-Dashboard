@@ -351,4 +351,48 @@ export const wawiService = {
         a.click();
         URL.revokeObjectURL(url);
     },
+
+    // ── Feature 7: BOM Items (Stücklisten) ───────────────────
+    getBomItems: async (parentId?: number) => {
+        const url = parentId ? `/api/bom-items/?parent=${parentId}` : '/api/bom-items/';
+        return await wawiFetchList(url);
+    },
+
+    createBomItem: async (data: { parent: number; component: number; quantity: number; notes?: string }) => {
+        return await wawiFetch('/api/bom-items/', { method: 'POST', body: JSON.stringify(data) });
+    },
+
+    deleteBomItem: async (id: number) => {
+        await wawiFetch(`/api/bom-items/${id}/`, { method: 'DELETE' });
+    },
+
+    explodeBom: async (parentId: number, locationId: number, quantity = 1) => {
+        return await wawiFetch('/api/bom-items/explode/', {
+            method: 'POST',
+            body: JSON.stringify({ parent: parentId, location: locationId, quantity }),
+        });
+    },
+
+    // ── Feature 8: Supplier Ratings ──────────────────────────
+    getSupplierRatings: async (supplierId?: number) => {
+        const url = supplierId ? `/api/supplier-ratings/?supplier=${supplierId}` : '/api/supplier-ratings/';
+        return await wawiFetchList(url);
+    },
+
+    createSupplierRating: async (data: {
+        supplier: number; period: string;
+        orders_total: number; orders_on_time: number; orders_late: number;
+        avg_delivery_days: number; quality_score: number; return_rate: number;
+        communication_score: number; notes?: string;
+    }) => {
+        return await wawiFetch('/api/supplier-ratings/', { method: 'POST', body: JSON.stringify(data) });
+    },
+
+    updateSupplierRating: async (id: number, data: any) => {
+        return await wawiFetch(`/api/supplier-ratings/${id}/`, { method: 'PATCH', body: JSON.stringify(data) });
+    },
+
+    recalculateSupplierRating: async (id: number) => {
+        return await wawiFetch(`/api/supplier-ratings/${id}/recalculate/`, { method: 'POST' });
+    },
 };
