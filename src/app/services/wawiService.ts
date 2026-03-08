@@ -395,4 +395,29 @@ export const wawiService = {
     recalculateSupplierRating: async (id: number) => {
         return await wawiFetch(`/api/supplier-ratings/${id}/recalculate/`, { method: 'POST' });
     },
+
+    // ── Feature 9: Smart Reorder (AI) ────────────────────────
+    getSmartReorder: async (lookbackDays = 90, forecastDays = 30) => {
+        return await wawiFetch(`/api/ai/smart-reorder/?days=${lookbackDays}&forecast_days=${forecastDays}`);
+    },
+
+    // ── Feature 10: Fuzzy OEM Search (AI) ────────────────────
+    fuzzyOemSearch: async (query: string) => {
+        return await wawiFetch(`/api/ai/oem-search/?q=${encodeURIComponent(query)}`);
+    },
+
+    // ── Feature 11: Price Optimization (AI) ──────────────────
+    getPriceOptimization: async () => {
+        return await wawiFetch('/api/ai/price-optimization/');
+    },
+
+    // ── Feature 13: Anomaly Detection (AI) ───────────────────
+    getAnomalies: async (days = 7, threshold = 3.0) => {
+        return await wawiFetch(`/api/ai/anomalies/?days=${days}&threshold=${threshold}`);
+    },
+
+    // ── Feature 14: Dashboard Briefing (AI) ──────────────────
+    getBriefing: async () => {
+        return await wawiFetch('/api/ai/briefing/');
+    },
 };
