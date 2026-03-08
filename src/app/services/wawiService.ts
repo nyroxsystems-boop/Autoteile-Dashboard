@@ -1,4 +1,4 @@
-import { wawiFetch, wawiFetchList } from '../api/wawiClient';
+import { wawiFetch, wawiFetchBlob, wawiFetchList } from '../api/wawiClient';
 
 export interface Part {
     id: number | string;
@@ -252,5 +252,103 @@ export const wawiService = {
     // ── Dashboard Summary (combined stats) ───────────────────
     getDashboardSummary: async () => {
         return await wawiFetch('/api/dashboard/summary/');
+    },
+
+    // ── Feature 1: OEM Cross-References ──────────────────────
+    getOemCrossRefs: async (productId?: number) => {
+        const url = productId ? `/api/oem-cross-refs/?product=${productId}` : '/api/oem-cross-refs/';
+        return await wawiFetchList(url);
+    },
+
+    searchByOem: async (query: string) => {
+        return await wawiFetchList(`/api/oem-cross-refs/search/?q=${encodeURIComponent(query)}`);
+    },
+
+    createOemCrossRef: async (data: { product: number; oem_number: string; brand?: string; oem_type?: string; source?: string }) => {
+        return await wawiFetch('/api/oem-cross-refs/', { method: 'POST', body: JSON.stringify(data) });
+    },
+
+    deleteOemCrossRef: async (id: number) => {
+        await wawiFetch(`/api/oem-cross-refs/${id}/`, { method: 'DELETE' });
+    },
+
+    // ── Feature 3: Vehicle Applications ──────────────────────
+    getVehicleApplications: async (productId?: number) => {
+        const url = productId ? `/api/vehicle-applications/?product=${productId}` : '/api/vehicle-applications/';
+        return await wawiFetchList(url);
+    },
+
+    searchByVehicle: async (params: { hsn?: string; tsn?: string; make?: string; model?: string }) => {
+        const qs = new URLSearchParams(params as Record<string, string>).toString();
+        return await wawiFetchList(`/api/vehicle-applications/search/?${qs}`);
+    },
+
+    createVehicleApplication: async (data: any) => {
+        return await wawiFetch('/api/vehicle-applications/', { method: 'POST', body: JSON.stringify(data) });
+    },
+
+    deleteVehicleApplication: async (id: number) => {
+        await wawiFetch(`/api/vehicle-applications/${id}/`, { method: 'DELETE' });
+    },
+
+    // ── Feature 2: Returns ───────────────────────────────────
+    getReturns: async (statusFilter?: string) => {
+        const url = statusFilter ? `/api/returns/?status=${statusFilter}` : '/api/returns/';
+        return await wawiFetchList(url);
+    },
+
+    createReturn: async (data: { order?: number; product?: number; contact?: number; quantity: number; reason: string; notes?: string; location?: number }) => {
+        return await wawiFetch('/api/returns/', { method: 'POST', body: JSON.stringify(data) });
+    },
+
+    approveReturn: async (id: number) => {
+        return await wawiFetch(`/api/returns/${id}/approve/`, { method: 'POST' });
+    },
+
+    receiveReturn: async (id: number, restock = false) => {
+        return await wawiFetch(`/api/returns/${id}/receive/`, { method: 'POST', body: JSON.stringify({ restock }) });
+    },
+
+    refundReturn: async (id: number, refundAmount?: number, createCreditNote = false) => {
+        return await wawiFetch(`/api/returns/${id}/refund/`, {
+            method: 'POST',
+            body: JSON.stringify({ refund_amount: refundAmount, create_credit_note: createCreditNote }),
+        });
+    },
+
+    rejectReturn: async (id: number, reason?: string) => {
+        return await wawiFetch(`/api/returns/${id}/reject/`, { method: 'POST', body: JSON.stringify({ reason }) });
+    },
+
+    // ── Feature 5: Price Rules ───────────────────────────────
+    getPriceRules: async (productId?: number) => {
+        const url = productId ? `/api/price-rules/?product=${productId}` : '/api/price-rules/';
+        return await wawiFetchList(url);
+    },
+
+    createPriceRule: async (data: { product: number; profile: string; min_quantity: number; price: number; discount_percent?: number }) => {
+        return await wawiFetch('/api/price-rules/', { method: 'POST', body: JSON.stringify(data) });
+    },
+
+    deletePriceRule: async (id: number) => {
+        await wawiFetch(`/api/price-rules/${id}/`, { method: 'DELETE' });
+    },
+
+    calculatePrice: async (productId: number, quantity: number, profile = 'endkunde') => {
+        return await wawiFetch(`/api/price-rules/calculate/?product=${productId}&quantity=${quantity}&profile=${profile}`);
+    },
+
+    // ── Feature 4: DATEV Export ──────────────────────────────
+    exportDATEV: async (from?: string, to?: string) => {
+        const params = new URLSearchParams();
+        if (from) params.set('from', from);
+        if (to) params.set('to', to);
+        const blob = await wawiFetchBlob(`/api/billing/reports/datev/?${params.toString()}`);
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'datev_export.csv';
+        a.click();
+        URL.revokeObjectURL(url);
     },
 };
