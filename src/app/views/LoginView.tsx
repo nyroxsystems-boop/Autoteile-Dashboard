@@ -1,18 +1,20 @@
 
 import { useState } from 'react';
-import { login } from '../api/wws';
+import { login as apiLogin } from '../api/wws';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { toast } from 'sonner';
 import { User, Lock, Building2, Loader2 } from 'lucide-react';
 import { useI18n } from '../../i18n';
+import { useAuth } from '../../auth/AuthContext';
 
 interface LoginViewProps {
-    onLoginSuccess: () => void;
+    onLoginSuccess?: () => void;
 }
 
 export function LoginView({ onLoginSuccess }: LoginViewProps) {
     const { t } = useI18n();
+    const { login } = useAuth();
     const [identifier, setIdentifier] = useState('');
     const [password, setPassword] = useState('');
     const [tenant, setTenant] = useState('');
@@ -27,15 +29,33 @@ export function LoginView({ onLoginSuccess }: LoginViewProps) {
 
         setLoading(true);
         try {
-            await login({
-                email: identifier, // Use email field for backend
+            const data = await apiLogin({
+                email: identifier,
                 password,
                 tenant: tenant || undefined,
             });
+
+            if (!data.access) {
+                throw new Error(t('login_failed'));
+            }
+
+            // Use AuthContext.login() — single source of truth
+            login({
+                access: data.access,
+                refresh: data.refresh,
+                user: data.user || {
+                    id: '',
+                    email: identifier,
+                    username: identifier,
+                    role: 'member',
+                },
+                tenant: data.tenant || null,
+                expires_in: data.expires_in,
+            });
+
             toast.success(t('login_success'));
-            onLoginSuccess();
+            onLoginSuccess?.();
         } catch (err: any) {
-            console.error('Login failed:', err);
             toast.error(err.message || t('login_failed'));
         } finally {
             setLoading(false);

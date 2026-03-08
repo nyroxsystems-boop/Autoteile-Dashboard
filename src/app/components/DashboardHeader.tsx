@@ -30,6 +30,7 @@ interface DashboardHeaderProps {
   currentTenant?: any;
   onSwitchTenant?: (id: number) => void;
   isWawi?: boolean;
+  onLogout?: () => void;
 }
 
 export function DashboardHeader({
@@ -47,6 +48,7 @@ export function DashboardHeader({
   currentTenant,
   onSwitchTenant,
   isWawi,
+  onLogout,
 }: DashboardHeaderProps) {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showLangMenu, setShowLangMenu] = useState(false);
@@ -279,13 +281,7 @@ export function DashboardHeader({
                     <button
                       onClick={() => {
                         setShowUserMenu(false);
-                        // Clear all auth tokens
-                        localStorage.removeItem('authToken');
-                        localStorage.removeItem('auth_access_token');
-                        localStorage.removeItem('auth_refresh_token');
-                        localStorage.removeItem('token');
-                        localStorage.removeItem('selectedTenantId');
-                        window.location.href = '/';  // Redirect to trigger login
+                        onLogout?.();
                       }}
                       className="w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-500/10 transition-colors flex items-center gap-3"
                     >

@@ -1,10 +1,11 @@
 /// <reference types="vite/client" />
 
 /**
- * Dedicated API client for the WaWi backend (Django/InvenTree).
+ * Dedicated API client for the WaWi backend (Django).
  * Separate from the Bot Service client — points to the WaWi deployment.
  *
- * Auth: Bearer JWT (not Token) — matches Django REST SimpleJWT.
+ * Auth: Token-based — unified with Bot Service client.
+ * Token source: 'auth_access_token' in localStorage (set by AuthContext).
  */
 
 const WAWI_BASE_URL = import.meta.env.VITE_WAWI_BASE_URL || 'https://wawi-production.up.railway.app';
@@ -25,13 +26,13 @@ function getDeviceId(): string {
 }
 
 /**
- * Returns the best available auth token.
- * Priority: auth_access_token > token > authToken
+ * Returns the auth token from the centralized storage.
+ * Primary: auth_access_token (set by AuthContext)
+ * Fallback: token (legacy compat, also set by AuthContext)
  */
 function getAuthToken(): string | null {
     return localStorage.getItem('auth_access_token')
-        || localStorage.getItem('token')
-        || localStorage.getItem('authToken');
+        || localStorage.getItem('token');
 }
 
 export async function wawiFetch<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
@@ -45,8 +46,8 @@ export async function wawiFetch<T>(endpoint: string, options: RequestInit = {}):
         'Content-Type': 'application/json',
         'X-Device-ID': deviceId,
         ...(tenantId ? { 'X-Tenant-ID': tenantId } : {}),
-        // WaWi backend uses SimpleJWT → Bearer format
-        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        // Unified Token auth header (same as Bot Service client)
+        ...(token ? { 'Authorization': `Token ${token}` } : {}),
         ...(options.headers as Record<string, string> || {}),
     };
 
@@ -92,7 +93,7 @@ export async function wawiFetchBlob(endpoint: string, options: RequestInit = {})
     const response = await fetch(url, {
         ...options,
         headers: {
-            ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+            ...(token ? { 'Authorization': `Token ${token}` } : {}),
             ...(tenantId ? { 'X-Tenant-ID': tenantId } : {}),
             ...(options.headers as Record<string, string> || {}),
         },

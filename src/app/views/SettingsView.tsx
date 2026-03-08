@@ -292,12 +292,12 @@ export function SettingsView() {
         current_password: currentPassword,
         new_password: newPassword,
       });
-      toast.success('Passwort erfolgreich geändert');
+      toast.success(t('save'));
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
     } catch (err: any) {
-      toast.error(err.message || 'Fehler beim Ändern des Passworts');
+      toast.error(err.message || t('error'));
     } finally {
       setSavingPassword(false);
     }

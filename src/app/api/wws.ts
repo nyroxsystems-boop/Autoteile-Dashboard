@@ -239,13 +239,8 @@ export async function login(credentials: { email?: string, username?: string, pa
         method: 'POST',
         body: JSON.stringify({ ...credentials, device_id }),
     });
-    if (data.access) {
-        localStorage.setItem('auth_access_token', data.access);
-        // Legacy keys for backward compatibility
-        localStorage.setItem('authToken', data.access);
-        localStorage.setItem('token', data.access);
-        if (data.refresh) localStorage.setItem('auth_refresh_token', data.refresh);
-    }
+    // Token storage is handled by AuthContext.login()
+    // We only return the response data here
     return data;
 }
 

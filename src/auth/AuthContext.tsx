@@ -1,6 +1,14 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation, Navigate } from 'react-router-dom';
-import axios from 'axios';
+
+/**
+ * Unified Auth Context — Single source of truth for authentication.
+ * 
+ * Token storage: single key 'auth_access_token' in localStorage.
+ * Tenant isolation: 'selectedTenantId' set immediately on login.
+ * Session expiry: auto-logout after 24h (configurable).
+ * Refresh: auto-refresh 5min before expiry.
+ */
 
 interface User {
     id: string;
@@ -10,194 +18,286 @@ interface User {
     merchant_id?: string;
 }
 
+interface Tenant {
+    id: number;
+    name: string;
+    slug: string;
+}
+
 interface AuthSession {
     token: string;
+    refreshToken: string | null;
     user: User;
-    expiresAt: number | null;
+    tenant: Tenant | null;
+    expiresAt: number;
 }
 
 interface AuthContextType {
     user: User | null;
     token: string | null;
+    tenant: Tenant | null;
     session: { user: User | null; token: string | null };
-    login: (token: string, user: User, expiresIn?: number) => void;
+    login: (data: LoginData) => void;
     logout: () => void;
-    refreshToken: () => Promise<void>;
     isAuthenticated: boolean;
     loading: boolean;
 }
 
+interface LoginData {
+    access: string;
+    refresh?: string;
+    user: User;
+    tenant?: Tenant | null;
+    expires_in?: number;
+}
+
 const AuthContext = createContext<AuthContextType>(null!);
 
-const SESSION_STORAGE_KEY = 'auth_session';
+const SESSION_KEY = 'auth_session';
+const TOKEN_KEY = 'auth_access_token';
+const TENANT_KEY = 'selectedTenantId';
 const DEFAULT_EXPIRY_HOURS = 24;
+const REFRESH_BUFFER_MS = 5 * 60 * 1000; // 5 min before expiry
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [token, setToken] = useState<string | null>(null);
+    const [tenant, setTenant] = useState<Tenant | null>(null);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
+    const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://autoteile-bot-service-production.up.railway.app';
 
-    // Helper: Check if token is expired
-    const isTokenExpired = (expiresAt: number | null): boolean => {
-        if (!expiresAt) return false;
-        return Date.now() >= expiresAt;
-    };
+    // ── Helpers ──────────────────────────────────────────────────────────
 
-    // Helper: Save session to localStorage
-    const saveSession = (sessionData: AuthSession) => {
-        try {
-            localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(sessionData));
-            // Keep legacy token for backwards compatibility
-            localStorage.setItem('token', sessionData.token);
-        } catch (err) {
-            console.error('Failed to save session', err);
+    const clearAllAuth = useCallback(() => {
+        localStorage.removeItem(SESSION_KEY);
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(TENANT_KEY);
+        // Clear legacy keys
+        localStorage.removeItem('token');
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('auth_refresh_token');
+        localStorage.removeItem('user');
+        sessionStorage.clear();
+        if (refreshTimerRef.current) {
+            clearTimeout(refreshTimerRef.current);
+            refreshTimerRef.current = null;
         }
-    };
+    }, []);
 
-    // Helper: Load session from localStorage
-    const loadSession = (): AuthSession | null => {
+    const saveSession = useCallback((session: AuthSession) => {
+        localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+        localStorage.setItem(TOKEN_KEY, session.token);
+        if (session.tenant?.id) {
+            localStorage.setItem(TENANT_KEY, session.tenant.id.toString());
+        }
+        // Legacy key for backwards compat with older API clients
+        localStorage.setItem('token', session.token);
+    }, []);
+
+    const scheduleRefresh = useCallback((expiresAt: number, refreshTokenValue: string | null) => {
+        if (refreshTimerRef.current) {
+            clearTimeout(refreshTimerRef.current);
+        }
+
+        const timeUntilRefresh = expiresAt - Date.now() - REFRESH_BUFFER_MS;
+
+        if (timeUntilRefresh <= 0) {
+            // Already past refresh window — try immediately or logout
+            if (refreshTokenValue) {
+                performRefresh(refreshTokenValue);
+            } else {
+                // No refresh token, just check if fully expired
+                if (Date.now() >= expiresAt) {
+                    clearAllAuth();
+                    setUser(null);
+                    setToken(null);
+                    setTenant(null);
+                }
+            }
+            return;
+        }
+
+        refreshTimerRef.current = setTimeout(() => {
+            if (refreshTokenValue) {
+                performRefresh(refreshTokenValue);
+            }
+        }, timeUntilRefresh);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [clearAllAuth]);
+
+    const performRefresh = useCallback(async (refreshTokenValue: string) => {
         try {
-            const stored = localStorage.getItem(SESSION_STORAGE_KEY);
+            const res = await fetch(`${API_BASE}/api/auth/refresh/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ refresh: refreshTokenValue }),
+            });
+
+            if (!res.ok) {
+                throw new Error('Refresh failed');
+            }
+
+            const data = await res.json();
+            const newToken = data.access;
+            const expiresIn = data.expires_in || DEFAULT_EXPIRY_HOURS * 3600;
+            const expiresAt = Date.now() + (expiresIn * 1000);
+
+            setToken(newToken);
+
+            const currentSession = loadSession();
+            if (currentSession) {
+                const updatedSession: AuthSession = {
+                    ...currentSession,
+                    token: newToken,
+                    refreshToken: data.refresh || currentSession.refreshToken,
+                    expiresAt,
+                };
+                saveSession(updatedSession);
+                scheduleRefresh(expiresAt, updatedSession.refreshToken);
+            }
+        } catch (err) {
+            // Refresh failed — force logout
+            clearAllAuth();
+            setUser(null);
+            setToken(null);
+            setTenant(null);
+            navigate('/auth');
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [API_BASE, clearAllAuth, navigate, saveSession]);
+
+    function loadSession(): AuthSession | null {
+        try {
+            const stored = localStorage.getItem(SESSION_KEY);
             if (stored) {
                 return JSON.parse(stored);
             }
-
-            // Fallback to legacy token-only storage
-            const legacyToken = localStorage.getItem('token');
-            if (legacyToken) {
-                return {
-                    token: legacyToken,
-                    user: null as any,
-                    expiresAt: null
-                };
-            }
-        } catch (err) {
-            console.error('Failed to load session', err);
+        } catch {
+            // Corrupted session
         }
         return null;
-    };
+    }
 
-    // Helper: Clear all auth data
-    const clearSession = () => {
-        localStorage.removeItem(SESSION_STORAGE_KEY);
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        localStorage.removeItem('selectedTenantId');
-        sessionStorage.clear();
-    };
+    // ── Initialize ──────────────────────────────────────────────────────
 
-    // Verify token with backend
-    const verifyToken = async (authToken: string): Promise<User | null> => {
-        try {
-            const res = await axios.get(`${API_BASE}/api/auth/me`, {
-                headers: { Authorization: `Token ${authToken}` }
-            });
-            return res.data;
-        } catch (err) {
-            console.error('Token verification failed', err);
-            return null;
-        }
-    };
-
-    // Initialize auth on mount
     useEffect(() => {
         const initAuth = async () => {
-            const storedSession = loadSession();
+            const session = loadSession();
 
-            if (storedSession) {
-                // Check if token is expired
-                if (storedSession.expiresAt && isTokenExpired(storedSession.expiresAt)) {
-                    // Token expired, logging out
-                    clearSession();
-                    setLoading(false);
-                    return;
-                }
+            if (!session) {
+                // Check for legacy token migration
+                const legacyToken = localStorage.getItem('authToken')
+                    || localStorage.getItem('token')
+                    || localStorage.getItem(TOKEN_KEY);
 
-                // Restore session
-                setToken(storedSession.token);
-
-                // If user data is missing, fetch from backend
-                if (storedSession.user) {
-                    setUser(storedSession.user);
-                } else {
-                    const userData = await verifyToken(storedSession.token);
-                    if (userData) {
-                        setUser(userData);
-                        // Update stored session with user data
-                        saveSession({ ...storedSession, user: userData });
-                    } else {
-                        clearSession();
+                if (legacyToken) {
+                    // Migrate: verify with backend and create proper session
+                    try {
+                        const res = await fetch(`${API_BASE}/api/auth/me/`, {
+                            headers: { Authorization: `Token ${legacyToken}` },
+                        });
+                        if (res.ok) {
+                            const userData = await res.json();
+                            const expiresAt = Date.now() + (DEFAULT_EXPIRY_HOURS * 3600 * 1000);
+                            const newSession: AuthSession = {
+                                token: legacyToken,
+                                refreshToken: localStorage.getItem('auth_refresh_token'),
+                                user: {
+                                    id: userData.user?.id || '',
+                                    email: userData.user?.email || '',
+                                    username: userData.user?.username || '',
+                                    role: userData.user?.role || 'member',
+                                    merchant_id: userData.user?.merchant_id,
+                                },
+                                tenant: userData.tenant || null,
+                                expiresAt,
+                            };
+                            saveSession(newSession);
+                            setToken(legacyToken);
+                            setUser(newSession.user);
+                            setTenant(newSession.tenant);
+                            scheduleRefresh(expiresAt, newSession.refreshToken);
+                        } else {
+                            clearAllAuth();
+                        }
+                    } catch {
+                        clearAllAuth();
                     }
                 }
+                setLoading(false);
+                return;
             }
 
+            // Check expiry
+            if (Date.now() >= session.expiresAt) {
+                // Expired — try refresh
+                if (session.refreshToken) {
+                    await performRefresh(session.refreshToken);
+                } else {
+                    clearAllAuth();
+                }
+                setLoading(false);
+                return;
+            }
+
+            // Valid session — restore
+            setToken(session.token);
+            setUser(session.user);
+            setTenant(session.tenant);
+            scheduleRefresh(session.expiresAt, session.refreshToken);
             setLoading(false);
         };
 
         initAuth();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const login = (newToken: string, newUser: User, expiresIn?: number) => {
-        const expiresAt = expiresIn
-            ? Date.now() + (expiresIn * 1000)
-            : Date.now() + (DEFAULT_EXPIRY_HOURS * 60 * 60 * 1000);
+    // ── Public API ──────────────────────────────────────────────────────
 
-        setToken(newToken);
-        setUser(newUser);
+    const login = useCallback((data: LoginData) => {
+        const expiresIn = data.expires_in || DEFAULT_EXPIRY_HOURS * 3600;
+        const expiresAt = Date.now() + (expiresIn * 1000);
 
-        saveSession({
-            token: newToken,
-            user: newUser,
-            expiresAt
-        });
+        const session: AuthSession = {
+            token: data.access,
+            refreshToken: data.refresh || null,
+            user: data.user,
+            tenant: data.tenant || null,
+            expiresAt,
+        };
 
-        // Store tenant ID for X-Tenant-ID header in API calls
-        if (newUser.merchant_id) {
-            localStorage.setItem('selectedTenantId', newUser.merchant_id);
-        }
+        setToken(data.access);
+        setUser(data.user);
+        setTenant(data.tenant || null);
+
+        saveSession(session);
+        scheduleRefresh(expiresAt, session.refreshToken);
 
         navigate('/overview');
-    };
+    }, [navigate, saveSession, scheduleRefresh]);
 
-    const logout = () => {
+    const logout = useCallback(() => {
         setToken(null);
         setUser(null);
-        clearSession();
+        setTenant(null);
+        clearAllAuth();
         navigate('/auth');
-    };
-
-    const refreshToken = async () => {
-        if (!token) return;
-
-        try {
-            const res = await axios.post(`${API_BASE}/api/auth/refresh`, {}, {
-                headers: { Authorization: `Token ${token}` }
-            });
-
-            const { access, user: refreshedUser, expires_in } = res.data;
-            login(access, refreshedUser || user!, expires_in);
-        } catch (err) {
-            console.error('Token refresh failed', err);
-            logout();
-        }
-    };
+    }, [clearAllAuth, navigate]);
 
     const isAuthenticated = !!user && !!token;
-
-    // Session getter for compatibility
     const session = { user, token };
 
     return (
         <AuthContext.Provider value={{
             user,
             token,
+            tenant,
             session,
             login,
             logout,
-            refreshToken,
             isAuthenticated,
             loading
         }}>
@@ -211,15 +311,14 @@ export function useAuth() {
 }
 
 export function RequireAuth({ children }: { children: JSX.Element }) {
-    const { user, loading } = useAuth();
+    const { isAuthenticated, loading } = useAuth();
     const location = useLocation();
 
     if (loading) return <div>Loading...</div>;
 
-    if (!user) {
+    if (!isAuthenticated) {
         return <Navigate to="/auth" state={{ from: location }} replace />;
     }
 
     return children;
 }
-

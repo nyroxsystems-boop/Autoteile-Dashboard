@@ -9,6 +9,7 @@ import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useTenants } from './hooks/useTenants';
 import { useMe } from './hooks/useMe';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../auth/AuthContext';
 import { HeuteView } from './views/HeuteView';
 import { LoginView } from './views/LoginView';
 import { AuftraegeView } from './views/AuftraegeView';
@@ -42,7 +43,7 @@ export default function App() {
   const [language, setLanguage] = useState<'de' | 'en'>('de');
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('authToken'));
+  const { isAuthenticated, logout } = useAuth();
 
   // Define activeView based on path for backward compatibility with components
   const getActiveViewFromPath = (path: string) => {
@@ -161,7 +162,7 @@ export default function App() {
   if (!isAuthenticated) {
     return (
       <>
-        <LoginView onLoginSuccess={() => setIsAuthenticated(true)} />
+        <LoginView />
         <ToastProvider theme={theme} />
       </>
     );
@@ -189,6 +190,7 @@ export default function App() {
         tenants={tenants}
         currentTenant={currentTenant}
         onSwitchTenant={switchTenant}
+        onLogout={logout}
       />
       <main className="ml-20 mt-16">
         <div className="max-w-[1440px] mx-auto px-12 py-12">
@@ -232,6 +234,7 @@ export default function App() {
         currentTenant={currentTenant}
         onSwitchTenant={switchTenant}
         isWawi={true}
+        onLogout={logout}
       />
       <main className="ml-20 mt-16">
         <div className="max-w-[1440px] mx-auto px-12 py-12">
