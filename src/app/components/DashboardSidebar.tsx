@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, Package, FileText, Receipt, Store,
   Activity, MessageSquare, Warehouse, Shield, Settings,
-  DollarSign, Truck
+  DollarSign, Truck, RotateCcw, Star, Brain
 } from 'lucide-react';
 
 interface NavItem {
@@ -50,7 +50,10 @@ export function DashboardSidebar({
     { id: 'lieferanten', label: 'Lieferanten', icon: Store, group: 'main' },
     { id: 'nachbestellung', label: 'Nachbestellung', icon: Receipt, group: 'main' },
     { id: 'wareneingang', label: 'Wareneingang', icon: Truck, group: 'main' },
-    { id: 'berichte', label: 'Berichte', icon: Activity, group: 'main' },
+    { id: 'retouren', label: 'Retouren', icon: RotateCcw, group: 'features' },
+    { id: 'bewertungen', label: 'Bewertung', icon: Star, group: 'features' },
+    { id: 'ki-insights', label: 'KI', icon: Brain, group: 'features' },
+    { id: 'berichte', label: 'Berichte', icon: Activity, group: 'system' },
     { id: 'settings', label: 'Setup', icon: Settings, group: 'system' },
   ];
 

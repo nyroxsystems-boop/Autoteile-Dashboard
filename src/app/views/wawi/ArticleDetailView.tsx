@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     Package, Warehouse, ShoppingCart, History, ArrowLeft,
-    ExternalLink, Edit, Trash2, Truck, AlertTriangle, Box
+    ExternalLink, Edit, Trash2, Truck, AlertTriangle, Box,
+    Link2, Car, DollarSign, Plus, X
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 import { Button } from '../../components/ui/button';
 import { wawiService, Part } from '../../services/wawiService';
@@ -15,7 +17,13 @@ import { StockLocationManager } from '../../components/StockLocationManager';
 export function ArticleDetailView() {
     const { id } = useParams();
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState<'overview' | 'stock' | 'bom' | 'purchase' | 'history'>('overview');
+    const [activeTab, setActiveTab] = useState<'overview' | 'stock' | 'bom' | 'oem' | 'vehicles' | 'pricing' | 'purchase' | 'history'>('overview');
+    const [crossRefs, setCrossRefs] = useState<any[]>([]);
+    const [vehicleApps, setVehicleApps] = useState<any[]>([]);
+    const [priceRules, setPriceRules] = useState<any[]>([]);
+    const [newOem, setNewOem] = useState({ oem_number: '', brand: '', oem_type: 'aftermarket' });
+    const [newVehicle, setNewVehicle] = useState({ kba_hsn: '', kba_tsn: '', make: '', model: '', year_from: '' });
+    const [newPrice, setNewPrice] = useState({ profile: 'endkunde', min_quantity: 1, price: 0, discount_percent: 0 });
     const [article, setArticle] = useState<Part | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -30,6 +38,15 @@ export function ArticleDetailView() {
         try {
             const data = await wawiService.getArticleDetails(articleId);
             setArticle(data);
+            // Load related data
+            const [refs, vehs, rules] = await Promise.all([
+                wawiService.getOemCrossRefs(Number(articleId)).catch(() => []),
+                wawiService.getVehicleApplications(Number(articleId)).catch(() => []),
+                wawiService.getPriceRules(Number(articleId)).catch(() => []),
+            ]);
+            setCrossRefs(refs);
+            setVehicleApps(vehs);
+            setPriceRules(rules);
         } catch (err) {
             console.error('Failed to load article detail', err);
         } finally {
@@ -43,6 +60,9 @@ export function ArticleDetailView() {
     const tabs = [
         { id: 'overview', label: 'Übersicht', icon: Package },
         { id: 'stock', label: 'Lager & Bestand', icon: Warehouse },
+        { id: 'oem', label: `OEM (${crossRefs.length})`, icon: Link2 },
+        { id: 'vehicles', label: `Fahrzeuge (${vehicleApps.length})`, icon: Car },
+        { id: 'pricing', label: `Preise (${priceRules.length})`, icon: DollarSign },
         ...(article.article_type === 'set' ? [{ id: 'bom', label: 'Baukasten', icon: Box }] : []),
         { id: 'purchase', label: 'Einkauf', icon: ShoppingCart },
         { id: 'history', label: 'Historie', icon: History },
@@ -185,6 +205,137 @@ export function ArticleDetailView() {
                                 }}
                                 availableArticles={[]}
                             />
+                        </div>
+                    )}
+
+                    {/* OEM Cross-References Tab */}
+                    {activeTab === 'oem' && (
+                        <div className="bg-card border border-border rounded-3xl p-8 shadow-sm space-y-6">
+                            <div className="flex items-center justify-between">
+                                <h3 className="font-bold text-xl">OEM-Querverweise</h3>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <input className="px-4 py-3 rounded-xl border border-border bg-background text-sm" placeholder="OEM-Nummer *" value={newOem.oem_number} onChange={e => setNewOem({ ...newOem, oem_number: e.target.value })} />
+                                <input className="px-4 py-3 rounded-xl border border-border bg-background text-sm" placeholder="Marke" value={newOem.brand} onChange={e => setNewOem({ ...newOem, brand: e.target.value })} />
+                                <Button className="rounded-xl" onClick={async () => {
+                                    if (!newOem.oem_number) return;
+                                    try {
+                                        await wawiService.createOemCrossRef({ product: Number(id), ...newOem });
+                                        const refs = await wawiService.getOemCrossRefs(Number(id));
+                                        setCrossRefs(refs);
+                                        setNewOem({ oem_number: '', brand: '', oem_type: 'aftermarket' });
+                                        toast.success('OEM-Querverweis hinzugefügt');
+                                    } catch { toast.error('Fehler beim Speichern'); }
+                                }}><Plus className="w-4 h-4 mr-2" /> Hinzufügen</Button>
+                            </div>
+                            <div className="divide-y divide-border">
+                                {crossRefs.length === 0 ? (
+                                    <div className="py-12 text-center text-muted-foreground text-sm italic">Keine OEM-Querverweise hinterlegt.</div>
+                                ) : crossRefs.map((ref: any) => (
+                                    <div key={ref.id} className="py-3 flex items-center justify-between">
+                                        <div>
+                                            <span className="font-mono font-bold text-sm">{ref.oem_number}</span>
+                                            {ref.brand && <span className="ml-3 text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{ref.brand}</span>}
+                                            {ref.oem_type && <span className="ml-2 text-xs text-muted-foreground">{ref.oem_type}</span>}
+                                        </div>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:bg-red-50" onClick={async () => {
+                                            await wawiService.deleteOemCrossRef(ref.id);
+                                            setCrossRefs(crossRefs.filter(r => r.id !== ref.id));
+                                            toast.success('Gelöscht');
+                                        }}><X className="w-4 h-4" /></Button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Vehicle Applications Tab */}
+                    {activeTab === 'vehicles' && (
+                        <div className="bg-card border border-border rounded-3xl p-8 shadow-sm space-y-6">
+                            <h3 className="font-bold text-xl">Fahrzeug-Zuordnung</h3>
+                            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                                <input className="px-4 py-3 rounded-xl border border-border bg-background text-sm" placeholder="HSN" value={newVehicle.kba_hsn} onChange={e => setNewVehicle({ ...newVehicle, kba_hsn: e.target.value })} />
+                                <input className="px-4 py-3 rounded-xl border border-border bg-background text-sm" placeholder="TSN" value={newVehicle.kba_tsn} onChange={e => setNewVehicle({ ...newVehicle, kba_tsn: e.target.value })} />
+                                <input className="px-4 py-3 rounded-xl border border-border bg-background text-sm" placeholder="Marke" value={newVehicle.make} onChange={e => setNewVehicle({ ...newVehicle, make: e.target.value })} />
+                                <input className="px-4 py-3 rounded-xl border border-border bg-background text-sm" placeholder="Modell" value={newVehicle.model} onChange={e => setNewVehicle({ ...newVehicle, model: e.target.value })} />
+                                <Button className="rounded-xl" onClick={async () => {
+                                    if (!newVehicle.make && !newVehicle.kba_hsn) return;
+                                    try {
+                                        await wawiService.createVehicleApplication({ product: Number(id), ...newVehicle });
+                                        const vehs = await wawiService.getVehicleApplications(Number(id));
+                                        setVehicleApps(vehs);
+                                        setNewVehicle({ kba_hsn: '', kba_tsn: '', make: '', model: '', year_from: '' });
+                                        toast.success('Fahrzeug hinzugefügt');
+                                    } catch { toast.error('Fehler'); }
+                                }}><Plus className="w-4 h-4 mr-2" /> Hinzufügen</Button>
+                            </div>
+                            <div className="divide-y divide-border">
+                                {vehicleApps.length === 0 ? (
+                                    <div className="py-12 text-center text-muted-foreground text-sm italic">Keine Fahrzeug-Zuordnungen.</div>
+                                ) : vehicleApps.map((va: any) => (
+                                    <div key={va.id} className="py-3 flex items-center justify-between">
+                                        <div>
+                                            <span className="font-bold text-sm">{va.make} {va.model}</span>
+                                            {va.kba_hsn && <span className="ml-3 text-xs font-mono text-muted-foreground">HSN: {va.kba_hsn}</span>}
+                                            {va.kba_tsn && <span className="ml-2 text-xs font-mono text-muted-foreground">TSN: {va.kba_tsn}</span>}
+                                            {va.year_from && <span className="ml-2 text-xs text-muted-foreground">ab {va.year_from}</span>}
+                                        </div>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:bg-red-50" onClick={async () => {
+                                            await wawiService.deleteVehicleApplication(va.id);
+                                            setVehicleApps(vehicleApps.filter(v => v.id !== va.id));
+                                        }}><X className="w-4 h-4" /></Button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Pricing Rules Tab */}
+                    {activeTab === 'pricing' && (
+                        <div className="bg-card border border-border rounded-3xl p-8 shadow-sm space-y-6">
+                            <h3 className="font-bold text-xl">Staffelpreise & Mengenrabatte</h3>
+                            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                                <select className="px-4 py-3 rounded-xl border border-border bg-background text-sm" value={newPrice.profile} onChange={e => setNewPrice({ ...newPrice, profile: e.target.value })}>
+                                    <option value="endkunde">Endkunde</option>
+                                    <option value="werkstatt">Werkstatt</option>
+                                    <option value="haendler">Händler</option>
+                                </select>
+                                <input type="number" className="px-4 py-3 rounded-xl border border-border bg-background text-sm" placeholder="Ab Menge" value={newPrice.min_quantity} onChange={e => setNewPrice({ ...newPrice, min_quantity: Number(e.target.value) })} />
+                                <input type="number" className="px-4 py-3 rounded-xl border border-border bg-background text-sm" placeholder="Preis €" value={newPrice.price || ''} onChange={e => setNewPrice({ ...newPrice, price: Number(e.target.value) })} />
+                                <input type="number" className="px-4 py-3 rounded-xl border border-border bg-background text-sm" placeholder="Rabatt %" value={newPrice.discount_percent || ''} onChange={e => setNewPrice({ ...newPrice, discount_percent: Number(e.target.value) })} />
+                                <Button className="rounded-xl" onClick={async () => {
+                                    try {
+                                        await wawiService.createPriceRule({ product: Number(id), ...newPrice });
+                                        const rules = await wawiService.getPriceRules(Number(id));
+                                        setPriceRules(rules);
+                                        setNewPrice({ profile: 'endkunde', min_quantity: 1, price: 0, discount_percent: 0 });
+                                        toast.success('Preisregel gespeichert');
+                                    } catch { toast.error('Fehler'); }
+                                }}><Plus className="w-4 h-4 mr-2" /> Speichern</Button>
+                            </div>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm">
+                                    <thead><tr className="border-b border-border text-left text-xs font-bold uppercase text-muted-foreground">
+                                        <th className="py-3 px-2">Profil</th><th className="py-3 px-2">Ab Menge</th><th className="py-3 px-2">Preis</th><th className="py-3 px-2">Rabatt</th><th className="py-3 px-2"></th>
+                                    </tr></thead>
+                                    <tbody>
+                                        {priceRules.length === 0 ? (
+                                            <tr><td colSpan={5} className="py-12 text-center text-muted-foreground italic">Keine Preisregeln.</td></tr>
+                                        ) : priceRules.map((rule: any) => (
+                                            <tr key={rule.id} className="border-b border-border/50 hover:bg-muted/20">
+                                                <td className="py-3 px-2 capitalize">{rule.profile}</td>
+                                                <td className="py-3 px-2">≥ {rule.min_quantity}</td>
+                                                <td className="py-3 px-2 font-bold">{rule.price > 0 ? `${rule.price} €` : '—'}</td>
+                                                <td className="py-3 px-2">{rule.discount_percent > 0 ? `${rule.discount_percent}%` : '—'}</td>
+                                                <td className="py-3 px-2 text-right"><Button variant="ghost" size="icon" className="h-7 w-7 text-red-500" onClick={async () => {
+                                                    await wawiService.deletePriceRule(rule.id);
+                                                    setPriceRules(priceRules.filter(r => r.id !== rule.id));
+                                                }}><X className="w-4 h-4" /></Button></td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     )}
 

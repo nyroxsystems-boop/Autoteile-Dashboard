@@ -26,6 +26,9 @@ import { SupplierListView } from './views/wawi/SupplierListView';
 import { ReorderWizardView } from './views/wawi/ReorderWizardView';
 import { GoodsReceiptView } from './views/wawi/GoodsReceiptView';
 import { ReportsView } from './views/wawi/ReportsView';
+import { ReturnsView } from './views/wawi/ReturnsView';
+import { SupplierRatingView } from './views/wawi/SupplierRatingView';
+import { AIInsightsView } from './views/wawi/AIInsightsView';
 import { SettingsView } from './views/SettingsView';
 import { AdminDashboardView } from './views/AdminDashboardView';
 import TaxDashboardView from './views/tax/TaxDashboardView';
@@ -120,8 +123,10 @@ export default function App() {
       lager: '/wawi/lager',
       nachbestellung: '/wawi/nachbestellung',
       wareneingang: '/wawi/wareneingang',
+      retouren: '/wawi/retouren',
+      bewertungen: '/wawi/bewertungen',
+      'ki-insights': '/wawi/ki-insights',
       berichte: '/wawi/berichte',
-      einkauf: '/wawi/lieferanten',
       admin: '/bot/admin',
     };
 
@@ -277,6 +282,9 @@ export default function App() {
       <Route path="/wawi/lieferanten" element={<WawiLayout><SupplierListView /></WawiLayout>} />
       <Route path="/wawi/nachbestellung" element={<WawiLayout><ReorderWizardView /></WawiLayout>} />
       <Route path="/wawi/wareneingang" element={<WawiLayout><GoodsReceiptView /></WawiLayout>} />
+      <Route path="/wawi/retouren" element={<WawiLayout><ReturnsView /></WawiLayout>} />
+      <Route path="/wawi/bewertungen" element={<WawiLayout><SupplierRatingView /></WawiLayout>} />
+      <Route path="/wawi/ki-insights" element={<WawiLayout><AIInsightsView /></WawiLayout>} />
       <Route path="/wawi/berichte" element={<WawiLayout><ReportsView /></WawiLayout>} />
       <Route path="/wawi/setup" element={<WawiLayout><SettingsView /></WawiLayout>} />
 
