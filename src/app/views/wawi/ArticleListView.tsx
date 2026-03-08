@@ -33,7 +33,7 @@ export function ArticleListView() {
         .sort((a, b) => a.name.localeCompare(b.name));
 
     const handleCreateArticle = (articleData: any) => {
-        console.log('Creating article:', articleData);
+        // Creating article with provided data
         // In a real app, this would trigger an API call
         loadArticles();
     };

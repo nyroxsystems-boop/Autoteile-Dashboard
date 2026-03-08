@@ -11,6 +11,7 @@ import { useState } from 'react';
 import { useDashboardSummary } from '../hooks/useDashboardSummary';
 import { useOrders } from '../hooks/useOrders';
 import { Order } from '../api/wws';
+import { useI18n } from '../../i18n';
 
 interface HeuteViewProps {
   onNavigate: (view: string, filter?: string) => void;
@@ -23,6 +24,7 @@ export function HeuteView({
 }: HeuteViewProps) {
   const { summary, loading: summaryLoading } = useDashboardSummary();
   const { orders, loading: ordersLoading } = useOrders();
+  const { t } = useI18n();
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d' | '1y'>('30d');
 
   // Chart data - from summary
@@ -49,17 +51,17 @@ export function HeuteView({
   const columns = [
     {
       key: 'customer',
-      header: 'Kunde',
+      header: t('orders_contact'),
       render: (order: Order) => (
         <div className="flex items-center gap-2">
           <MessageSquare className="w-4 h-4 text-[var(--status-success)]" />
-          <span>{order.contact?.name || 'Unbekannter Kunde'}</span>
+          <span>{order.contact?.name || t('orders_unknown_customer')}</span>
         </div>
       ),
     },
     {
       key: 'vehicle',
-      header: 'Fahrzeug',
+      header: t('orders_vehicle'),
       render: (order: Order) => {
         const vehicle = order.vehicle || order.vehicle_json;
         return (
@@ -72,7 +74,7 @@ export function HeuteView({
     },
     {
       key: 'oem',
-      header: 'OEM-Nummer',
+      header: t('orders_oem_number'),
       render: (order: Order) => (
         <code className="px-2 py-1 bg-muted rounded text-xs text-mono">
           {order.oem_number || order.part?.oemNumber || order.oem || '-'}
@@ -81,7 +83,7 @@ export function HeuteView({
     },
     {
       key: 'status',
-      header: 'Status',
+      header: t('orders_status'),
       render: (order: Order) => {
         let status: 'waiting' | 'processing' | 'success' | 'error' = 'processing';
         if (order.status === 'new') status = 'processing';
@@ -93,7 +95,7 @@ export function HeuteView({
     },
     {
       key: 'action',
-      header: 'Nächste Aktion',
+      header: t('orders_no_action'),
       align: 'right' as const,
       render: (order: Order) => (
         <Button
@@ -104,26 +106,26 @@ export function HeuteView({
             onNavigate('auftraege');
           }}
         >
-          {order.status === 'new' ? 'Angebot erstellen' : 'Details'}
+          {order.status === 'new' ? t('orders_create_invoice') : 'Details'}
         </Button>
       ),
     },
   ];
 
-  if (summaryLoading || ordersLoading) return <div className="p-20 text-center text-muted-foreground">Lade Dashboard...</div>;
+  if (summaryLoading || ordersLoading) return <div className="p-20 text-center text-muted-foreground">{t('loading')}</div>;
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <PageHeader
-        title="Heute"
-        description="Dein aktueller Arbeitsstand aus WhatsApp, Angeboten und Aufträgen"
+        title={t('today_title')}
+        description={t('today_subtitle')}
       />
 
       {/* Top Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <MetricCard
-          label="WhatsApp Nachrichten"
+          label={t('today_new_orders')}
           value={summary?.ordersNew.toString() || "0"}
           change={12}
           changeLabel="vs. gestern"
@@ -131,7 +133,7 @@ export function HeuteView({
           variant="primary"
         />
         <MetricCard
-          label="In Bearbeitung"
+          label={t('today_in_progress')}
           value={summary?.ordersInProgress.toString() || "0"}
           change={2.3}
           changeLabel="vs. letzte Woche"
@@ -139,12 +141,12 @@ export function HeuteView({
           variant="success"
         />
         <MetricCard
-          label="Offene Belege"
+          label={t('today_draft_invoices')}
           value={summary?.invoicesDraft?.toString() || "0"}
           icon={<Clock className="w-5 h-5" />}
         />
         <MetricCard
-          label="Umsatz (heute)"
+          label={t('today_revenue')}
           value={`€${(summary?.revenueToday ?? 0).toLocaleString('de-DE', { minimumFractionDigits: 2 })}`}
           change={18}
           changeLabel="vs. gestern"
@@ -162,7 +164,7 @@ export function HeuteView({
             <div className="flex-shrink-0">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="text-foreground">Umsatz & Bestellungen</h3>
+                  <h3 className="text-foreground">{t('today_revenue')}</h3>
                   <p className="text-sm text-muted-foreground mt-1">
                     {timeRange === '7d' && 'Letzte 7 Tage'}
                     {timeRange === '30d' && 'Letzte 30 Tage'}
@@ -228,7 +230,7 @@ export function HeuteView({
                 {chartData.length > 0 ? (
                   <RevenueChart data={chartData} />
                 ) : (
-                  <div className="text-muted-foreground text-sm italic">Keine Umsatzdaten für diesen Zeitraum vorhanden</div>
+                  <div className="text-muted-foreground text-sm italic">{t('orders_no_offers')}</div>
                 )}
               </div>
             </div>
@@ -238,7 +240,7 @@ export function HeuteView({
 
             {/* Current Tasks Section */}
             <div className="flex-1 flex flex-col min-h-0">
-              <h3 className="text-foreground mb-4">Aktuelle Vorgänge</h3>
+              <h3 className="text-foreground mb-4">{t('today_recent_orders')}</h3>
               <div className="overflow-auto flex-1">
                 <DataTable
                   columns={columns}

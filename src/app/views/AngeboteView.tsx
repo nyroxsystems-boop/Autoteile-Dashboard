@@ -4,9 +4,14 @@ import { Search, Package, Clock, CheckCircle2, XCircle, FileText, Plus, Loader2 
 import { useOrders } from '../hooks/useOrders';
 import { getOrderOffers, Offer } from '../api/wws';
 import { toast } from 'sonner';
+import { useI18n } from '../../i18n';
+import { useMerchantSettings } from '../hooks/useMerchantSettings';
 
 export function AngeboteView() {
   const { orders, loading, refresh } = useOrders();
+  const { t } = useI18n();
+  const { settings: merchantSettings } = useMerchantSettings();
+  const hasWholesaler = (merchantSettings?.wholesalers?.length || 0) > 0;
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [orderOffers, setOrderOffers] = useState<Record<string, Offer[]>>({});
@@ -37,7 +42,7 @@ export function AngeboteView() {
     if (!Array.isArray(orders)) return [];
     return orders.map(order => ({
       id: order.id,
-      customerName: order.customerPhone || 'Unbekannt',
+      customerName: order.customerPhone || t('orders_unknown_customer'),
       whatsappNumber: order.customerPhone || '',
       oemNumber: order.oem_number || order.part?.oemNumber || '',
       partName: order.part?.partText || 'Kfz-Teil',
@@ -76,7 +81,7 @@ export function AngeboteView() {
   if (loading) return (
     <div className="p-20 text-center text-muted-foreground flex flex-col items-center gap-4">
       <Loader2 className="w-8 h-8 animate-spin" />
-      Lade Angebote...
+      {t('offers_loading')}
     </div>
   );
 
@@ -85,18 +90,22 @@ export function AngeboteView() {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-foreground mb-2">Angebote</h1>
+          <h1 className="text-foreground mb-2">{t('offers_title')}</h1>
           <p className="text-muted-foreground">
-            OEM-basierte Angebote erstellen und an Kunden senden
+            {t('orders_subtitle')}
           </p>
         </div>
         <button
           onClick={async () => {
+            if (!hasWholesaler) {
+              toast.info(t('wholesaler_none_desc'));
+              return;
+            }
             if (orders.length > 0) {
               const orderId = orders[0].id;
               try {
                 const { createOffer } = await import('../api/wws');
-                await createOffer(orderId, { price: '150.00', supplierName: 'Test Supplier' });
+                await createOffer(orderId, { price: '150.00', supplierName: merchantSettings?.wholesalers?.[0]?.name || 'Großhändler' });
                 toast.success(`Angebot für Auftrag ${orderId} erstellt`);
                 refresh();
               } catch (e) {
@@ -108,7 +117,7 @@ export function AngeboteView() {
           }}
           className="h-10 px-6 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors flex items-center gap-2">
           <Plus className="w-4 h-4" />
-          Neues Angebot
+          {t('offers_draft')}
         </button>
       </div>
 
@@ -124,7 +133,7 @@ export function AngeboteView() {
             </div>
             <div className="text-xs font-bold text-green-600">+18%</div>
           </div>
-          <div className="text-xs font-semibold text-muted-foreground uppercase">Angebote bereit</div>
+          <div className="text-xs font-semibold text-muted-foreground uppercase">{t('orders_ready')}</div>
           <div className="text-3xl font-bold text-amber-600">{stats.offers_ready}</div>
         </div>
 
@@ -138,7 +147,7 @@ export function AngeboteView() {
             </div>
             <div className="text-xs font-bold text-green-600">+22%</div>
           </div>
-          <div className="text-xs font-semibold text-muted-foreground uppercase">Ausgewählt</div>
+          <div className="text-xs font-semibold text-muted-foreground uppercase">{t('offers_published')}</div>
           <div className="text-3xl font-bold text-blue-600">{stats.selected}</div>
         </div>
 
@@ -152,7 +161,7 @@ export function AngeboteView() {
             </div>
             <div className="text-xs font-bold text-green-600">+15%</div>
           </div>
-          <div className="text-xs font-semibold text-muted-foreground uppercase">Bestätigt</div>
+          <div className="text-xs font-semibold text-muted-foreground uppercase">{t('status_done')}</div>
           <div className="text-3xl font-bold text-green-600">{stats.confirmed}</div>
         </div>
 
@@ -165,7 +174,7 @@ export function AngeboteView() {
               <XCircle className="w-5 h-5 text-white" />
             </div>
           </div>
-          <div className="text-xs font-semibold text-muted-foreground uppercase">Abgelehnt</div>
+          <div className="text-xs font-semibold text-muted-foreground uppercase">{t('offers_empty')}</div>
           <div className="text-3xl font-bold text-slate-600">{stats.rejected}</div>
         </div>
       </div >
@@ -176,7 +185,7 @@ export function AngeboteView() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
             type="text"
-            placeholder="Kunde, OEM oder Teil suchen..."
+            placeholder={t('offers_search')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full h-10 pl-10 pr-4 rounded-lg border border-border bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
@@ -195,9 +204,9 @@ export function AngeboteView() {
                   <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
                     {quote.customerName}
                     <span className={`px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider font-bold border ${quote.status === 'confirmed' ? 'bg-success/10 text-success border-success/20' :
-                        quote.status === 'selected' ? 'bg-primary/10 text-primary border-primary/20' :
-                          quote.status === 'offers_ready' ? 'bg-warning/10 text-warning border-warning/20' :
-                            'bg-slate-500/10 text-slate-600 border-slate-500/20'
+                      quote.status === 'selected' ? 'bg-primary/10 text-primary border-primary/20' :
+                        quote.status === 'offers_ready' ? 'bg-warning/10 text-warning border-warning/20' :
+                          'bg-slate-500/10 text-slate-600 border-slate-500/20'
                       }`}>
                       {quote.status === 'confirmed' ? 'Bestätigt' :
                         quote.status === 'selected' ? 'Ausgewählt' :
@@ -225,10 +234,10 @@ export function AngeboteView() {
                 <thead>
                   <tr className="bg-muted/40 text-muted-foreground border-b border-border">
                     <th className="px-6 py-3 text-left font-semibold uppercase tracking-wider text-[10px]">Option</th>
-                    <th className="px-6 py-3 text-left font-semibold uppercase tracking-wider text-[10px]">Lieferant</th>
-                    <th className="px-6 py-3 text-left font-semibold uppercase tracking-wider text-[10px]">Lieferzeit</th>
-                    <th className="px-6 py-3 text-left font-semibold uppercase tracking-wider text-[10px]">Qualität</th>
-                    <th className="px-6 py-3 text-right font-semibold uppercase tracking-wider text-[10px]">Preis</th>
+                    <th className="px-6 py-3 text-left font-semibold uppercase tracking-wider text-[10px]">{t('suppliers_name')}</th>
+                    <th className="px-6 py-3 text-left font-semibold uppercase tracking-wider text-[10px]">{t('orders_searching')}</th>
+                    <th className="px-6 py-3 text-left font-semibold uppercase tracking-wider text-[10px]">{t('prices_type')}</th>
+                    <th className="px-6 py-3 text-right font-semibold uppercase tracking-wider text-[10px]">{t('orders_price')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -260,7 +269,12 @@ export function AngeboteView() {
                   ) : (
                     <tr>
                       <td colSpan={5} className="px-6 py-8 text-center text-muted-foreground italic">
-                        Keine Angebote für diesen Auftrag hinterlegt.
+                        {t('orders_no_offers')}
+                        {!hasWholesaler && (
+                          <div className="mt-3">
+                            <p className="text-xs text-amber-600 font-medium">{t('wholesaler_none')}</p>
+                          </div>
+                        )}
                       </td>
                     </tr>
                   )}

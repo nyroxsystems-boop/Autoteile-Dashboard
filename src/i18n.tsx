@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode } from 'react';
+import { translations } from './translations';
 
-type LanguageCode = 'de' | 'en' | 'fr' | 'es' | 'it' | 'pl' | 'tr';
+export type LanguageCode = 'de' | 'en' | 'fr' | 'es' | 'it' | 'pl' | 'tr';
 
 interface LanguageOption {
     code: LanguageCode;
@@ -24,59 +25,6 @@ interface I18nContextType {
 }
 
 const I18nContext = createContext<I18nContextType | undefined>(undefined);
-
-// Translation dictionary (minimal implementation)
-const translations: Record<LanguageCode, Record<string, string>> = {
-    de: {
-        brandTitle: 'PartsBot Dashboard',
-        brandSubtitle: 'Intelligente Autoteile-Verwaltung',
-        logout: 'Abmelden',
-        login: 'Anmelden',
-        welcome: 'Willkommen'
-    },
-    en: {
-        brandTitle: 'PartsBot Dashboard',
-        brandSubtitle: 'Intelligent Auto Parts Management',
-        logout: 'Logout',
-        login: 'Login',
-        welcome: 'Welcome'
-    },
-    fr: {
-        brandTitle: 'PartsBot Tableau de Bord',
-        brandSubtitle: 'Gestion Intelligente de Pièces Auto',
-        logout: 'Déconnexion',
-        login: 'Connexion',
-        welcome: 'Bienvenue'
-    },
-    es: {
-        brandTitle: 'PartsBot Panel',
-        brandSubtitle: 'Gestión Inteligente de Autopartes',
-        logout: 'Cerrar Sesión',
-        login: 'Iniciar Sesión',
-        welcome: 'Bienvenido'
-    },
-    it: {
-        brandTitle: 'PartsBot Dashboard',
-        brandSubtitle: 'Gestione Intelligente Ricambi Auto',
-        logout: 'Esci',
-        login: 'Accedi',
-        welcome: 'Benvenuto'
-    },
-    pl: {
-        brandTitle: 'PartsBot Panel',
-        brandSubtitle: 'Inteligentne Zarządzanie Częściami',
-        logout: 'Wyloguj',
-        login: 'Zaloguj',
-        welcome: 'Witamy'
-    },
-    tr: {
-        brandTitle: 'PartsBot Gösterge Paneli',
-        brandSubtitle: 'Akıllı Yedek Parça Yönetimi',
-        logout: 'Çıkış',
-        login: 'Giriş',
-        welcome: 'Hoş Geldiniz'
-    }
-};
 
 export function I18nProvider({ children }: { children: ReactNode }) {
     const [lang, setLang] = useState<LanguageCode>(() => {

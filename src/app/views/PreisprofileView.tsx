@@ -6,11 +6,18 @@ import { Percent, DollarSign, TrendingUp, Edit2, Trash2, Plus, Loader2 } from 'l
 import { useMerchantSettings } from '../hooks/useMerchantSettings';
 import { useDashboardSummary } from '../hooks/useDashboardSummary';
 import { PriceGroupModal } from '../components/PriceGroupModal';
+import { toast } from 'sonner';
+import { useI18n } from '../../i18n';
+
 export function PreisprofileView() {
+  const { t } = useI18n();
   const { settings, loading, update: _update } = useMerchantSettings();
   const { summary, loading: _summaryLoading } = useDashboardSummary();
   const [profiles, setProfiles] = useState<any[]>([]);
   const [showPriceGroupModal, setShowPriceGroupModal] = useState(false);
+  const [calcBase, setCalcBase] = useState(100);
+  const [calcMargin, setCalcMargin] = useState(25);
+  const calcCustomerPrice = calcBase * (1 + calcMargin / 100);
 
   useEffect(() => {
     if (settings) {
@@ -26,14 +33,14 @@ export function PreisprofileView() {
       <div>
         <div className="flex items-start justify-between mb-2">
           <div>
-            <h1>Preise & Margen</h1>
+            <h1>{t('prices_title')}</h1>
             <p className="text-muted-foreground mt-2 leading-relaxed">
-              Preislogik steuern – Wirkung sehen, nicht Technik
+              {t('prices_subtitle')}
             </p>
           </div>
           <Button onClick={() => setShowPriceGroupModal(true)}>
             <Plus className="w-4 h-4 mr-2" />
-            Preisgruppe anlegen
+            {t('prices_create')}
           </Button>
         </div>
       </div>
@@ -48,9 +55,9 @@ export function PreisprofileView() {
         <div className="flex items-start gap-3">
           <TrendingUp className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
           <div>
-            <h4 className="text-foreground font-medium mb-1">Live-Wirkung auf WhatsApp-Preise</h4>
+            <h4 className="text-foreground font-medium mb-1">{t('prices_live_info')}</h4>
             <p className="text-muted-foreground leading-relaxed">
-              Änderungen wirken sofort auf neue Angebote. Bestehende Angebote bleiben unverändert. Sie sehen hier die Wirkung, nicht die technische Formel.
+              {t('prices_live_desc')}
             </p>
           </div>
         </div>
@@ -63,22 +70,22 @@ export function PreisprofileView() {
             <thead className="bg-muted/50 border-b border-border">
               <tr>
                 <th className="text-left px-6 py-4 text-muted-foreground uppercase tracking-wide" style={{ fontSize: '0.75rem', fontWeight: 600 }}>
-                  Profilname
+                  {t('prices_profile_name')}
                 </th>
                 <th className="text-left px-6 py-4 text-muted-foreground uppercase tracking-wide" style={{ fontSize: '0.75rem', fontWeight: 600 }}>
-                  Typ
+                  {t('prices_type')}
                 </th>
                 <th className="text-right px-6 py-4 text-muted-foreground uppercase tracking-wide" style={{ fontSize: '0.75rem', fontWeight: 600 }}>
-                  Wert
+                  {t('prices_value')}
                 </th>
                 <th className="text-left px-6 py-4 text-muted-foreground uppercase tracking-wide" style={{ fontSize: '0.75rem', fontWeight: 600 }}>
-                  Anwendung
+                  {t('prices_application')}
                 </th>
                 <th className="text-left px-6 py-4 text-muted-foreground uppercase tracking-wide" style={{ fontSize: '0.75rem', fontWeight: 600 }}>
-                  Zuletzt geändert
+                  {t('prices_last_modified')}
                 </th>
                 <th className="text-right px-6 py-4 text-muted-foreground uppercase tracking-wide" style={{ fontSize: '0.75rem', fontWeight: 600 }}>
-                  Aktionen
+                  {t('prices_actions')}
                 </th>
               </tr>
             </thead>
@@ -127,12 +134,16 @@ export function PreisprofileView() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center justify-end gap-2">
-                      <Button size="sm" variant="outline" onClick={() => alert(`Bearbeiten: ${profile.name} - Diese Funktion kommt in einer zukünftigen Version`)}>
+                      <Button size="sm" variant="outline" onClick={() => toast.info(`Bearbeitung von "${profile.name}" wird bald verfügbar`)}
+                      >
                         <Edit2 className="w-3.5 h-3.5 mr-1.5" />
                         Bearbeiten
                       </Button>
                       {!profile.isDefault && (
-                        <Button size="sm" variant="outline" onClick={() => alert(`Löschen: ${profile.name} - Diese Funktion kommt in einer zukünftigen Version`)}>
+                        <Button size="sm" variant="outline" onClick={() => {
+                          setProfiles(profiles.filter(p => p.id !== profile.id));
+                          toast.success(`"${profile.name}" entfernt`);
+                        }}>
                           <Trash2 className="w-3.5 h-3.5 text-destructive" />
                         </Button>
                       )}
@@ -158,7 +169,8 @@ export function PreisprofileView() {
                   type="number"
                   placeholder="0.00"
                   className="pl-8 h-11"
-                  defaultValue="100"
+                  value={calcBase}
+                  onChange={(e) => setCalcBase(Number(e.target.value) || 0)}
                 />
               </div>
             </div>
@@ -169,7 +181,8 @@ export function PreisprofileView() {
                   type="number"
                   placeholder="0"
                   className="pr-8 h-11"
-                  defaultValue="25"
+                  value={calcMargin}
+                  onChange={(e) => setCalcMargin(Number(e.target.value) || 0)}
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">%</span>
               </div>
@@ -178,7 +191,7 @@ export function PreisprofileView() {
               <label className="block mb-3">Kundenpreis</label>
               <div className="h-11 px-4 bg-[var(--status-success-bg)] border border-[var(--status-success-border)] rounded-lg flex items-center">
                 <span className="tabular-nums tracking-tight text-[var(--status-success-fg)]" style={{ fontSize: '1.25rem', fontWeight: 600 }}>
-                  €125.00
+                  €{calcCustomerPrice.toFixed(2)}
                 </span>
               </div>
             </div>

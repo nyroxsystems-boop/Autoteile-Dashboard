@@ -17,7 +17,7 @@ export function useMe() {
                 // Automatically persist tenant ID to localStorage for API requests
                 if (data?.tenant?.id) {
                     localStorage.setItem('selectedTenantId', data.tenant.id.toString());
-                    console.log('[useMe] Tenant ID saved to localStorage:', data.tenant.id);
+                    // Tenant ID saved to localStorage
                 }
             } catch (err) {
                 setError(err as Error);

@@ -4,6 +4,7 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Loader2, Percent, DollarSign } from 'lucide-react';
 import { toast } from 'sonner';
+import { useMerchantSettings } from '../hooks/useMerchantSettings';
 
 interface PriceGroupModalProps {
     open: boolean;
@@ -12,6 +13,7 @@ interface PriceGroupModalProps {
 }
 
 export function PriceGroupModal({ open, onOpenChange, onSuccess }: PriceGroupModalProps) {
+    const { settings, update: updateMerchantSettings } = useMerchantSettings();
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         name: '',
@@ -30,8 +32,20 @@ export function PriceGroupModal({ open, onOpenChange, onSuccess }: PriceGroupMod
 
         setLoading(true);
         try {
-            // TODO: Call API to create price group
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            // Save price group to merchant settings
+            const existingProfiles = settings?.priceProfiles || [];
+            const newProfile = {
+                id: `pg_${Date.now()}`,
+                name: formData.name,
+                type: formData.type,
+                value: parseFloat(formData.value),
+                appliesTo: formData.appliesTo,
+                isDefault: existingProfiles.length === 0,
+                lastModified: new Date().toLocaleDateString('de-DE'),
+            };
+            await updateMerchantSettings({
+                priceProfiles: [...existingProfiles, newProfile],
+            });
 
             toast.success(`Preisgruppe "${formData.name}" erstellt`);
             onOpenChange(false);
@@ -80,8 +94,8 @@ export function PriceGroupModal({ open, onOpenChange, onSuccess }: PriceGroupMod
                                 type="button"
                                 onClick={() => setFormData({ ...formData, type: 'percentage' })}
                                 className={`flex-1 p-3 rounded-lg border transition-all flex items-center justify-center gap-2 ${formData.type === 'percentage'
-                                        ? 'border-primary bg-primary/10 text-primary'
-                                        : 'border-border hover:border-primary/50'
+                                    ? 'border-primary bg-primary/10 text-primary'
+                                    : 'border-border hover:border-primary/50'
                                     }`}
                             >
                                 <Percent className="w-4 h-4" />
@@ -91,8 +105,8 @@ export function PriceGroupModal({ open, onOpenChange, onSuccess }: PriceGroupMod
                                 type="button"
                                 onClick={() => setFormData({ ...formData, type: 'fixed' })}
                                 className={`flex-1 p-3 rounded-lg border transition-all flex items-center justify-center gap-2 ${formData.type === 'fixed'
-                                        ? 'border-primary bg-primary/10 text-primary'
-                                        : 'border-border hover:border-primary/50'
+                                    ? 'border-primary bg-primary/10 text-primary'
+                                    : 'border-border hover:border-primary/50'
                                     }`}
                             >
                                 <DollarSign className="w-4 h-4" />

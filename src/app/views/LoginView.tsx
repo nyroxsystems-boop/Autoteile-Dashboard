@@ -5,12 +5,14 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { toast } from 'sonner';
 import { User, Lock, Building2, Loader2 } from 'lucide-react';
+import { useI18n } from '../../i18n';
 
 interface LoginViewProps {
     onLoginSuccess: () => void;
 }
 
 export function LoginView({ onLoginSuccess }: LoginViewProps) {
+    const { t } = useI18n();
     const [identifier, setIdentifier] = useState('');
     const [password, setPassword] = useState('');
     const [tenant, setTenant] = useState('');
@@ -19,7 +21,7 @@ export function LoginView({ onLoginSuccess }: LoginViewProps) {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!identifier || !password) {
-            toast.error('Bitte geben Sie Ihre Zugangsdaten ein');
+            toast.error(t('login_enter_credentials'));
             return;
         }
 
@@ -30,11 +32,11 @@ export function LoginView({ onLoginSuccess }: LoginViewProps) {
                 password,
                 tenant: tenant || undefined,
             });
-            toast.success('Erfolgreich eingeloggt');
+            toast.success(t('login_success'));
             onLoginSuccess();
         } catch (err: any) {
             console.error('Login failed:', err);
-            toast.error(err.message || 'Login fehlgeschlagen');
+            toast.error(err.message || t('login_failed'));
         } finally {
             setLoading(false);
         }
@@ -47,15 +49,15 @@ export function LoginView({ onLoginSuccess }: LoginViewProps) {
                     <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary/10 mb-6">
                         <User className="w-10 h-10 text-primary" />
                     </div>
-                    <h1 className="text-3xl font-bold tracking-tight text-foreground">Willkommen zurück</h1>
-                    <p className="text-muted-foreground mt-2">Bitte melden Sie sich an, um fortzufahren</p>
+                    <h1 className="text-3xl font-bold tracking-tight text-foreground">{t('login_title')}</h1>
+                    <p className="text-muted-foreground mt-2">{t('login_subtitle')}</p>
                 </div>
 
                 <div className="bg-card border border-border rounded-2xl p-8 shadow-xl">
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="space-y-2">
                             <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                                Benutzername oder Email
+                                {t('login_identifier')}
                             </label>
                             <div className="relative">
                                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -72,7 +74,7 @@ export function LoginView({ onLoginSuccess }: LoginViewProps) {
 
                         <div className="space-y-2">
                             <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                                Passwort
+                                {t('login_password')}
                             </label>
                             <div className="relative">
                                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -89,7 +91,7 @@ export function LoginView({ onLoginSuccess }: LoginViewProps) {
 
                         <div className="space-y-2">
                             <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                                Tenant (Optional)
+                                {t('login_tenant')}
                             </label>
                             <div className="relative">
                                 <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -108,10 +110,10 @@ export function LoginView({ onLoginSuccess }: LoginViewProps) {
                             {loading ? (
                                 <>
                                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                    Anmelden...
+                                    {t('login_logging_in')}
                                 </>
                             ) : (
-                                'Anmelden'
+                                t('login')
                             )}
                         </Button>
                     </form>
@@ -119,7 +121,7 @@ export function LoginView({ onLoginSuccess }: LoginViewProps) {
 
                 <div className="text-center">
                     <p className="text-sm text-muted-foreground">
-                        Noch kein Konto? Kontaktieren Sie Ihren Administrator.
+                        {t('login_no_account')}
                     </p>
                 </div>
             </div>

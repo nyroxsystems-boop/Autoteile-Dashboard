@@ -52,7 +52,7 @@ export function ReportsView() {
     };
 
     const handleExport = (format: 'csv' | 'excel') => {
-        console.log(`Exporting report as ${format}`);
+        // Exporting report
         // Placeholder for export functionality
     };
 

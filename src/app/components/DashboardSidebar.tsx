@@ -3,6 +3,7 @@ import {
   Activity, MessageSquare, Warehouse, Shield, Settings,
   DollarSign, Truck, RotateCcw, Star, Brain
 } from 'lucide-react';
+import { useI18n } from '../../i18n';
 
 interface NavItem {
   id: string;
@@ -29,18 +30,19 @@ export function DashboardSidebar({
   isOwner = false
 }: DashboardSidebarProps) {
   const isWawi = window.location.pathname.startsWith('/wawi');
+  const { t } = useI18n();
 
   const botNavItems: NavItem[] = [
-    { id: 'heute', label: 'Heute', icon: LayoutDashboard, group: 'main' },
-    { id: 'kunden', label: 'Kunden', icon: MessageSquare, group: 'operations' },
-    { id: 'auftraege', label: 'Aufträge', icon: Package, group: 'operations' },
-    { id: 'angebote', label: 'Angebote', icon: FileText, group: 'operations' },
-    { id: 'preise', label: 'Preise', icon: DollarSign, group: 'operations' },
-    { id: 'belege', label: 'Belege', icon: Receipt, group: 'operations' },
-    { id: 'warenwirtschaft', label: 'WAWI', icon: Warehouse, group: 'partners' },
-    { id: 'lieferanten', label: 'Lieferanten', icon: Store, group: 'partners' },
-    { id: 'status', label: 'Status', icon: Activity, group: 'system' },
-    { id: 'settings', label: 'Einstellungen', icon: Settings, group: 'system' },
+    { id: 'heute', label: t('nav_today'), icon: LayoutDashboard, group: 'main' },
+    { id: 'kunden', label: t('nav_customers'), icon: MessageSquare, group: 'operations' },
+    { id: 'auftraege', label: t('nav_orders'), icon: Package, group: 'operations' },
+    { id: 'angebote', label: t('nav_offers'), icon: FileText, group: 'operations' },
+    { id: 'preise', label: t('nav_prices'), icon: DollarSign, group: 'operations' },
+    { id: 'belege', label: t('nav_documents'), icon: Receipt, group: 'operations' },
+    { id: 'warenwirtschaft', label: t('nav_warehouse'), icon: Warehouse, group: 'partners' },
+    { id: 'lieferanten', label: t('nav_suppliers'), icon: Store, group: 'partners' },
+    { id: 'status', label: t('nav_status'), icon: Activity, group: 'system' },
+    { id: 'settings', label: t('nav_settings'), icon: Settings, group: 'system' },
   ];
 
   const wawiNavItems: NavItem[] = [
@@ -72,7 +74,7 @@ export function DashboardSidebar({
 
   const statusLabels = {
     online: 'Online',
-    degraded: 'Eingeschränkt',
+    degraded: t('suppliers_degraded'),
     offline: 'Offline'
   };
 

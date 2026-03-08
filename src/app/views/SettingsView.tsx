@@ -22,7 +22,9 @@ import {
   Clock,
   ExternalLink,
   FileText,
+  X,
   Upload,
+  Package
 } from 'lucide-react';
 import { CustomSelect } from '../components/CustomSelect';
 import { useMe } from '../hooks/useMe';
@@ -32,8 +34,9 @@ import { useBillingSettings } from '../hooks/useBillingSettings';
 import { getTeam, updateProfile, changePassword } from '../api/wws';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
+import { useI18n } from '../../i18n';
 
-type SettingsTab = 'profile' | 'company' | 'team' | 'notifications' | 'security' | 'billing' | 'support' | 'invoice' | 'shops';
+type SettingsTab = 'profile' | 'company' | 'team' | 'notifications' | 'security' | 'billing' | 'support' | 'invoice' | 'wholesalers';
 
 interface TeamMember {
   id: string;
@@ -63,6 +66,7 @@ export function SettingsView() {
   const { tenants: _tenants, currentTenant, loading: tenantsLoading } = useTenants();
   const { settings: merchantSettings, update: updateMerchantSettings } = useMerchantSettings();
   const { settings: billingSettings, update: updateBillingSettings } = useBillingSettings();
+  const { t } = useI18n();
 
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
@@ -72,12 +76,24 @@ export function SettingsView() {
   const [newMemberRole, setNewMemberRole] = useState<'admin' | 'member'>('member');
   const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
 
-  const [selectedShops, setSelectedShops] = useState<string[]>(['eBay Motors', 'Mobile.de']);
+  const [wholesalers, setWholesalers] = useState<any[]>([]);
   const [margin, setMargin] = useState(15);
+  const [showAddWholesaler, setShowAddWholesaler] = useState(false);
+  const [newWholesalerPortal, setNewWholesalerPortal] = useState<string>('tecdoc');
+  const [newWholesalerName, setNewWholesalerName] = useState('');
+  const [newWholesalerApiKey, setNewWholesalerApiKey] = useState('');
+  const [newWholesalerAccountId, setNewWholesalerAccountId] = useState('');
+  const [notifications, setNotifications] = useState<Record<string, boolean>>({
+    new_inquiry: true,
+    quote_accepted: true,
+    order_shipped: true,
+    invoice_paid: true,
+    team_updates: true,
+  });
 
   useEffect(() => {
     if (merchantSettings) {
-      setSelectedShops(merchantSettings.selectedShops || []);
+      setWholesalers(merchantSettings.wholesalers || []);
       setMargin(merchantSettings.marginPercent || 0);
     }
   }, [merchantSettings]);
@@ -129,8 +145,63 @@ export function SettingsView() {
   const handleSaveMerchantSettings = async () => {
     await updateMerchantSettings({
       marginPercent: margin,
-      selectedShops: selectedShops
+      wholesalers: wholesalers
     });
+  };
+
+  const handleAddWholesaler = async () => {
+    const newEntry = {
+      id: Date.now().toString(),
+      name: newWholesalerName || portalLabels[newWholesalerPortal] || newWholesalerPortal,
+      portal: newWholesalerPortal,
+      apiKey: newWholesalerApiKey,
+      accountId: newWholesalerAccountId || undefined,
+      status: 'pending' as const,
+      createdAt: new Date().toISOString(),
+    };
+    const updated = [...wholesalers, newEntry];
+    setWholesalers(updated);
+    await updateMerchantSettings({ wholesalers: updated });
+    toast.success(t('wholesaler_saved'));
+    setShowAddWholesaler(false);
+    setNewWholesalerName('');
+    setNewWholesalerApiKey('');
+    setNewWholesalerAccountId('');
+    setNewWholesalerPortal('tecdoc');
+  };
+
+  const handleDeleteWholesaler = async (id: string) => {
+    if (!confirm(t('wholesaler_delete_confirm'))) return;
+    const updated = wholesalers.filter((w: any) => w.id !== id);
+    setWholesalers(updated);
+    await updateMerchantSettings({ wholesalers: updated });
+    toast.success(t('wholesaler_deleted'));
+  };
+
+  const portalLabels: Record<string, string> = {
+    tecdoc: t('wholesaler_portal_tecdoc'),
+    autodoc_pro: t('wholesaler_portal_autodoc'),
+    stahlgruber: t('wholesaler_portal_stahlgruber'),
+    wm_se: t('wholesaler_portal_wmse'),
+    custom: t('wholesaler_portal_custom'),
+  };
+
+  const handleSaveCompany = async () => {
+    setSavingCompany(true);
+    try {
+      await updateBillingSettings({
+        company_name: companyName,
+        tax_id: companyTaxId,
+        address_line1: companyStreet,
+        postal_code: companyPostal,
+        city: companyCity,
+      });
+      toast.success('Firmendaten gespeichert');
+    } catch (err: any) {
+      toast.error(err.message || 'Fehler beim Speichern');
+    } finally {
+      setSavingCompany(false);
+    }
   };
 
   const handleSaveInvoiceDesign = async () => {
@@ -181,7 +252,7 @@ export function SettingsView() {
     setLogoBase64(null);
     toast.info('Logo entfernt');
   };
-  console.log('Merchant Settings Save Handler ready', handleSaveMerchantSettings);
+  // Merchant settings save handler is ready via handleSaveMerchantSettings
 
   // Handle Profile Save
   const handleSaveProfile = async () => {
@@ -256,6 +327,15 @@ export function SettingsView() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [savingPassword, setSavingPassword] = useState(false);
 
+  // Company Form State
+  const [companyName, setCompanyName] = useState('');
+  const [companyTaxId, setCompanyTaxId] = useState('');
+  const [companyVatId, setCompanyVatId] = useState('');
+  const [companyStreet, setCompanyStreet] = useState('');
+  const [companyPostal, setCompanyPostal] = useState('');
+  const [companyCity, setCompanyCity] = useState('');
+  const [savingCompany, setSavingCompany] = useState(false);
+
   // Initialize profile form from me data
   useEffect(() => {
     if (me?.user) {
@@ -266,6 +346,18 @@ export function SettingsView() {
     }
   }, [me]);
 
+  // Initialize company form from billing settings
+  useEffect(() => {
+    if (billingSettings) {
+      setCompanyName(billingSettings.company_name || currentTenant?.tenant_name || '');
+      setCompanyTaxId(billingSettings.tax_id || '');
+      setCompanyVatId('');
+      setCompanyStreet(billingSettings.address_line1 || '');
+      setCompanyPostal(billingSettings.postal_code || '');
+      setCompanyCity(billingSettings.city || '');
+    }
+  }, [billingSettings]);
+
   const tabs: { id: SettingsTab; label: string; shortLabel: string; icon: any }[] = [
     { id: 'profile', label: 'Mein Profil', shortLabel: 'Profil', icon: User },
     { id: 'company', label: 'Unternehmen', shortLabel: 'Firma', icon: Building2 },
@@ -275,6 +367,7 @@ export function SettingsView() {
     { id: 'billing', label: 'Abrechnung', shortLabel: 'Billing', icon: CreditCard },
     { id: 'support', label: 'Support', shortLabel: 'Support', icon: Headphones },
     { id: 'invoice', label: 'Rechnungen', shortLabel: 'Design', icon: FileText },
+    { id: 'wholesalers', label: t('wholesaler_title'), shortLabel: t('wholesaler_title'), icon: Package },
   ];
 
   const roleLabels = {
@@ -370,14 +463,8 @@ export function SettingsView() {
                       {firstName && lastName ? `${firstName[0]}${lastName[0]}`.toUpperCase() : 'MM'}
                     </div>
                     <div>
-                      <button
-                        onClick={() => toast.info('Foto-Upload kommt in einer zukünftigen Version')}
-                        className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
-                      >
-                        Foto hochladen
-                      </button>
-                      <p className="text-xs text-muted-foreground mt-2">
-                        JPG, PNG oder GIF. Max. 2MB.
+                      <p className="text-sm text-muted-foreground">
+                        Profilbild-Upload wird in einer zukünftigen Version verfügbar.
                       </p>
                     </div>
                   </div>
@@ -470,7 +557,8 @@ export function SettingsView() {
                     </label>
                     <input
                       type="text"
-                      defaultValue={currentTenant?.tenant_name || ''}
+                      value={companyName}
+                      onChange={(e) => setCompanyName(e.target.value)}
                       className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                     />
                   </div>
@@ -481,7 +569,9 @@ export function SettingsView() {
                       </label>
                       <input
                         type="text"
-                        defaultValue="DE123456789"
+                        value={companyTaxId}
+                        onChange={(e) => setCompanyTaxId(e.target.value)}
+                        placeholder="z.B. 27/123/45678"
                         className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                       />
                     </div>
@@ -491,7 +581,9 @@ export function SettingsView() {
                       </label>
                       <input
                         type="text"
-                        defaultValue="DE987654321"
+                        value={companyVatId}
+                        onChange={(e) => setCompanyVatId(e.target.value)}
+                        placeholder="z.B. DE123456789"
                         className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                       />
                     </div>
@@ -503,20 +595,23 @@ export function SettingsView() {
                     </label>
                     <input
                       type="text"
-                      defaultValue="Musterstraße 123"
+                      value={companyStreet}
+                      onChange={(e) => setCompanyStreet(e.target.value)}
                       className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all mb-3"
                       placeholder="Straße und Hausnummer"
                     />
                     <div className="grid grid-cols-3 gap-3">
                       <input
                         type="text"
-                        defaultValue="12345"
+                        value={companyPostal}
+                        onChange={(e) => setCompanyPostal(e.target.value)}
                         className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                         placeholder="PLZ"
                       />
                       <input
                         type="text"
-                        defaultValue="Berlin"
+                        value={companyCity}
+                        onChange={(e) => setCompanyCity(e.target.value)}
                         className="col-span-2 w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                         placeholder="Stadt"
                       />
@@ -525,9 +620,16 @@ export function SettingsView() {
                 </div>
 
                 <div className="mt-6 flex justify-end">
-                  <button className="px-6 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors flex items-center gap-2">
-                    <Save className="w-4 h-4" />
-                    Änderungen speichern
+                  <button
+                    onClick={handleSaveCompany}
+                    disabled={savingCompany}
+                    className="px-6 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors flex items-center gap-2 disabled:opacity-50"
+                  >
+                    {savingCompany ? (
+                      <><Loader2 className="w-4 h-4 animate-spin" /> Speichern...</>
+                    ) : (
+                      <><Save className="w-4 h-4" /> Änderungen speichern</>
+                    )}
                   </button>
                 </div>
               </div>
@@ -717,15 +819,12 @@ export function SettingsView() {
               {/* Two-Factor Auth */}
               <div className="bg-card border border-border rounded-xl p-6">
                 <h3 className="text-foreground font-medium mb-2">Zwei-Faktor-Authentifizierung</h3>
-                <p className="text-sm text-muted-foreground mb-6">
+                <p className="text-sm text-muted-foreground mb-4">
                   Erhöhe die Sicherheit deines Accounts mit 2FA
                 </p>
-                <button
-                  onClick={() => toast.info('2FA-Aktivierung kommt in einer zukünftigen Version')}
-                  className="px-6 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors"
-                >
-                  2FA aktivieren
-                </button>
+                <div className="px-4 py-3 bg-muted/50 border border-border rounded-lg text-sm text-muted-foreground">
+                  2FA wird in einer zukünftigen Version verfügbar sein.
+                </div>
               </div>
             </div>
           )}
@@ -749,7 +848,16 @@ export function SettingsView() {
                         <div className="text-sm text-muted-foreground">{notification.description}</div>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" defaultChecked className="sr-only peer" />
+                        <input
+                          type="checkbox"
+                          checked={notifications[notification.id] ?? true}
+                          onChange={(e) => {
+                            const updated = { ...notifications, [notification.id]: e.target.checked };
+                            setNotifications(updated);
+                            updateMerchantSettings({ notifications: updated }).catch(() => { });
+                          }}
+                          className="sr-only peer"
+                        />
                         <div className="w-11 h-6 bg-muted peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                       </label>
                     </div>
@@ -763,36 +871,11 @@ export function SettingsView() {
           {activeTab === 'billing' && (
             <div className="space-y-6">
               <div className="bg-card border border-border rounded-xl p-6">
-                <h3 className="text-foreground font-medium mb-6">Aktueller Plan</h3>
-                <div className="p-6 bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 rounded-xl">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <div className="text-2xl font-bold text-foreground">Professional</div>
-                      <div className="text-muted-foreground">Vollzugriff auf alle Features</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-3xl font-bold text-foreground">€500</div>
-                      <div className="text-sm text-muted-foreground">pro Monat</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <CheckCircle2 className="w-4 h-4 text-green-600" />
-                    Nächste Abrechnung am 01.01.2025
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-card border border-border rounded-xl p-6">
-                <h3 className="text-foreground font-medium mb-4">Zahlungsmethode</h3>
-                <div className="flex items-center justify-between p-4 bg-background border border-border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <CreditCard className="w-5 h-5 text-muted-foreground" />
-                    <div>
-                      <div className="font-medium text-foreground">•••• •••• •••• 4242</div>
-                      <div className="text-sm text-muted-foreground">Läuft ab 12/2025</div>
-                    </div>
-                  </div>
-                  <button className="text-sm text-primary hover:underline">Ändern</button>
+                <h3 className="text-foreground font-medium mb-6">Abrechnung</h3>
+                <div className="px-4 py-8 text-center text-muted-foreground bg-muted/30 rounded-xl border border-border">
+                  <CreditCard className="w-10 h-10 mx-auto mb-3 text-muted-foreground/40" />
+                  <p className="font-medium text-foreground mb-1">Abrechnungsdetails</p>
+                  <p className="text-sm">Kontaktieren Sie support@partsunion.de für Fragen zu Ihrem Tarif oder Ihrer Rechnung.</p>
                 </div>
               </div>
             </div>
@@ -810,50 +893,39 @@ export function SettingsView() {
 
                 <div className="p-6 bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 rounded-xl">
                   <div className="flex items-start gap-6">
-                    {/* Avatar */}
                     <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-2xl ring-4 ring-blue-500/20 flex-shrink-0">
-                      SK
+                      PU
                     </div>
-
-                    {/* Info */}
                     <div className="flex-1">
                       <div className="mb-4">
-                        <div className="text-xl font-semibold text-foreground mb-1">Sarah Klein</div>
-                        <div className="text-sm text-muted-foreground">Account Manager · Enterprise Sales</div>
+                        <div className="text-xl font-semibold text-foreground mb-1">PartsUnion Support</div>
+                        <div className="text-sm text-muted-foreground">Technischer Support & Account-Hilfe</div>
                       </div>
-
-                      {/* Contact Actions */}
                       <div className="grid grid-cols-2 gap-3">
                         <a
-                          href="mailto:sarah.klein@autoteile-dashboard.de"
+                          href="mailto:support@partsunion.de"
                           className="flex items-center gap-2 px-4 py-3 bg-card border border-border rounded-lg hover:border-primary hover:bg-primary/5 transition-all group"
                         >
                           <Mail className="w-4 h-4 text-muted-foreground group-hover:text-primary" />
                           <div className="text-left">
                             <div className="text-xs text-muted-foreground">E-Mail</div>
-                            <div className="text-sm font-medium text-foreground">Nachricht senden</div>
+                            <div className="text-sm font-medium text-foreground">support@partsunion.de</div>
                           </div>
                         </a>
-
                         <a
-                          href="tel:+4930123456789"
+                          href="https://partsunion.de"
+                          target="_blank"
+                          rel="noopener noreferrer"
                           className="flex items-center gap-2 px-4 py-3 bg-card border border-border rounded-lg hover:border-primary hover:bg-primary/5 transition-all group"
                         >
-                          <Phone className="w-4 h-4 text-muted-foreground group-hover:text-primary" />
+                          <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-primary" />
                           <div className="text-left">
-                            <div className="text-xs text-muted-foreground">Telefon</div>
-                            <div className="text-sm font-medium text-foreground">+49 30 123 456 789</div>
+                            <div className="text-xs text-muted-foreground">Website</div>
+                            <div className="text-sm font-medium text-foreground">partsunion.de</div>
                           </div>
                         </a>
                       </div>
-
-                      {/* Availability */}
                       <div className="mt-4 flex items-center gap-2 text-sm">
-                        <div className="flex items-center gap-1.5">
-                          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                          <span className="text-muted-foreground">Verfügbar</span>
-                        </div>
-                        <span className="text-muted-foreground">·</span>
                         <div className="flex items-center gap-1.5">
                           <Clock className="w-3.5 h-3.5 text-muted-foreground" />
                           <span className="text-muted-foreground">Mo-Fr 09:00-17:00 Uhr</span>
@@ -1423,6 +1495,166 @@ export function SettingsView() {
                       <div>Tel: +49 30 123 456 789 · E-Mail: info@autoteile-shop.de · USt-IdNr: DE987654321</div>
                     </div>
                   </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Wholesaler Tab */}
+          {activeTab === 'wholesalers' && (
+            <div className="space-y-6">
+              {/* Header */}
+              <div className="bg-card border border-border rounded-xl p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <div>
+                    <h3 className="text-foreground font-medium">{t('wholesaler_title')}</h3>
+                    <p className="text-sm text-muted-foreground mt-1">{t('wholesaler_subtitle')}</p>
+                  </div>
+                  <button
+                    onClick={() => setShowAddWholesaler(!showAddWholesaler)}
+                    className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors flex items-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    {t('wholesaler_add')}
+                  </button>
+                </div>
+              </div>
+
+              {/* Add Wholesaler Form */}
+              {showAddWholesaler && (
+                <div className="bg-card border border-primary/30 rounded-xl p-6 space-y-4">
+                  <h4 className="text-foreground font-medium">{t('wholesaler_add')}</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-1">{t('wholesaler_portal')}</label>
+                      <select
+                        value={newWholesalerPortal}
+                        onChange={(e) => setNewWholesalerPortal(e.target.value)}
+                        className="w-full h-10 px-3 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      >
+                        <option value="tecdoc">{t('wholesaler_portal_tecdoc')}</option>
+                        <option value="autodoc_pro">{t('wholesaler_portal_autodoc')}</option>
+                        <option value="stahlgruber">{t('wholesaler_portal_stahlgruber')}</option>
+                        <option value="wm_se">{t('wholesaler_portal_wmse')}</option>
+                        <option value="custom">{t('wholesaler_portal_custom')}</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-1">{t('wholesaler_name_label')}</label>
+                      <input
+                        type="text"
+                        value={newWholesalerName}
+                        onChange={(e) => setNewWholesalerName(e.target.value)}
+                        placeholder="z.B. Mein Stahlgruber Account"
+                        className="w-full h-10 px-3 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-1">{t('wholesaler_api_key')}</label>
+                      <input
+                        type="password"
+                        value={newWholesalerApiKey}
+                        onChange={(e) => setNewWholesalerApiKey(e.target.value)}
+                        placeholder="sk-..."
+                        className="w-full h-10 px-3 rounded-lg border border-border bg-background text-foreground font-mono focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-1">{t('wholesaler_account_id')}</label>
+                      <input
+                        type="text"
+                        value={newWholesalerAccountId}
+                        onChange={(e) => setNewWholesalerAccountId(e.target.value)}
+                        placeholder="Optional"
+                        className="w-full h-10 px-3 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 pt-2">
+                    <button
+                      onClick={handleAddWholesaler}
+                      disabled={!newWholesalerApiKey}
+                      className="px-6 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {t('save')}
+                    </button>
+                    <button
+                      onClick={() => setShowAddWholesaler(false)}
+                      className="px-4 py-2 text-sm text-foreground hover:bg-accent rounded-lg transition-colors"
+                    >
+                      {t('cancel')}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Wholesaler List */}
+              {wholesalers.length > 0 ? (
+                <div className="space-y-3">
+                  {wholesalers.map((ws: any) => (
+                    <div key={ws.id} className="bg-card border border-border rounded-xl p-5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                            <Package className="w-6 h-6 text-primary" />
+                          </div>
+                          <div>
+                            <div className="font-medium text-foreground">{ws.name}</div>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="px-2 py-0.5 bg-muted rounded text-xs font-medium text-muted-foreground">
+                                {portalLabels[ws.portal] || ws.portal}
+                              </span>
+                              {ws.accountId && (
+                                <span className="text-xs text-muted-foreground">
+                                  {t('wholesaler_account_id')}: {ws.accountId}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${ws.status === 'connected' ? 'bg-green-500/10 text-green-600' :
+                            ws.status === 'error' ? 'bg-red-500/10 text-red-600' :
+                              'bg-amber-500/10 text-amber-600'
+                            }`}>
+                            {ws.status === 'connected' ? t('wholesaler_connected') :
+                              ws.status === 'error' ? t('wholesaler_error') :
+                                t('wholesaler_pending')}
+                          </span>
+                          {ws.lastSync && (
+                            <span className="text-xs text-muted-foreground">
+                              {t('wholesaler_last_sync')}: {new Date(ws.lastSync).toLocaleString()}
+                            </span>
+                          )}
+                          <button
+                            onClick={() => handleDeleteWholesaler(ws.id)}
+                            className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                            title={t('delete')}
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-card border border-border rounded-xl p-8 text-center">
+                  <Package className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+                  <h4 className="text-foreground font-medium mb-1">{t('wholesaler_none')}</h4>
+                  <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                    {t('wholesaler_none_desc')}
+                  </p>
+                </div>
+              )}
+
+              {/* Info Box */}
+              <div className="p-4 bg-primary/5 border border-primary/20 rounded-xl">
+                <div className="flex items-start gap-3">
+                  <Package className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                  <p className="text-sm text-muted-foreground">
+                    API-Schlüssel werden verschlüsselt gespeichert. Nach dem Verbinden werden Produkte automatisch über die Großhändler-APIs gesucht wenn neue Kundenanfragen eingehen.
+                  </p>
                 </div>
               </div>
             </div>

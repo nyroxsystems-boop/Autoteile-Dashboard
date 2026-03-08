@@ -44,7 +44,7 @@ export default function InvoiceListView() {
             await loadInvoices();
         } catch (error) {
             console.error('Failed to mark as paid:', error);
-            alert('Fehler beim Markieren als bezahlt');
+            // Error already logged above
         }
     };
 
@@ -56,7 +56,7 @@ export default function InvoiceListView() {
             await loadInvoices();
         } catch (error) {
             console.error('Failed to cancel invoice:', error);
-            alert('Fehler beim Stornieren');
+            // Error already logged above
         }
     };
 

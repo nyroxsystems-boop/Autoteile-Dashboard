@@ -201,7 +201,7 @@ export function ArticleDetailView() {
                                 components={article.bom_components || []}
                                 onChange={(components) => {
                                     // In a real app, this would trigger an API call
-                                    console.log('Updated BOM:', components);
+                                    // BOM components updated
                                 }}
                                 availableArticles={[]}
                             />

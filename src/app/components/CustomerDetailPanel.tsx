@@ -1,5 +1,6 @@
 import { X, Phone, MapPin, Building2, FileText, MessageSquare, User } from 'lucide-react';
 import { StatusChip } from './StatusChip';
+import { toast } from 'sonner';
 
 interface Message {
   id: string;
@@ -85,12 +86,11 @@ export function CustomerDetailPanel({ customer, onClose, onCreateQuote }: Custom
                     {(['werkstatt', 'partner', 'endkunde'] as const).map((type) => (
                       <button
                         key={type}
-                        onClick={() => console.log('Update customer type:', type)}
-                        className={`flex-1 px-3 py-2 rounded-lg border-2 text-sm font-medium transition-all ${
-                          customer.customerType === type
-                            ? 'border-primary bg-primary/10 text-primary'
-                            : 'border-border bg-card text-muted-foreground hover:border-primary/50 hover:text-foreground'
-                        }`}
+                        onClick={() => toast.info(`Kundentyp "${type}" wird gespeichert`)}
+                        className={`flex-1 px-3 py-2 rounded-lg border-2 text-sm font-medium transition-all ${customer.customerType === type
+                          ? 'border-primary bg-primary/10 text-primary'
+                          : 'border-border bg-card text-muted-foreground hover:border-primary/50 hover:text-foreground'
+                          }`}
                       >
                         {type === 'werkstatt' ? '🔧 Werkstatt' : type === 'partner' ? '🤝 Partner' : '👤 Endkunde'}
                       </button>
@@ -116,7 +116,7 @@ export function CustomerDetailPanel({ customer, onClose, onCreateQuote }: Custom
                       {(['werkstatt', 'partner', 'endkunde'] as const).map((type) => (
                         <button
                           key={type}
-                          onClick={() => console.log('Set customer type:', type)}
+                          onClick={() => toast.info(`Kundentyp "${type}" wird gespeichert`)}
                           className="flex-1 px-3 py-2 rounded-lg border-2 border-amber-500/30 bg-white text-sm font-medium text-foreground hover:border-amber-500 hover:bg-amber-500/5 transition-all"
                         >
                           {type === 'werkstatt' ? '🔧 Werkstatt' : type === 'partner' ? '🤝 Partner' : '👤 Endkunde'}
@@ -265,13 +265,12 @@ export function CustomerDetailPanel({ customer, onClose, onCreateQuote }: Custom
                 className={`flex ${message.sender === 'customer' ? 'justify-start' : 'justify-end'}`}
               >
                 <div
-                  className={`max-w-[85%] rounded-lg p-3 ${
-                    message.sender === 'customer'
-                      ? 'bg-muted border border-border'
-                      : message.sender === 'bot'
+                  className={`max-w-[85%] rounded-lg p-3 ${message.sender === 'customer'
+                    ? 'bg-muted border border-border'
+                    : message.sender === 'bot'
                       ? 'bg-primary/10 border border-primary/20'
                       : 'bg-accent border border-border'
-                  }`}
+                    }`}
                 >
                   <div className="text-sm text-foreground mb-1">{message.text}</div>
                   {message.oemNumbers && message.oemNumbers.length > 0 && (
@@ -309,12 +308,12 @@ export function CustomerDetailPanel({ customer, onClose, onCreateQuote }: Custom
             </div>
           </div>
         )}
-        
+
         {/* WhatsApp Button - especially important for oem_pending */}
         <button
           onClick={() => {
             const phoneNumber = customer.whatsappNumber.replace(/\s/g, '').replace(/\+/g, '');
-            const message = customer.status === 'oem_pending' 
+            const message = customer.status === 'oem_pending'
               ? 'Hallo! Ich schaue mir gerade deine Anfrage an. Kannst du mir bitte die OEM-Nummer vom Teil nochmal schicken? Das geht am schnellsten.'
               : 'Hallo! Ich habe eine Frage zu deiner Anfrage.';
             window.open(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`, '_blank');
@@ -327,11 +326,10 @@ export function CustomerDetailPanel({ customer, onClose, onCreateQuote }: Custom
 
         <button
           onClick={onCreateQuote}
-          className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg transition-colors font-medium ${
-            customer.status === 'oem_pending'
-              ? 'bg-red-600 text-white hover:bg-red-700'
-              : 'bg-primary text-primary-foreground hover:bg-primary/90'
-          }`}
+          className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg transition-colors font-medium ${customer.status === 'oem_pending'
+            ? 'bg-red-600 text-white hover:bg-red-700'
+            : 'bg-primary text-primary-foreground hover:bg-primary/90'
+            }`}
         >
           <FileText className="w-4 h-4" strokeWidth={2} />
           {customer.status === 'oem_pending' ? 'OEM prüfen & Angebot erstellen' : 'Angebot erstellen'}

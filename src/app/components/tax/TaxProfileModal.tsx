@@ -56,10 +56,9 @@ export default function TaxProfileModal({ isOpen, onClose, existingProfile, onSu
 
     // Debug: Track isOpen prop changes
     useEffect(() => {
-        console.log('[TaxProfileModal] isOpen prop:', isOpen);
+        // Modal visibility handled by isOpen prop
     }, [isOpen]);
 
-    console.log('[TaxProfileModal] Rendering, isOpen=', isOpen);
 
     if (!isOpen) return null;
 

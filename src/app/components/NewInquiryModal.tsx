@@ -34,9 +34,25 @@ export function NewInquiryModal({ open, onOpenChange, onSuccess }: NewInquiryMod
 
         setLoading(true);
         try {
-            // TODO: Call API to create inquiry
-            // For now, simulate success
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            // Create order via API
+            const { apiFetch } = await import('../api/client');
+            await apiFetch('/api/orders/', {
+                method: 'POST',
+                body: JSON.stringify({
+                    customer_name: formData.customerName,
+                    customer_phone: formData.whatsappNumber,
+                    vehicle_json: {
+                        make: formData.vehicleMake,
+                        model: formData.vehicleModel,
+                        year: formData.vehicleYear,
+                    },
+                    part_json: {
+                        rawText: formData.partDescription,
+                    },
+                    oem_number: formData.oemNumber || null,
+                    status: 'lookup_oem',
+                }),
+            });
 
             toast.success('Anfrage erfolgreich erstellt');
             onOpenChange(false);

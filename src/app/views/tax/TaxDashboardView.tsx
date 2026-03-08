@@ -146,7 +146,7 @@ export default function TaxDashboardView() {
                                         window.URL.revokeObjectURL(downloadUrl);
                                     } catch (error) {
                                         console.error('Export failed:', error);
-                                        alert('Export fehlgeschlagen');
+                                        // Error is already logged above
                                     }
                                 }}
                                 className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm"

@@ -43,7 +43,7 @@ export function ReorderWizardView() {
     };
 
     const handleCreatePO = () => {
-        console.log('Creating purchase order for items:', Array.from(selectedItems));
+        // Creating purchase order for selected items
         // Navigate to PO creation view
     };
 

@@ -7,7 +7,7 @@ if (!API_BASE_URL || API_BASE_URL.startsWith('/')) {
     console.error('[API Client] Invalid API_BASE_URL:', API_BASE_URL);
     console.error('[API Client] Environment:', import.meta.env);
 } else {
-    console.log('[API Client] Using API_BASE_URL:', API_BASE_URL);
+    // API_BASE_URL configured via env
 }
 
 function getDeviceId() {

@@ -2,8 +2,10 @@
 import { useState, useEffect } from 'react';
 import { MessageSquare, Activity, Check, FileText, Warehouse, Loader2, AlertCircle } from 'lucide-react';
 import { getBotHealth, getDashboardSummary } from '../api/wws';
+import { useI18n } from '../../i18n';
 
 export function StatusView() {
+  const { t } = useI18n();
   const [botOnline, setBotOnline] = useState(false);
   const [apiOnline, setApiOnline] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -67,7 +69,7 @@ export function StatusView() {
   if (loading) return (
     <div className="p-20 text-center text-muted-foreground flex flex-col items-center gap-4">
       <Loader2 className="w-8 h-8 animate-spin" />
-      Prüfe Systemstatus...
+      {t('system_checking')}
     </div>
   );
 
@@ -77,9 +79,9 @@ export function StatusView() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-foreground">System-Status</h1>
+        <h1 className="text-foreground">{t('system_status')}</h1>
         <p className="text-muted-foreground mt-2 leading-relaxed">
-          Aktueller Zustand der Infrastruktur und Anbindungen
+          {t('system_subtitle')}
         </p>
       </div>
 
@@ -145,12 +147,12 @@ export function StatusView() {
           </div>
           <div className="flex-1">
             <div className="font-medium text-foreground mb-2">
-              {allOnline ? 'Systeme laufen einwandfrei' : 'Eingeschränkte Funktionalität'}
+              {allOnline ? t('system_all_ok') : t('system_issues')}
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">
               {allOnline
-                ? 'Alle kritischen Komponenten sind online. Der WhatsApp-Bot und das ERP-Backend sind synchronisiert.'
-                : 'Ein oder mehrere Systeme sind zurzeit nicht erreichbar. Bitte prüfen Sie die Backend-Verbindung.'
+                ? t('system_all_ok_desc')
+                : t('system_issues_desc')
               }
             </p>
           </div>

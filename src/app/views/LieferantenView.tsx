@@ -2,9 +2,11 @@ import { useSuppliers } from '../hooks/useSuppliers';
 import { StatusChip } from '../components/StatusChip';
 import { MetricCard } from '../components/MetricCard';
 import { Store, Clock, TrendingUp } from 'lucide-react';
+import { useI18n } from '../../i18n';
 
 export function LieferantenView() {
   const { suppliers, loading } = useSuppliers();
+  const { t } = useI18n();
 
   const getStatusVariant = (status: string) => {
     switch (status.toLowerCase()) {
@@ -29,7 +31,7 @@ export function LieferantenView() {
         return 'Online';
       case 'degraded':
       case 'warning':
-        return 'Eingeschränkt';
+        return t('suppliers_degraded');
       case 'offline':
       case 'disabled':
         return 'Offline';
@@ -38,29 +40,29 @@ export function LieferantenView() {
     }
   };
 
-  if (loading) return <div className="p-20 text-center text-muted-foreground">Lade Lieferanten...</div>;
+  if (loading) return <div className="p-20 text-center text-muted-foreground">{t('suppliers_loading')}</div>;
   // Silently handle errors - show empty state
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1>Lieferanten</h1>
+        <h1>{t('suppliers_title')}</h1>
         <p className="text-muted-foreground mt-2 leading-relaxed">
-          Shop-API Verbindungen und Verfügbarkeit
+          {t('suppliers_subtitle')}
         </p>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         <MetricCard
-          label="Aktive Lieferanten"
+          label={t('suppliers_active')}
           value={suppliers.filter(s => s.status?.toLowerCase() === 'online' || s.status?.toLowerCase() === 'active').length}
           icon={<Store className="w-5 h-5" />}
           variant="success"
         />
         <MetricCard
-          label="Ø Zuverlässigkeit"
+          label={t('suppliers_reliability')}
           value={suppliers.length > 0
             ? (suppliers.reduce((acc, s) => acc + (parseFloat(s.rating) || 5.0), 0) / suppliers.length * 20).toFixed(1) + "%"
             : "100%"}
@@ -68,7 +70,7 @@ export function LieferantenView() {
           variant="primary"
         />
         <MetricCard
-          label="Anzahl Gesamt"
+          label={t('suppliers_total')}
           value={suppliers.length}
           icon={<Clock className="w-5 h-5" />}
         />
@@ -81,19 +83,19 @@ export function LieferantenView() {
             <thead className="bg-muted/50 border-b border-border">
               <tr>
                 <th className="text-left px-6 py-4 text-muted-foreground uppercase tracking-wide" style={{ fontSize: '0.75rem', fontWeight: 600 }}>
-                  Lieferant
+                  {t('suppliers_name')}
                 </th>
                 <th className="text-left px-6 py-4 text-muted-foreground uppercase tracking-wide" style={{ fontSize: '0.75rem', fontWeight: 600 }}>
-                  Typ
+                  {t('suppliers_type')}
                 </th>
                 <th className="text-left px-6 py-4 text-muted-foreground uppercase tracking-wide" style={{ fontSize: '0.75rem', fontWeight: 600 }}>
-                  Status
+                  {t('suppliers_status')}
                 </th>
                 <th className="text-left px-6 py-4 text-muted-foreground uppercase tracking-wide" style={{ fontSize: '0.75rem', fontWeight: 600 }}>
-                  Zuletzt Gesehen
+                  {t('suppliers_last_seen')}
                 </th>
                 <th className="text-right px-6 py-4 text-muted-foreground uppercase tracking-wide" style={{ fontSize: '0.75rem', fontWeight: 600 }}>
-                  Zuverlässigkeit
+                  {t('suppliers_reliability_col')}
                 </th>
               </tr>
             </thead>
@@ -113,7 +115,7 @@ export function LieferantenView() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="px-2.5 py-1 bg-muted rounded-md text-sm font-medium w-fit">
-                      {supplier.api_type || 'Manuell'}
+                      {supplier.api_type || t('suppliers_manual')}
                     </div>
                   </td>
                   <td className="px-6 py-4">
@@ -126,7 +128,7 @@ export function LieferantenView() {
                   <td className="px-6 py-4 text-muted-foreground">
                     <div className="flex items-center gap-2">
                       <Clock className="w-3.5 h-3.5" />
-                      <span>{supplier.lastUpdate || 'Heute'}</span>
+                      <span>{supplier.lastUpdate || t('today')}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-right">
@@ -152,7 +154,7 @@ export function LieferantenView() {
       {/* Info Box */}
       <div className="p-5 bg-primary/5 border border-primary/20 rounded-xl">
         <p className="text-muted-foreground leading-relaxed">
-          Shop-APIs werden alle 2 Minuten aktualisiert. Bei Verbindungsproblemen wird automatisch auf alternative Lieferanten ausgewichen.
+          {t('suppliers_info')}
         </p>
       </div>
     </div>

@@ -12,7 +12,7 @@ const WAWI_BASE_URL = import.meta.env.VITE_WAWI_BASE_URL || 'https://wawi-produc
 if (!WAWI_BASE_URL || WAWI_BASE_URL === '/') {
     console.error('[WaWi Client] Invalid WAWI_BASE_URL:', WAWI_BASE_URL);
 } else {
-    console.log('[WaWi Client] Using WAWI_BASE_URL:', WAWI_BASE_URL);
+    // WAWI_BASE_URL configured via env
 }
 
 function getDeviceId(): string {

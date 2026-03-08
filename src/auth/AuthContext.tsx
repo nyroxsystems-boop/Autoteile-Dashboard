@@ -110,7 +110,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (storedSession) {
                 // Check if token is expired
                 if (storedSession.expiresAt && isTokenExpired(storedSession.expiresAt)) {
-                    console.log('Token expired, logging out');
+                    // Token expired, logging out
                     clearSession();
                     setLoading(false);
                     return;

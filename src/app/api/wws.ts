@@ -134,11 +134,23 @@ export interface MeResponse {
     } | null;
 }
 
+export interface WholesalerConfig {
+    id: string;
+    name: string;
+    portal: 'tecdoc' | 'autodoc_pro' | 'stahlgruber' | 'wm_se' | 'custom';
+    apiKey: string;       // masked in API responses
+    accountId?: string;   // Kundennummer
+    status: 'connected' | 'error' | 'pending';
+    lastSync?: string;
+    createdAt?: string;
+}
+
 export interface MerchantSettings {
     merchantId: string;
-    selectedShops: string[];
+    wholesalers: WholesalerConfig[];
     marginPercent: number;
     priceProfiles: any[];
+    notifications?: Record<string, boolean>;
 }
 
 export interface Message {

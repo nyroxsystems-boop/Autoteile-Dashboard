@@ -7,11 +7,13 @@ import { useNavigate } from 'react-router-dom';
 import { listInvoices, markInvoiceAsPaid, cancelInvoice, type Invoice, type InvoiceStatus } from '../services/taxService';
 import InvoiceCreationModal from '../components/tax/InvoiceCreationModal';
 import { toast } from 'sonner';
+import { useI18n } from '../../i18n';
 
 type TabType = 'all' | 'outgoing' | 'incoming' | 'tax-office';
 
 export function DocumentsInvoicesView() {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [activeTab, setActiveTab] = useState<TabType>('all');
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,7 +26,7 @@ export function DocumentsInvoicesView() {
 
     // Listen for invoice creation events from other views
     const handleInvoiceCreated = () => {
-      console.log('[DocumentsInvoicesView] Invoice created event received, refreshing list...');
+      // Invoice created event received, refresh list
       loadInvoices();
     };
 
@@ -42,7 +44,7 @@ export function DocumentsInvoicesView() {
       setInvoices(data);
     } catch (error) {
       console.error('Failed to load invoices:', error);
-      toast.error('Fehler beim Laden der Belege');
+      toast.error(t('error'));
     } finally {
       setLoading(false);
     }
@@ -51,7 +53,7 @@ export function DocumentsInvoicesView() {
   const handleMarkAsPaid = async (id: string) => {
     try {
       await markInvoiceAsPaid(id);
-      toast.success('Rechnung als bezahlt markiert');
+      toast.success(t('docs_marked_paid'));
       loadInvoices();
     } catch (error: any) {
       toast.error('Fehler: ' + error.message);
@@ -59,11 +61,11 @@ export function DocumentsInvoicesView() {
   };
 
   const handleCancel = async (id: string) => {
-    if (!confirm('Rechnung wirklich stornieren?')) return;
+    if (!confirm(t('docs_cancel_confirm'))) return;
 
     try {
       await cancelInvoice(id);
-      toast.success('Rechnung storniert');
+      toast.success(t('docs_canceled'));
       loadInvoices();
     } catch (error: any) {
       toast.error('Fehler: ' + error.message);
@@ -108,11 +110,11 @@ export function DocumentsInvoicesView() {
       canceled: 'bg-red-100 text-red-700',
     };
 
-    const labels = {
-      draft: 'Entwurf',
-      issued: 'Versendet',
-      paid: 'Bezahlt',
-      canceled: 'Storniert',
+    const labels: Record<InvoiceStatus, string> = {
+      draft: t('docs_status_draft'),
+      issued: t('docs_status_issued'),
+      paid: t('docs_status_paid'),
+      canceled: t('docs_status_canceled'),
     };
 
     return (
@@ -127,7 +129,7 @@ export function DocumentsInvoicesView() {
       return (
         <div className="p-8 text-center">
           <Building2 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Finanzamt-Bereich</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('docs_tax')}</h3>
           <p className="text-gray-600 mb-6">
             UStVA-Export, Quartalsberichte und Zusammenfassende Meldungen
           </p>
@@ -135,7 +137,7 @@ export function DocumentsInvoicesView() {
             onClick={() => navigate('/bot/tax/dashboard')}
             className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
-            Zum Steuer-Dashboard →
+            {t('docs_tax')} →
           </button>
         </div>
       );
@@ -146,7 +148,7 @@ export function DocumentsInvoicesView() {
       return (
         <div className="p-8 text-center">
           <Upload className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Eingangsrechnungen</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('docs_incoming')}</h3>
           <p className="text-gray-600 mb-4">
             Erfassen Sie Rechnungen von Lieferanten für die Vorsteuer-Berechnung.
           </p>
@@ -161,7 +163,7 @@ export function DocumentsInvoicesView() {
     if (loading) {
       return (
         <div className="flex items-center justify-center py-12">
-          <div className="text-gray-500">Lade Belege...</div>
+          <div className="text-gray-500">{t('docs_loading')}</div>
         </div>
       );
     }
@@ -170,7 +172,7 @@ export function DocumentsInvoicesView() {
       return (
         <div className="text-center py-12">
           <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Keine Belege gefunden</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('docs_no_invoices')}</h3>
           <p className="text-gray-600 mb-6">
             {searchQuery ? 'Keine Ergebnisse für Ihre Suche' : 'Erstellen Sie Ihre erste Rechnung'}
           </p>
@@ -179,7 +181,7 @@ export function DocumentsInvoicesView() {
               onClick={() => setShowCreateModal(true)}
               className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
             >
-              Rechnung erstellen
+              {t('orders_create_invoice')}
             </button>
           )}
         </div>
@@ -191,13 +193,13 @@ export function DocumentsInvoicesView() {
         <table className="w-full">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nr.</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Datum</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kunde</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Auftrag</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Betrag</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Aktionen</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('docs_invoice_number')}</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('docs_date')}</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('docs_customer')}</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('orders_title')}</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('docs_amount')}</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('orders_status')}</th>
+              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">{t('docs_actions')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
@@ -351,12 +353,12 @@ export function DocumentsInvoicesView() {
     <div className="p-6 space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">Belege & Rechnungen</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t('docs_title')}</h1>
         <div className="flex gap-2">
           {activeTab === 'incoming' ? (
             <button className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
               <Upload className="w-4 h-4" />
-              Beleg hochladen
+              {t('docs_incoming')}
             </button>
           ) : (
             <button
@@ -364,7 +366,7 @@ export function DocumentsInvoicesView() {
               className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
             >
               <Plus className="w-4 h-4" />
-              Neue Rechnung
+              {t('docs_new_invoice')}
             </button>
           )}
         </div>
@@ -374,10 +376,10 @@ export function DocumentsInvoicesView() {
       <div className="border-b border-gray-200">
         <nav className="-mb-px flex gap-6">
           {[
-            { id: 'all', label: 'Alle Belege', icon: FileText },
-            { id: 'outgoing', label: 'Ausgangsrechnungen', icon: FileText },
-            { id: 'incoming', label: 'Eingangsrechnungen', icon: Upload },
-            { id: 'tax-office', label: 'Finanzamt', icon: Building2 },
+            { id: 'all', label: t('all'), icon: FileText },
+            { id: 'outgoing', label: t('docs_outgoing'), icon: FileText },
+            { id: 'incoming', label: t('docs_incoming'), icon: Upload },
+            { id: 'tax-office', label: t('docs_tax'), icon: Building2 },
           ].map(tab => {
             const Icon = tab.icon;
             return (
@@ -414,11 +416,11 @@ export function DocumentsInvoicesView() {
             onChange={(e) => setFilterStatus(e.target.value as InvoiceStatus | 'all')}
             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
-            <option value="all">Alle Status</option>
-            <option value="draft">Entwürfe</option>
-            <option value="issued">Versendet</option>
-            <option value="paid">Bezahlt</option>
-            <option value="canceled">Storniert</option>
+            <option value="all">{t('all')}</option>
+            <option value="draft">{t('docs_status_draft')}</option>
+            <option value="issued">{t('docs_status_issued')}</option>
+            <option value="paid">{t('docs_status_paid')}</option>
+            <option value="canceled">{t('docs_status_canceled')}</option>
           </select>
         </div>
       )}

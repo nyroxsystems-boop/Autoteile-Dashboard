@@ -8,9 +8,14 @@ import { Car, MessageSquare, User, Truck, Clock, AlertCircle, FileText } from 'l
 import { useOrders } from '../hooks/useOrders';
 import { getOrderOffers, publishOffers, getOrderMessages, sendMessage, Offer, Order, Message, createInvoiceFromOrder } from '../api/wws';
 import { toast } from 'sonner';
+import { useI18n } from '../../i18n';
+import { useMerchantSettings } from '../hooks/useMerchantSettings';
 
 export function AuftraegeView() {
   const navigate = useNavigate();
+  const { t } = useI18n();
+  const { settings: merchantSettings } = useMerchantSettings();
+  const hasWholesaler = (merchantSettings?.wholesalers?.length || 0) > 0;
   const { orders, loading, error, refresh } = useOrders();
   const [selectedOrderId, setSelectedOrderId] = useState<string | number | null>(null);
   const [offers, setOffers] = useState<Offer[]>([]);
@@ -68,11 +73,11 @@ export function AuftraegeView() {
       // Get draft offer IDs - keep as strings (UUIDs)
       const ids = offers.filter(o => o.status === 'draft').map(o => o.id);
       if (ids.length === 0) {
-        toast.error('Keine neuen Angebote zum Veröffentlichen');
+        toast.error(t('orders_no_offers_publish'));
         return;
       }
       await publishOffers(selectedOrderId, ids);
-      toast.success('Angebote an Kunden gesendet');
+      toast.success(t('orders_offers_sent'));
       loadOffers(selectedOrderId as number);
     } catch (err) {
       toast.error('Fehler beim Senden');
@@ -83,7 +88,7 @@ export function AuftraegeView() {
     if (!selectedOrderId) return;
     try {
       const invoice = await createInvoiceFromOrder(selectedOrderId as string);
-      toast.success(`Rechnung ${invoice.invoice_number} erstellt!`);
+      toast.success(t('orders_invoice_created'));
 
       // Trigger global invoice list refresh
       window.dispatchEvent(new CustomEvent('invoiceCreated', { detail: invoice }));
@@ -92,23 +97,23 @@ export function AuftraegeView() {
     } catch (err: any) {
       // Check if it's a duplicate
       if (err.message?.includes('already exists')) {
-        toast.info('Rechnung existiert bereits für diesen Auftrag');
+        toast.info(t('orders_invoice_exists'));
       } else {
         toast.error(`Fehler: ${err.message || 'Unbekannter Fehler'}`);
       }
     }
   };
 
-  if (loading) return <div className="p-8 text-center text-muted-foreground font-medium bg-card/30 rounded-2xl border border-dashed border-border py-20">Lade Aufträge...</div>;
+  if (loading) return <div className="p-8 text-center text-muted-foreground font-medium bg-card/30 rounded-2xl border border-dashed border-border py-20">{t('orders_loading')}</div>;
   if (error) return <div className="p-8 text-center text-error bg-error/5 rounded-2xl border border-error/20 py-20 flex flex-col items-center gap-3"><AlertCircle className="w-8 h-8" /> <span>{error}</span></div>;
 
   const timelineSteps = (order: Order) => [
-    { label: 'Anfrage empfangen', completed: true },
-    { label: 'OEM geprüft', completed: !!(order.oem_number || order.oem) },
-    { label: 'Angebote eingeholt', completed: offers.length > 0 },
-    { label: 'Kunde wartet', completed: order.status === 'collect_part', current: order.status === 'collect_part' },
-    { label: 'Auftrag bestätigt', completed: order.status === 'done' },
-    { label: 'Beleg erstellt', completed: order.status === 'invoiced' },
+    { label: t('status_request_received'), completed: true },
+    { label: t('status_oem_checked'), completed: !!(order.oem_number || order.oem) },
+    { label: t('status_offers_found'), completed: offers.length > 0 },
+    { label: t('status_customer_waiting'), completed: order.status === 'collect_part', current: order.status === 'collect_part' },
+    { label: t('status_order_confirmed'), completed: order.status === 'done' },
+    { label: t('status_receipt_created'), completed: order.status === 'invoiced' },
   ];
 
   return (
@@ -116,9 +121,9 @@ export function AuftraegeView() {
       {/* Order List - Left Side */}
       <div className="col-span-5 space-y-6 overflow-y-auto pr-2">
         <div>
-          <h1>Aufträge</h1>
+          <h1>{t('orders_title')}</h1>
           <p className="text-muted-foreground mt-2 leading-relaxed">
-            Echte Daten aus dem WAWI-Backend (InvenTree)
+            {t('orders_subtitle')}
           </p>
         </div>
 
@@ -147,7 +152,7 @@ export function AuftraegeView() {
                   <div className="flex-1">
                     <div className="flex items-center gap-2.5 mb-1.5">
                       <MessageSquare className="w-4 h-4 text-primary" />
-                      <span className="font-medium">{order.contact?.name || order.customerPhone || 'Unbekannter Kunde'}</span>
+                      <span className="font-medium">{order.contact?.name || order.customerPhone || t('orders_unknown_customer')}</span>
                     </div>
                     <div className="flex items-center gap-2 text-muted-foreground text-sm">
                       <Car className="w-3.5 h-3.5" />
@@ -166,17 +171,17 @@ export function AuftraegeView() {
                         title="Zur Rechnung navigieren"
                       >
                         <FileText className="w-3 h-3" />
-                        Rechnung
+                        {t('orders_invoice')}
                       </button>
                     )}
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <code className="px-2.5 py-1 bg-muted rounded-md text-xs font-mono font-medium">
-                    {oem || 'Keine OEM'}
+                    {oem || t('orders_no_oem')}
                   </code>
                   <span className="text-muted-foreground text-sm truncate">
-                    {partText || 'Teil unbekannt'}
+                    {partText || t('orders_part_unknown')}
                   </span>
                 </div>
               </button>
@@ -198,12 +203,12 @@ export function AuftraegeView() {
             </div>
 
             <div className="space-y-5">
-              <h3>Kontext</h3>
+              <h3>{t('orders_context')}</h3>
               <div className="grid grid-cols-2 gap-6">
                 <div className="flex items-start gap-3">
                   <User className="w-5 h-5 text-muted-foreground mt-0.5" />
                   <div>
-                    <div className="text-muted-foreground text-sm mb-1">Ansprechpartner</div>
+                    <div className="text-muted-foreground text-sm mb-1">{t('orders_contact')}</div>
                     <div className="font-medium">{selectedOrder.contact?.name || '-'}</div>
                   </div>
                 </div>
@@ -217,7 +222,7 @@ export function AuftraegeView() {
                 <div className="flex items-start gap-3">
                   <Car className="w-5 h-5 text-muted-foreground mt-0.5" />
                   <div>
-                    <div className="text-muted-foreground text-sm mb-1">Fahrzeug</div>
+                    <div className="text-muted-foreground text-sm mb-1">{t('orders_vehicle')}</div>
                     <div className="font-medium">
                       {(selectedOrder.vehicle || selectedOrder.vehicle_json)?.make} {(selectedOrder.vehicle || selectedOrder.vehicle_json)?.model} ({(selectedOrder.vehicle || selectedOrder.vehicle_json)?.year})
                     </div>
@@ -227,18 +232,18 @@ export function AuftraegeView() {
             </div>
 
             <div className="space-y-5">
-              <h3>Teile & OEM</h3>
+              <h3>{t('orders_parts_oem')}</h3>
               <div className="p-5 bg-muted/50 rounded-xl border border-border">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-muted-foreground text-sm mb-2">OEM-Nummer</div>
+                    <div className="text-muted-foreground text-sm mb-2">{t('orders_oem_number')}</div>
                     <code className="px-3 py-1.5 bg-background border border-border rounded-md font-mono font-medium">
-                      {(selectedOrder.oem_number || selectedOrder.oem) || 'NICHT GEFUNDEN'}
+                      {(selectedOrder.oem_number || selectedOrder.oem) || t('orders_not_found')}
                     </code>
                   </div>
                   {(selectedOrder.oem_number || selectedOrder.oem) && (
                     <div className="px-3 py-1.5 bg-success/10 text-success rounded-md text-sm font-medium border border-success/20">
-                      Geprüft
+                      {t('orders_verified')}
                     </div>
                   )}
                 </div>
@@ -249,28 +254,42 @@ export function AuftraegeView() {
             <div className="space-y-4">
               <h3 className="flex items-center gap-2">
                 <Truck className="w-5 h-5 text-primary" />
-                Gefundene Angebote
+                {t('orders_found_offers')}
               </h3>
               {offersLoading ? (
                 <div className="flex items-center gap-2 text-muted-foreground animate-pulse">
                   <Clock className="w-4 h-4 animate-spin" />
-                  Suche Angebote...
+                  {t('orders_searching')}
                 </div>
               ) : (
                 <div className="bg-muted/30 border border-border rounded-xl overflow-hidden">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="bg-muted/50 text-muted-foreground border-b border-border">
-                        <th className="px-4 py-3 text-left font-semibold uppercase tracking-wider text-[10px]">Lieferant / Produkt</th>
-                        <th className="px-4 py-3 text-left font-semibold uppercase tracking-wider text-[10px]">Status</th>
-                        <th className="px-4 py-3 text-right font-semibold uppercase tracking-wider text-[10px]">Preis</th>
+                        <th className="px-4 py-3 text-left font-semibold uppercase tracking-wider text-[10px]">{t('orders_supplier_product')}</th>
+                        <th className="px-4 py-3 text-left font-semibold uppercase tracking-wider text-[10px]">{t('orders_status')}</th>
+                        <th className="px-4 py-3 text-right font-semibold uppercase tracking-wider text-[10px]">{t('orders_price')}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border bg-card">
                       {offers.length === 0 ? (
                         <tr>
-                          <td colSpan={3} className="px-4 py-8 text-center text-muted-foreground italic">
-                            Noch keine Angebote hinterlegt.
+                          <td colSpan={3} className="px-4 py-8 text-center">
+                            {!hasWholesaler ? (
+                              <div className="space-y-3">
+                                <AlertCircle className="w-8 h-8 text-amber-500 mx-auto" />
+                                <p className="font-medium text-foreground">{t('wholesaler_none')}</p>
+                                <p className="text-sm text-muted-foreground max-w-sm mx-auto">{t('wholesaler_none_desc')}</p>
+                                <button
+                                  onClick={() => navigate('/bot/settings')}
+                                  className="mt-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
+                                >
+                                  {t('wholesaler_setup')} →
+                                </button>
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground italic">{t('orders_no_offers')}</span>
+                            )}
                           </td>
                         </tr>
                       ) : (
@@ -285,7 +304,7 @@ export function AuftraegeView() {
                             <td className="px-4 py-3">
                               <StatusChip
                                 status={offer.status === 'published' ? 'success' : 'waiting'}
-                                label={offer.status === 'published' ? 'Gesendet' : 'Bereit'}
+                                label={offer.status === 'published' ? t('orders_sent') : t('orders_ready')}
                                 size="sm"
                               />
                             </td>
@@ -302,13 +321,13 @@ export function AuftraegeView() {
             </div>
 
             <div className="space-y-5">
-              <h3>Kommunikation</h3>
+              <h3>{t('orders_communication')}</h3>
               <div className="border border-border rounded-xl bg-card overflow-hidden">
                 <div className="h-[300px] overflow-y-auto p-4 space-y-4 bg-muted/30">
                   {messages.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
                       <MessageSquare className="w-8 h-8 mb-2 opacity-50" />
-                      <p>Keine Nachrichten vorhanden</p>
+                      <p>{t('orders_no_messages')}</p>
                     </div>
                   ) : (
                     messages.map((msg) => (
@@ -332,44 +351,45 @@ export function AuftraegeView() {
                     value={newMessageText}
                     onChange={(e) => setNewMessageText(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                    placeholder="Nachricht schreiben..."
+                    placeholder={t('orders_write_message')}
                     className="flex-1 bg-muted/50 border-none rounded-lg px-4 focus:ring-1 focus:ring-primary outline-none"
                   />
                   <Button size="sm" onClick={handleSendMessage} disabled={!newMessageText.trim()}>
-                    Senden
+                    {t('orders_send')}
                   </Button>
                 </div>
               </div>
             </div>
 
             <div className="space-y-5">
-              <h3>Fortschritt</h3>
+              <h3>{t('orders_progress')}</h3>
               <OrderTimeline steps={timelineSteps(selectedOrder)} />
             </div>
 
             <div className="pt-6 border-t border-border flex gap-4">
               {selectedOrder.status === 'collect_part' ? (
                 <Button size="lg" className="w-full" onClick={handlePublish}>
-                  An Kunden senden
+                  {t('orders_send_to_customer')}
                 </Button>
               ) : (selectedOrder.status === 'done' || selectedOrder.status === 'shipped' || selectedOrder.status === 'confirmed') ? (
                 <Button size="lg" variant="outline" className="w-full" onClick={handleCreateInvoice}>
-                  Rechnung erstellen
+                  {t('orders_create_invoice')}
                 </Button>
               ) : (
                 <Button size="lg" variant="ghost" className="w-full" disabled>
-                  Keine Aktion möglich
+                  {t('orders_no_action')}
                 </Button>
               )}
             </div>
           </div>
-        ) : <div className="h-full flex items-center justify-center text-muted-foreground italic">Wähle einen Auftrag aus</div>}
+        ) : <div className="h-full flex items-center justify-center text-muted-foreground italic">{t('orders_select_order')}</div>}
       </div>
     </div>
   );
 }
 
 function mapStatus(raw: string) {
+  // Status labels are translated at render time via t() in the component
   switch (raw) {
     case 'collect_part': return { variant: 'waiting', label: 'Wartet auf Teile' };
     case 'lookup_oem': return { variant: 'processing', label: 'OEM Suche' };

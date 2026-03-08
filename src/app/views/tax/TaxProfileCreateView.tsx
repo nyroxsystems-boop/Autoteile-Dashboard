@@ -37,7 +37,7 @@ export default function TaxProfileCreateView() {
                 });
             }
         } catch (error) {
-            console.log('No existing profile found');
+            // No existing profile found, using defaults
         }
     };
 
