@@ -68,6 +68,20 @@ export async function wawiFetch<T>(endpoint: string, options: RequestInit = {}):
 }
 
 /**
+ * Fetch a list endpoint that may return paginated DRF response.
+ * Automatically unwraps { count, next, results: T[] } → T[]
+ * Also handles plain array responses for backwards compatibility.
+ */
+export async function wawiFetchList<T>(endpoint: string, options: RequestInit = {}): Promise<T[]> {
+    const data = await wawiFetch<T[] | { count: number; next: string | null; results: T[] }>(endpoint, options);
+    if (Array.isArray(data)) return data;
+    if (data && typeof data === 'object' && 'results' in data) {
+        return (data as { results: T[] }).results;
+    }
+    return data as unknown as T[];
+}
+
+/**
  * Fetch binary content (e.g. PDF downloads) from WaWi backend.
  */
 export async function wawiFetchBlob(endpoint: string, options: RequestInit = {}): Promise<Blob> {

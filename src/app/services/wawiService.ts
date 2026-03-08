@@ -1,4 +1,4 @@
-import { wawiFetch } from '../api/wawiClient';
+import { wawiFetch, wawiFetchList } from '../api/wawiClient';
 
 export interface Part {
     id: number | string;
@@ -108,7 +108,7 @@ export interface PurchaseOrderItem {
 export const wawiService = {
     // ── Products ──────────────────────────────────────────────
     getArticles: async () => {
-        return await wawiFetch<Part[]>('/api/products/');
+        return await wawiFetchList<Part>('/api/products/');
     },
 
     getArticleDetails: async (id: number | string) => {
@@ -135,11 +135,11 @@ export const wawiService = {
 
     // ── Stock Movements ──────────────────────────────────────
     getRecentMovements: async (limit = 50) => {
-        return await wawiFetch<StockMovement[]>(`/api/stock-movements/?limit=${limit}`);
+        return await wawiFetchList<StockMovement>(`/api/stock-movements/?limit=${limit}`);
     },
 
     getMovementHistory: async (partId: number | string) => {
-        return await wawiFetch<StockMovement[]>(`/api/stock-movements/?part_id=${partId}`);
+        return await wawiFetchList<StockMovement>(`/api/stock-movements/?part_id=${partId}`);
     },
 
     createMovement: async (movement: Partial<StockMovement>) => {
@@ -151,7 +151,7 @@ export const wawiService = {
 
     // ── Locations ─────────────────────────────────────────────
     getLocations: async () => {
-        return await wawiFetch<WarehouseLocation[]>('/api/stock-locations/');
+        return await wawiFetchList<WarehouseLocation>('/api/stock-locations/');
     },
 
     createLocation: async (data: Partial<WarehouseLocation>) => {
@@ -163,7 +163,7 @@ export const wawiService = {
 
     // ── Suppliers ─────────────────────────────────────────────
     getSuppliers: async () => {
-        return await wawiFetch<Supplier[]>('/api/suppliers/');
+        return await wawiFetchList<Supplier>('/api/suppliers/');
     },
 
     getSupplierDetails: async (id: number | string) => {
@@ -192,12 +192,12 @@ export const wawiService = {
         const url = supplierId
             ? `/api/supplier-articles/?supplier_id=${supplierId}`
             : '/api/supplier-articles/';
-        return await wawiFetch<SupplierArticle[]>(url);
+        return await wawiFetchList<SupplierArticle>(url);
     },
 
     // ── Purchase Orders ──────────────────────────────────────
     getPurchaseOrders: async () => {
-        return await wawiFetch<PurchaseOrder[]>('/api/purchase-orders/');
+        return await wawiFetchList<PurchaseOrder>('/api/purchase-orders/');
     },
 
     createPurchaseOrder: async (order: {

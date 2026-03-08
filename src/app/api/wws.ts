@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
-import { wawiFetch, wawiFetchBlob } from './wawiClient';
+import { wawiFetch, wawiFetchBlob, wawiFetchList } from './wawiClient';
 
 // Aligned with bot-service/src/types/dashboard.ts
 
@@ -175,11 +175,11 @@ export interface ActiveDevice {
 }
 
 export async function getOrders(): Promise<Order[]> {
-    return wawiFetch<Order[]>('/api/orders/');
+    return wawiFetchList<Order>('/api/orders/');
 }
 
 export async function getOrderMessages(orderId: string | number): Promise<Message[]> {
-    return wawiFetch<Message[]>(`/api/orders/${orderId}/messages/`);
+    return wawiFetchList<Message>(`/api/orders/${orderId}/messages/`);
 }
 
 export async function sendMessage(orderId: string | number, content: string): Promise<Message> {
@@ -190,7 +190,7 @@ export async function sendMessage(orderId: string | number, content: string): Pr
 }
 
 export async function getOrderOffers(orderId: string | number): Promise<Offer[]> {
-    return wawiFetch<Offer[]>(`/api/orders/${orderId}/offers/`);
+    return wawiFetchList<Offer>(`/api/orders/${orderId}/offers/`);
 }
 
 export async function createOffer(orderId: string | number, offerData: any): Promise<Offer> {
@@ -214,11 +214,11 @@ export async function createInvoice(orderId: string | number): Promise<Invoice> 
 }
 
 export async function getInvoices(): Promise<Invoice[]> {
-    return wawiFetch<Invoice[]>('/api/billing/invoices/');
+    return wawiFetchList<Invoice>('/api/billing/invoices/');
 }
 
 export async function getSuppliers(): Promise<Supplier[]> {
-    return wawiFetch<Supplier[]>('/api/suppliers/');
+    return wawiFetchList<Supplier>('/api/suppliers/');
 }
 
 export async function login(credentials: { email?: string, username?: string, password?: string, tenant?: string }): Promise<any> {
@@ -238,15 +238,15 @@ export async function login(credentials: { email?: string, username?: string, pa
 }
 
 export async function getMeTenants(): Promise<any[]> {
-    return wawiFetch<any[]>('/api/auth/me/tenants/');
+    return wawiFetchList<any>('/api/auth/me/tenants/');
 }
 
 export async function getCustomers(): Promise<any[]> {
-    return wawiFetch<any[]>('/api/customers/');
+    return wawiFetchList<any>('/api/whatsapp/contacts/');
 }
 
 export async function getConversations(): Promise<any[]> {
-    return wawiFetch<any[]>('/api/conversations/');
+    return wawiFetchList<any>('/api/whatsapp/contacts/');
 }
 
 export async function downloadInvoicePdf(id: number): Promise<void> {
@@ -294,15 +294,11 @@ export async function getBotHealth(): Promise<{ status: string }> {
 }
 
 export async function getMerchantSettings(): Promise<MerchantSettings> {
-    const me = await getMe();
-    const tenantSlug = me.tenant?.slug || 'default';
-    return wawiFetch<MerchantSettings>(`/api/dashboard/merchant/settings/${tenantSlug}`);
+    return wawiFetch<MerchantSettings>('/api/dashboard/merchant/settings/');
 }
 
 export async function updateMerchantSettings(settings: Partial<MerchantSettings>): Promise<{ ok: boolean }> {
-    const me = await getMe();
-    const tenantSlug = me.tenant?.slug || 'default';
-    return wawiFetch<{ ok: boolean }>(`/api/dashboard/merchant/settings/${tenantSlug}`, {
+    return wawiFetch<{ ok: boolean }>('/api/dashboard/merchant/settings/', {
         method: 'POST',
         body: JSON.stringify(settings),
     });
@@ -312,31 +308,32 @@ export async function getAdminStats(): Promise<AdminStats> {
 }
 
 export async function listActiveDevices(tenantId: number): Promise<ActiveDevice[]> {
-    return wawiFetch<ActiveDevice[]>(`/api/admin/tenants/${tenantId}/devices`);
+    return wawiFetchList<ActiveDevice>(`/api/tenants/${tenantId}/devices/`);
 }
 
 export async function removeActiveDevice(tenantId: number, deviceId: string): Promise<void> {
-    return wawiFetch(`/api/admin/tenants/${tenantId}/devices/${deviceId}`, {
-        method: 'DELETE'
+    return wawiFetch(`/api/tenants/${tenantId}/remove-device/`, {
+        method: 'POST',
+        body: JSON.stringify({ device_id: deviceId }),
     });
 }
 
 export async function updateTenantLimits(tenantId: number, limits: { max_users: number, max_devices: number }): Promise<void> {
-    return wawiFetch(`/api/admin/tenants/${tenantId}/limits`, {
+    return wawiFetch(`/api/tenants/${tenantId}/`, {
         method: 'PATCH',
         body: JSON.stringify(limits),
     });
 }
 
 export async function createTenantUser(tenantId: number, userData: any): Promise<void> {
-    return wawiFetch(`/api/admin/users`, {
+    return wawiFetch(`/api/tenants/${tenantId}/users/`, {
         method: 'POST',
-        body: JSON.stringify({ ...userData, tenant_id: tenantId }),
+        body: JSON.stringify(userData),
     });
 }
 
 export async function getTeam(): Promise<any[]> {
-    return wawiFetch<any[]>('/api/auth/team/');
+    return wawiFetchList<any>('/api/auth/team/');
 }
 
 export interface BillingSettings {
@@ -362,16 +359,10 @@ export interface BillingSettings {
 }
 
 export async function getBillingSettings(): Promise<BillingSettings> {
-    const me = await getMe();
-    const tenantSlug = me.tenant?.slug;
-    if (!tenantSlug) throw new Error('Tenant slug is required');
     return wawiFetch<BillingSettings>('/api/billing/settings/');
 }
 
 export async function updateBillingSettings(settings: Partial<BillingSettings>): Promise<void> {
-    const me = await getMe();
-    const tenantSlug = me.tenant?.slug;
-    if (!tenantSlug) throw new Error('Tenant slug is required');
     await wawiFetch('/api/billing/settings/', {
         method: 'PUT',
         body: JSON.stringify(settings),
@@ -397,7 +388,7 @@ export async function bulkCreateInvoicesFromOrders(orderIds: string[]): Promise<
 
 export async function getInvoiceByOrderId(orderId: string): Promise<any | null> {
     try {
-        return await wawiFetch(`/api/billing/invoices/?order=${orderId}`);
+        return await wawiFetchList(`/api/billing/invoices/?order=${orderId}`);
     } catch (error) {
         console.error('Error fetching invoice by order:', error);
         return null;
