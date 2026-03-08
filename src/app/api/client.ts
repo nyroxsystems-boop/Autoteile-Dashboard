@@ -1,7 +1,6 @@
 /// <reference types="vite/client" />
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://autoteile-bot-service-production.up.railway.app';
-const API_TOKEN = import.meta.env.VITE_WAWI_API_TOKEN;
 
 // Validate API_BASE_URL at module load
 if (!API_BASE_URL || API_BASE_URL.startsWith('/')) {
@@ -25,7 +24,7 @@ export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): 
 
     // Multi-tenancy support
     const tenantId = localStorage.getItem('selectedTenantId');
-    const token = localStorage.getItem('token') || localStorage.getItem('auth_access_token') || API_TOKEN;
+    const token = localStorage.getItem('token') || localStorage.getItem('auth_access_token');
     const deviceId = getDeviceId();
 
     const headers: Record<string, string> = {
