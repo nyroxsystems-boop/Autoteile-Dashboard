@@ -1,5 +1,6 @@
 /// <reference types="vite/client" />
 import { wawiFetch, wawiFetchBlob, wawiFetchList } from './wawiClient';
+import { apiFetch } from './client';
 
 // Aligned with bot-service/src/types/dashboard.ts
 
@@ -235,7 +236,8 @@ export async function getSuppliers(): Promise<Supplier[]> {
 
 export async function login(credentials: { email?: string, username?: string, password?: string, tenant?: string }): Promise<any> {
     const device_id = localStorage.getItem('deviceId');
-    const data = await wawiFetch<any>('/api/auth/login/', {
+    // Auth goes through Bot-Service (shared user DB with Admin Dashboard)
+    const data = await apiFetch<any>('/api/auth/login', {
         method: 'POST',
         body: JSON.stringify({ ...credentials, device_id }),
     });
@@ -245,7 +247,9 @@ export async function login(credentials: { email?: string, username?: string, pa
 }
 
 export async function getMeTenants(): Promise<any[]> {
-    return wawiFetchList<any>('/api/auth/me/tenants/');
+    // Auth goes through Bot-Service
+    const data = await apiFetch<any[]>('/api/auth/me/tenants');
+    return Array.isArray(data) ? data : [];
 }
 
 export async function getCustomers(): Promise<any[]> {
@@ -271,7 +275,8 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
 }
 
 export async function getMe(): Promise<MeResponse> {
-    return wawiFetch<MeResponse>('/api/auth/me/');
+    // Auth goes through Bot-Service
+    return apiFetch<MeResponse>('/api/auth/me');
 }
 
 export async function updateProfile(data: {
@@ -280,7 +285,8 @@ export async function updateProfile(data: {
     email?: string;
     phone?: string;
 }): Promise<MeResponse> {
-    return wawiFetch<MeResponse>('/api/auth/me/', {
+    // Auth goes through Bot-Service
+    return apiFetch<MeResponse>('/api/auth/me', {
         method: 'PATCH',
         body: JSON.stringify(data),
     });
@@ -290,9 +296,13 @@ export async function changePassword(data: {
     current_password: string;
     new_password: string;
 }): Promise<{ success: boolean }> {
-    return wawiFetch<{ success: boolean }>('/api/auth/change-password/', {
+    // Auth goes through Bot-Service (field names: oldPassword, newPassword)
+    return apiFetch<{ success: boolean }>('/api/auth/change-password', {
         method: 'POST',
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+            oldPassword: data.current_password,
+            newPassword: data.new_password,
+        }),
     });
 }
 
@@ -340,7 +350,9 @@ export async function createTenantUser(tenantId: number, userData: any): Promise
 }
 
 export async function getTeam(): Promise<any[]> {
-    return wawiFetchList<any>('/api/auth/team/');
+    // Auth goes through Bot-Service
+    const data = await apiFetch<any[]>('/api/auth/team/');
+    return Array.isArray(data) ? data : [];
 }
 
 export interface BillingSettings {
