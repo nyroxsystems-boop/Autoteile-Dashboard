@@ -1,12 +1,11 @@
 /// <reference types="vite/client" />
-import { wawiFetch, wawiFetchBlob, wawiFetchList } from './wawiClient';
 import { apiFetch } from './client';
 
-// Aligned with bot-service/src/types/dashboard.ts
+// ── Type Definitions ─────────────────────────────────────────────────────────
 
 export interface Order {
-    id: string; // UUID
-    status: string; // 'new' | 'in_progress' | 'done'
+    id: string;
+    status: string;
     language?: string | null;
     created_at: string;
     updated_at: string;
@@ -15,7 +14,6 @@ export interface Order {
     customerId?: string | null;
     customerPhone?: string | null;
 
-    // Vehicle Data
     vehicle?: {
         vin?: string | null;
         hsn?: string | null;
@@ -26,7 +24,6 @@ export interface Order {
         engine?: string | null;
     } | null;
 
-    // Part Data
     part?: {
         partCategory?: string | null;
         position?: string | null;
@@ -38,45 +35,36 @@ export interface Order {
 
     oem_number?: string | null;
 
-    // Legacy support (optional)
     external_ref?: string;
     order_data?: any;
     contact?: { name: string; wa_id?: string };
-
-    // Aliases found in legacy code
-    vehicle_json?: any; // To allow legacy code to compile, though undefined
+    vehicle_json?: any;
     part_json?: any;
     oem?: string;
-
-    // Order-Invoice Linking
-    generated_invoice_id?: string | null; // Invoice ID if created from this order
+    generated_invoice_id?: string | null;
 }
 
 export interface Offer {
     id: string;
     orderId: string;
-    shopName?: string; // e.g. "Autodoc"
-    supplierName?: string; // Compatibility
+    shopName?: string;
+    supplierName?: string;
 
-    // Product Info
     brand: string;
     productName: string;
     oemNumber?: string | null;
-    sku?: string; // Optional if scraping gives it
+    sku?: string;
 
-    // Pricing
     basePrice: number;
     currency?: string;
     deliveryTimeDays?: number;
 
-    // Meta
-    status: string; // 'draft' | 'published'
+    status: string;
     tier?: string | null;
     meta_json?: any;
 
-    // Frontend helpers
-    product_name?: string; // Alias
-    price?: string; // Alias for display
+    product_name?: string;
+    price?: string;
 }
 
 export interface Invoice {
@@ -139,8 +127,8 @@ export interface WholesalerConfig {
     id: string;
     name: string;
     portal: 'tecdoc' | 'autodoc_pro' | 'stahlgruber' | 'wm_se' | 'custom';
-    apiKey: string;       // masked in API responses
-    accountId?: string;   // Kundennummer
+    apiKey: string;
+    accountId?: string;
     status: 'connected' | 'error' | 'pending';
     lastSync?: string;
     createdAt?: string;
@@ -187,81 +175,106 @@ export interface ActiveDevice {
     ua: string;
 }
 
+// ── Helper: fetch array safely ────────────────────────────────────────────────
+async function apiFetchList<T>(endpoint: string): Promise<T[]> {
+    const data = await apiFetch<T[] | { results?: T[] }>(endpoint);
+    if (Array.isArray(data)) return data;
+    if (data && typeof data === 'object' && 'results' in data && Array.isArray(data.results)) {
+        return data.results;
+    }
+    return [];
+}
+
+async function apiFetchBlob(endpoint: string): Promise<Blob> {
+    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://autoteile-bot-service-production.up.railway.app';
+    const token = localStorage.getItem('token') || localStorage.getItem('auth_access_token');
+    const res = await fetch(`${API_BASE}${endpoint}`, {
+        headers: {
+            ...(token ? { 'Authorization': `Token ${token}` } : {}),
+        },
+    });
+    if (!res.ok) throw new Error(`Failed to fetch blob: ${res.status}`);
+    return res.blob();
+}
+
+// ── Orders ────────────────────────────────────────────────────────────────────
+
 export async function getOrders(): Promise<Order[]> {
-    return wawiFetchList<Order>('/api/orders/');
+    return apiFetchList<Order>('/api/dashboard/orders');
 }
 
 export async function getOrderMessages(orderId: string | number): Promise<Message[]> {
-    return wawiFetchList<Message>(`/api/orders/${orderId}/messages/`);
+    return apiFetchList<Message>(`/api/dashboard/orders/${orderId}/messages`);
 }
 
 export async function sendMessage(orderId: string | number, content: string): Promise<Message> {
-    return wawiFetch<Message>(`/api/orders/${orderId}/messages/`, {
+    return apiFetch<Message>(`/api/dashboard/orders/${orderId}/messages`, {
         method: 'POST',
         body: JSON.stringify({ content })
     });
 }
 
 export async function getOrderOffers(orderId: string | number): Promise<Offer[]> {
-    return wawiFetchList<Offer>(`/api/orders/${orderId}/offers/`);
+    return apiFetchList<Offer>(`/api/dashboard/offers?orderId=${orderId}`);
 }
 
 export async function createOffer(orderId: string | number, offerData: any): Promise<Offer> {
-    return wawiFetch<Offer>(`/api/orders/${orderId}/offers/`, {
+    return apiFetch<Offer>(`/api/dashboard/orders/${orderId}/offers`, {
         method: 'POST',
         body: JSON.stringify(offerData)
     });
 }
 
 export async function publishOffers(orderId: string | number, offerIds: (string | number)[]): Promise<{ success: boolean }> {
-    return wawiFetch<{ success: boolean }>(`/api/orders/${orderId}/offers/publish/`, {
+    return apiFetch<{ success: boolean }>(`/api/orders/${orderId}/publish-offers`, {
         method: 'POST',
         body: JSON.stringify({ offerIds }),
     });
 }
 
 export async function createInvoice(orderId: string | number): Promise<Invoice> {
-    return wawiFetch(`/api/orders/${orderId}/create-invoice/`, {
+    return apiFetch(`/api/invoices/from-order/${orderId}`, {
         method: 'POST',
     });
 }
 
+// ── Invoices ──────────────────────────────────────────────────────────────────
+
 export async function getInvoices(): Promise<Invoice[]> {
-    return wawiFetchList<Invoice>('/api/billing/invoices/');
+    return apiFetchList<Invoice>('/api/invoices');
 }
 
+// ── Suppliers ─────────────────────────────────────────────────────────────────
+
 export async function getSuppliers(): Promise<Supplier[]> {
-    return wawiFetchList<Supplier>('/api/suppliers/');
+    return apiFetchList<Supplier>('/api/dashboard/suppliers');
 }
+
+// ── Auth (Bot-Service) ────────────────────────────────────────────────────────
 
 export async function login(credentials: { email?: string, username?: string, password?: string, tenant?: string }): Promise<any> {
     const device_id = localStorage.getItem('deviceId');
-    // Auth goes through Bot-Service (shared user DB with Admin Dashboard)
     const data = await apiFetch<any>('/api/auth/login', {
         method: 'POST',
         body: JSON.stringify({ ...credentials, device_id }),
     });
-    // Token storage is handled by AuthContext.login()
-    // We only return the response data here
     return data;
 }
 
 export async function getMeTenants(): Promise<any[]> {
-    // Auth goes through Bot-Service
-    const data = await apiFetch<any[]>('/api/auth/me/tenants');
-    return Array.isArray(data) ? data : [];
+    return apiFetchList<any>('/api/auth/me/tenants');
 }
 
 export async function getCustomers(): Promise<any[]> {
-    return wawiFetchList<any>('/api/whatsapp/contacts/');
+    return apiFetchList<any>('/api/dashboard/customers');
 }
 
 export async function getConversations(): Promise<any[]> {
-    return wawiFetchList<any>('/api/whatsapp/contacts/');
+    return apiFetchList<any>('/api/dashboard/conversations');
 }
 
 export async function downloadInvoicePdf(id: number): Promise<void> {
-    const blob = await wawiFetchBlob(`/api/billing/invoices/${id}/pdf/`);
+    const blob = await apiFetchBlob(`/api/invoices/${id}/pdf`);
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -270,12 +283,13 @@ export async function downloadInvoicePdf(id: number): Promise<void> {
     window.URL.revokeObjectURL(url);
 }
 
+// ── Dashboard Summary ─────────────────────────────────────────────────────────
+
 export async function getDashboardSummary(): Promise<DashboardSummary> {
-    return wawiFetch<DashboardSummary>('/api/dashboard/summary/');
+    return apiFetch<DashboardSummary>('/api/dashboard/stats');
 }
 
 export async function getMe(): Promise<MeResponse> {
-    // Auth goes through Bot-Service
     return apiFetch<MeResponse>('/api/auth/me');
 }
 
@@ -285,7 +299,6 @@ export async function updateProfile(data: {
     email?: string;
     phone?: string;
 }): Promise<MeResponse> {
-    // Auth goes through Bot-Service
     return apiFetch<MeResponse>('/api/auth/me', {
         method: 'PATCH',
         body: JSON.stringify(data),
@@ -296,7 +309,6 @@ export async function changePassword(data: {
     current_password: string;
     new_password: string;
 }): Promise<{ success: boolean }> {
-    // Auth goes through Bot-Service (field names: oldPassword, newPassword)
     return apiFetch<{ success: boolean }>('/api/auth/change-password', {
         method: 'POST',
         body: JSON.stringify({
@@ -307,53 +319,54 @@ export async function changePassword(data: {
 }
 
 export async function getBotHealth(): Promise<{ status: string }> {
-    return wawiFetch<{ status: string }>('/api/bot/health/');
+    return apiFetch<{ status: string }>('/api/bot/health');
 }
 
 export async function getMerchantSettings(): Promise<MerchantSettings> {
-    return wawiFetch<MerchantSettings>('/api/dashboard/merchant/settings/');
+    return apiFetch<MerchantSettings>('/api/settings/merchant');
 }
 
 export async function updateMerchantSettings(settings: Partial<MerchantSettings>): Promise<{ ok: boolean }> {
-    return wawiFetch<{ ok: boolean }>('/api/dashboard/merchant/settings/', {
+    return apiFetch<{ ok: boolean }>('/api/settings/merchant', {
         method: 'POST',
         body: JSON.stringify(settings),
     });
 }
+
 export async function getAdminStats(): Promise<AdminStats> {
-    return wawiFetch<AdminStats>('/api/admin-stats/');
+    return apiFetch<AdminStats>('/api/admin/stats');
 }
 
 export async function listActiveDevices(tenantId: number): Promise<ActiveDevice[]> {
-    return wawiFetchList<ActiveDevice>(`/api/tenants/${tenantId}/devices/`);
+    return apiFetchList<ActiveDevice>(`/api/admin/tenants/${tenantId}/devices`);
 }
 
 export async function removeActiveDevice(tenantId: number, deviceId: string): Promise<void> {
-    return wawiFetch(`/api/tenants/${tenantId}/remove-device/`, {
+    return apiFetch(`/api/admin/tenants/${tenantId}/remove-device`, {
         method: 'POST',
         body: JSON.stringify({ device_id: deviceId }),
     });
 }
 
 export async function updateTenantLimits(tenantId: number, limits: { max_users: number, max_devices: number }): Promise<void> {
-    return wawiFetch(`/api/tenants/${tenantId}/`, {
+    return apiFetch(`/api/admin/tenants/${tenantId}`, {
         method: 'PATCH',
         body: JSON.stringify(limits),
     });
 }
 
 export async function createTenantUser(tenantId: number, userData: any): Promise<void> {
-    return wawiFetch(`/api/tenants/${tenantId}/users/`, {
+    return apiFetch(`/api/admin/tenants/${tenantId}/users`, {
         method: 'POST',
         body: JSON.stringify(userData),
     });
 }
 
 export async function getTeam(): Promise<any[]> {
-    // Auth goes through Bot-Service
-    const data = await apiFetch<any[]>('/api/auth/team/');
-    return Array.isArray(data) ? data : [];
+    return apiFetchList<any>('/api/auth/team/');
 }
+
+// ── Billing Settings ──────────────────────────────────────────────────────────
 
 export interface BillingSettings {
     company_name: string;
@@ -374,23 +387,24 @@ export interface BillingSettings {
     address_layout: string;
     table_style: string;
     accent_color: string;
-    logo_base64?: string; // NEW: Logo as Base64 string
+    logo_base64?: string;
 }
 
 export async function getBillingSettings(): Promise<BillingSettings> {
-    return wawiFetch<BillingSettings>('/api/billing/settings/');
+    return apiFetch<BillingSettings>('/api/invoices/settings/billing');
 }
 
 export async function updateBillingSettings(settings: Partial<BillingSettings>): Promise<void> {
-    await wawiFetch('/api/billing/settings/', {
+    await apiFetch('/api/invoices/settings/billing', {
         method: 'PUT',
         body: JSON.stringify(settings),
     });
 }
 
-// Order-to-Invoice Conversion Functions
+// ── Order-to-Invoice ──────────────────────────────────────────────────────────
+
 export async function createInvoiceFromOrder(orderId: string): Promise<any> {
-    return wawiFetch(`/api/orders/${orderId}/create-invoice/`, {
+    return apiFetch(`/api/invoices/from-order/${orderId}`, {
         method: 'POST',
     });
 }
@@ -399,7 +413,7 @@ export async function bulkCreateInvoicesFromOrders(orderIds: string[]): Promise<
     success: any[];
     failed: { orderId: string; error: string }[];
 }> {
-    return wawiFetch('/api/billing/invoices/bulk-create/', {
+    return apiFetch('/api/invoices/bulk-from-orders', {
         method: 'POST',
         body: JSON.stringify({ orderIds }),
     });
@@ -407,7 +421,7 @@ export async function bulkCreateInvoicesFromOrders(orderIds: string[]): Promise<
 
 export async function getInvoiceByOrderId(orderId: string): Promise<any | null> {
     try {
-        return await wawiFetchList(`/api/billing/invoices/?order=${orderId}`);
+        return await apiFetchList(`/api/invoices/by-order/${orderId}`);
     } catch (error) {
         console.error('Error fetching invoice by order:', error);
         return null;
