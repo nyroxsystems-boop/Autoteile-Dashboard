@@ -6,12 +6,14 @@ import { CustomerDetailPanel } from '../components/CustomerDetailPanel';
 import { TableDensityToggle, getTableDensityClasses, type TableDensity } from '../components/TableDensityToggle';
 import { useConversations } from '../hooks/useConversations';
 import { NewInquiryModal } from '../components/NewInquiryModal';
+import { useI18n } from '../../i18n';
 
 interface CustomersInquiriesViewProps {
   onNavigate: (view: string) => void;
 }
 
 export function CustomersInquiriesView({ onNavigate: _onNavigate }: CustomersInquiriesViewProps) {
+  const { t } = useI18n();
   const { conversations, loading } = useConversations();
   const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -22,8 +24,8 @@ export function CustomersInquiriesView({ onNavigate: _onNavigate }: CustomersInq
   const mappedCustomers = useMemo(() => {
     return conversations.map((conv: any) => ({
       id: conv.id,
-      customerName: conv.contact?.name || conv.contact?.wa_id || 'Unbekannt',
-      lastMessage: conv.state_json?.last_text || 'Keine Nachricht',
+      customerName: conv.contact?.name || conv.contact?.wa_id || t('orders_unknown_customer'),
+      lastMessage: conv.state_json?.last_text || t('orders_no_messages'),
       oemNumbers: (conv.state_json?.oem_list || []) as string[],
       status: (conv.state_json?.status || 'new') as 'new' | 'in_progress' | 'quoted' | 'confirmed' | 'oem_pending',
       timestamp: conv.last_message_at ? new Date(conv.last_message_at).toLocaleDateString() : 'N/A',
@@ -76,7 +78,7 @@ export function CustomersInquiriesView({ onNavigate: _onNavigate }: CustomersInq
     return (
       <div className="p-20 text-center text-muted-foreground flex flex-col items-center gap-4">
         <Loader2 className="w-8 h-8 animate-spin" />
-        Lade Anfragen...
+        {t('customers_loading')}
       </div>
     );
   }
@@ -86,9 +88,9 @@ export function CustomersInquiriesView({ onNavigate: _onNavigate }: CustomersInq
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-foreground mb-2">Kunden & Anfragen</h1>
+          <h1 className="text-foreground mb-2">{t('customers_title')}</h1>
           <p className="text-muted-foreground">
-            WhatsApp-Kundenthreads und OEM-Anfragen verwalten
+            {t('customers_subtitle')}
           </p>
         </div>
         <button
@@ -96,7 +98,7 @@ export function CustomersInquiriesView({ onNavigate: _onNavigate }: CustomersInq
           className="h-10 px-6 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
-          Neue Anfrage
+          {t('customers_new_inquiry')}
         </button>
       </div>
 
@@ -131,7 +133,7 @@ export function CustomersInquiriesView({ onNavigate: _onNavigate }: CustomersInq
             </div>
 
           </div>
-          <div className="text-xs font-semibold text-muted-foreground/80 uppercase">In Bearbeitung</div>
+          <div className="text-xs font-semibold text-muted-foreground/80 uppercase">{t('customers_in_progress')}</div>
           <div className="text-3xl font-bold text-blue-600">{stats.in_progress}</div>
         </div>
 
@@ -145,7 +147,7 @@ export function CustomersInquiriesView({ onNavigate: _onNavigate }: CustomersInq
             </div>
 
           </div>
-          <div className="text-xs font-semibold text-muted-foreground/80 uppercase">Angebot gesendet</div>
+          <div className="text-xs font-semibold text-muted-foreground/80 uppercase">{t('customers_quoted')}</div>
           <div className="text-3xl font-bold text-green-600">{stats.quoted}</div>
         </div>
 
@@ -159,7 +161,7 @@ export function CustomersInquiriesView({ onNavigate: _onNavigate }: CustomersInq
             </div>
 
           </div>
-          <div className="text-xs font-semibold text-muted-foreground/80 uppercase">OEM-Prüfung</div>
+          <div className="text-xs font-semibold text-muted-foreground/80 uppercase">{t('customers_oem_pending')}</div>
           <div className="text-3xl font-bold text-red-600">{stats.oem_pending}</div>
         </div>
       </div>
@@ -170,7 +172,7 @@ export function CustomersInquiriesView({ onNavigate: _onNavigate }: CustomersInq
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
             type="text"
-            placeholder="Kunde, OEM oder Nachricht suchen..."
+            placeholder={t('customers_search')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full h-10 pl-10 pr-4 rounded-lg border border-border bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
@@ -200,7 +202,7 @@ export function CustomersInquiriesView({ onNavigate: _onNavigate }: CustomersInq
 
         {filteredCustomers.length === 0 && (
           <div className="py-16 text-center text-muted-foreground">
-            Keine Anfragen gefunden
+            {t('customers_none_found')}
           </div>
         )}
       </div>

@@ -33,11 +33,11 @@ export function LoginView({ onLoginSuccess }: LoginViewProps) {
         setFieldError(null);
 
         if (!identifier) {
-            setFieldError({ field: 'identifier', message: 'Bitte Benutzername oder E-Mail eingeben' });
+            setFieldError({ field: 'identifier', message: t('login_error_identifier') });
             return;
         }
         if (!password) {
-            setFieldError({ field: 'password', message: 'Bitte Passwort eingeben' });
+            setFieldError({ field: 'password', message: t('login_error_password_required') });
             return;
         }
 
@@ -83,18 +83,18 @@ export function LoginView({ onLoginSuccess }: LoginViewProps) {
                 setDeviceLimitError({
                     current_devices: Number(e.current_devices) || 0,
                     max_devices: Number(e.max_devices) || 2,
-                    message: errMsg || 'Gerätelimit erreicht',
+                    message: errMsg || t('login_error_device_limit'),
                 });
             } else {
                 const msg = errMsg.toLowerCase();
                 if (msg.includes('invalid credentials') || msg.includes('ungültige')) {
-                    setFieldError({ field: 'password', message: 'Falsches Passwort. Bitte überprüfen Sie Ihre Eingabe.' });
+                    setFieldError({ field: 'password', message: t('login_error_invalid') });
                 } else if (msg.includes('not a member') || msg.includes('tenant')) {
-                    setFieldError({ field: 'general', message: 'Dieser Benutzer ist keinem Mandanten zugeordnet. Bitte kontaktieren Sie Ihren Administrator.' });
+                    setFieldError({ field: 'general', message: t('login_error_no_tenant') });
                 } else if (msg.includes('not found') || msg.includes('no user')) {
-                    setFieldError({ field: 'identifier', message: 'Benutzer nicht gefunden. Bitte überprüfen Sie Ihren Benutzernamen.' });
+                    setFieldError({ field: 'identifier', message: t('login_error_not_found') });
                 } else {
-                    setFieldError({ field: 'general', message: errMsg || 'Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.' });
+                    setFieldError({ field: 'general', message: errMsg || t('login_error_generic') });
                 }
             }
         } finally {
@@ -112,10 +112,10 @@ export function LoginView({ onLoginSuccess }: LoginViewProps) {
                             <ShieldAlert className="w-10 h-10 text-red-500" />
                         </div>
                         <h1 className="text-2xl font-bold tracking-tight text-foreground">
-                            Gerätelimit erreicht
+                            {t('login_error_device_limit')}
                         </h1>
                         <p className="text-muted-foreground mt-2">
-                            Ihr Konto hat die maximale Anzahl gleichzeitiger Geräte erreicht.
+                            {t('login_device_limit_desc')}
                         </p>
                     </div>
 
@@ -123,7 +123,7 @@ export function LoginView({ onLoginSuccess }: LoginViewProps) {
                         {/* Usage Bar */}
                         <div className="space-y-2">
                             <div className="flex justify-between text-sm">
-                                <span className="text-muted-foreground">Aktive Geräte</span>
+                                <span className="text-muted-foreground">{t('login_active_devices')}</span>
                                 <span className="font-bold text-red-500">
                                     {deviceLimitError.current_devices} / {deviceLimitError.max_devices}
                                 </span>
@@ -139,11 +139,10 @@ export function LoginView({ onLoginSuccess }: LoginViewProps) {
                         {/* Info Box */}
                         <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-4 space-y-2">
                             <p className="text-sm font-medium text-amber-600 dark:text-amber-400">
-                                Für weitere Zugänge kontaktieren Sie Ihren Verkäufer
+                                {t('login_contact_sales')}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                                Ihr aktuelles Paket erlaubt {deviceLimitError.max_devices} gleichzeitige Geräte.
-                                Upgraden Sie Ihr Paket um weitere Mitarbeiter hinzuzufügen.
+                                {t('login_device_limit_upgrade')}
                             </p>
                         </div>
 
@@ -153,7 +152,7 @@ export function LoginView({ onLoginSuccess }: LoginViewProps) {
                             className="flex items-center justify-center gap-2 w-full h-11 bg-primary text-white rounded-xl font-medium hover:bg-primary/90 transition-colors"
                         >
                             <Phone className="w-4 h-4" />
-                            Verkäufer kontaktieren
+                            {t('login_contact_sales_btn')}
                         </a>
 
                         {/* Back to Login */}
@@ -161,7 +160,7 @@ export function LoginView({ onLoginSuccess }: LoginViewProps) {
                             onClick={() => setDeviceLimitError(null)}
                             className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors py-2"
                         >
-                            ← Zurück zum Login
+                            ← {t('login_back')}
                         </button>
                     </div>
                 </div>

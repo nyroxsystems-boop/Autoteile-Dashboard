@@ -13,7 +13,15 @@ export function PreisprofileView() {
   const { t } = useI18n();
   const { settings, loading, update: _update } = useMerchantSettings();
   const { summary, loading: _summaryLoading } = useDashboardSummary();
-  const [profiles, setProfiles] = useState<any[]>([]);
+  const [profiles, setProfiles] = useState<{
+    id: string | number;
+    name: string;
+    type: 'percentage' | 'fixed';
+    value: number;
+    isDefault?: boolean;
+    appliesTo?: string;
+    lastModified?: string;
+  }[]>([]);
   const [showPriceGroupModal, setShowPriceGroupModal] = useState(false);
   const [calcBase, setCalcBase] = useState(100);
   const [calcMargin, setCalcMargin] = useState(25);
@@ -25,7 +33,7 @@ export function PreisprofileView() {
     }
   }, [settings]);
 
-  if (loading) return <div className="p-20 text-center text-muted-foreground flex flex-col items-center gap-4"><Loader2 className="w-8 h-8 animate-spin" /> Lade Preisprofile...</div>;
+  if (loading) return <div className="p-20 text-center text-muted-foreground flex flex-col items-center gap-4"><Loader2 className="w-8 h-8 animate-spin" /> {t('prices_loading')}</div>;
 
   return (
     <div className="space-y-6">
@@ -118,7 +126,7 @@ export function PreisprofileView() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="px-2.5 py-1 bg-muted rounded-md text-sm font-medium w-fit">
-                      {profile.type === 'percentage' ? 'Prozentual' : 'Festpreis'}
+                      {profile.type === 'percentage' ? t('prices_percentage') : t('prices_fixed')}
                     </div>
                   </td>
                   <td className="px-6 py-4 text-right">
@@ -158,11 +166,11 @@ export function PreisprofileView() {
 
       {/* Margin Calculator */}
       <div>
-        <h2 className="mb-5">Margen-Rechner</h2>
+        <h2 className="mb-5">{t('prices_calculator')}</h2>
         <div className="bg-card border border-border rounded-xl p-8 shadow-sm">
           <div className="grid grid-cols-3 gap-6">
             <div>
-              <label className="block mb-3">Basispreis</label>
+              <label className="block mb-3">{t('prices_base_price')}</label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">€</span>
                 <Input
@@ -175,7 +183,7 @@ export function PreisprofileView() {
               </div>
             </div>
             <div>
-              <label className="block mb-3">Marge (%)</label>
+              <label className="block mb-3">{t('prices_margin')}</label>
               <div className="relative">
                 <Input
                   type="number"
@@ -188,7 +196,7 @@ export function PreisprofileView() {
               </div>
             </div>
             <div>
-              <label className="block mb-3">Kundenpreis</label>
+              <label className="block mb-3">{t('prices_customer_price')}</label>
               <div className="h-11 px-4 bg-[var(--status-success-bg)] border border-[var(--status-success-border)] rounded-lg flex items-center">
                 <span className="tabular-nums tracking-tight text-[var(--status-success-fg)]" style={{ fontSize: '1.25rem', fontWeight: 600 }}>
                   €{calcCustomerPrice.toFixed(2)}
@@ -197,7 +205,7 @@ export function PreisprofileView() {
             </div>
           </div>
           <p className="text-muted-foreground mt-5">
-            Der Kundenpreis wird automatisch aus Basispreis und Marge berechnet und in WhatsApp-Angeboten verwendet.
+            {t('prices_calculator_desc')}
           </p>
         </div>
       </div>
@@ -209,13 +217,13 @@ export function PreisprofileView() {
             <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
               <TrendingUp className="w-6 h-6 text-primary" />
             </div>
-            <h3>Durchschnittliche Marge</h3>
+            <h3>{t('prices_avg_margin')}</h3>
           </div>
           <div className="tabular-nums tracking-tight mb-2" style={{ fontSize: '2.5rem', fontWeight: 600 }}>
             {summary?.avgMargin ? `${summary.avgMargin.toFixed(1)}%` : '---'}
           </div>
           <p className="text-muted-foreground" style={{ fontSize: '0.875rem' }}>
-            Über alle veröffentlichten Angebote
+            {t('prices_avg_margin_desc')}
           </p>
         </div>
 
@@ -224,13 +232,13 @@ export function PreisprofileView() {
             <div className="w-12 h-12 rounded-xl bg-[var(--status-success-bg)] flex items-center justify-center">
               <DollarSign className="w-6 h-6 text-[var(--status-success)]" />
             </div>
-            <h3>Margen-Umsatz</h3>
+            <h3>{t('prices_margin_revenue')}</h3>
           </div>
           <div className="tabular-nums tracking-tight mb-2" style={{ fontSize: '2.5rem', fontWeight: 600 }}>
             €{summary?.marginRevenue ? summary.marginRevenue.toLocaleString('de-DE', { minimumFractionDigits: 0 }) : '---'}
           </div>
           <p className="text-muted-foreground" style={{ fontSize: '0.875rem' }}>
-            Geschätzte Marge aus bezahlten Rechnungen
+            {t('prices_margin_revenue_desc')}
           </p>
         </div>
       </div>

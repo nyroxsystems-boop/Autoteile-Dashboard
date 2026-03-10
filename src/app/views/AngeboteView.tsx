@@ -45,17 +45,17 @@ export function AngeboteView() {
       customerName: order.customerPhone || t('orders_unknown_customer'),
       whatsappNumber: order.customerPhone || '',
       oemNumber: order.oem_number || order.part?.oemNumber || '',
-      partName: order.part?.partText || 'Kfz-Teil',
+      partName: order.part?.partText || t('orders_part_unknown'),
       timestamp: order.created_at ? new Date(order.created_at).toLocaleDateString() : 'N/A',
       status: order.status === 'new' ? 'offers_ready' : order.status === 'collect_part' ? 'selected' : order.status === 'done' ? 'confirmed' : 'rejected',
       options: (orderOffers[order.id] || []).map((off, idx) => ({
         id: off.id.toString(),
         label: String.fromCharCode(65 + idx) as 'A' | 'B' | 'C',
-        supplier: off.shopName || off.supplierName || 'Lieferant',
+        supplier: off.shopName || off.supplierName || t('suppliers_name'),
         price: off.basePrice || 0,
-        deliveryTime: off.deliveryTimeDays ? `${off.deliveryTimeDays} Tage` : '1-3 Tage',
-        stock: 'Auf Lager',
-        quality: 'Original/OEM'
+        deliveryTime: off.deliveryTimeDays ? `${off.deliveryTimeDays} ${t('offers_days')}` : `1-3 ${t('offers_days')}`,
+        stock: t('offers_in_stock'),
+        quality: t('offers_oem_quality')
       }))
     }));
   }, [orders, orderOffers]);
@@ -96,24 +96,12 @@ export function AngeboteView() {
           </p>
         </div>
         <button
-          onClick={async () => {
+          onClick={() => {
             if (!hasWholesaler) {
               toast.info(t('wholesaler_none_desc'));
               return;
             }
-            if (orders.length > 0) {
-              const orderId = orders[0].id;
-              try {
-                const { createOffer } = await import('../api/wws');
-                await createOffer(orderId, { price: '150.00', supplierName: merchantSettings?.wholesalers?.[0]?.name || 'Großhändler' });
-                toast.success(`Angebot für Auftrag ${orderId} erstellt`);
-                refresh();
-              } catch (e) {
-                toast.error('Fehler beim Erstellen des Angebots');
-              }
-            } else {
-              toast.info('Keine Aufträge verfügbar - erstellen Sie zuerst einen Auftrag');
-            }
+            toast.info(t('offers_create_hint'));
           }}
           className="h-10 px-6 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors flex items-center gap-2">
           <Plus className="w-4 h-4" />
@@ -208,10 +196,10 @@ export function AngeboteView() {
                         quote.status === 'offers_ready' ? 'bg-warning/10 text-warning border-warning/20' :
                           'bg-slate-500/10 text-slate-600 border-slate-500/20'
                       }`}>
-                      {quote.status === 'confirmed' ? 'Bestätigt' :
-                        quote.status === 'selected' ? 'Ausgewählt' :
-                          quote.status === 'offers_ready' ? 'Bereit' :
-                            'Abgelehnt'}
+                      {quote.status === 'confirmed' ? t('status_done') :
+                        quote.status === 'selected' ? t('offers_published') :
+                          quote.status === 'offers_ready' ? t('orders_ready') :
+                            t('offers_empty')}
                     </span>
                   </h3>
                   <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">

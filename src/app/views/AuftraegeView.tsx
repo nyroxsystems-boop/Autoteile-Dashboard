@@ -60,9 +60,9 @@ export function AuftraegeView() {
       const sent = await sendMessage(selectedOrderId, newMessageText);
       setMessages([...messages, sent]);
       setNewMessageText('');
-      toast.success('Nachricht gesendet');
+      toast.success(t('orders_message_sent'));
     } catch (err) {
-      toast.error('Fehler beim Senden');
+      toast.error(t('error'));
       console.error(err);
     }
   };
@@ -80,7 +80,7 @@ export function AuftraegeView() {
       toast.success(t('orders_offers_sent'));
       loadOffers(selectedOrderId as number);
     } catch (err) {
-      toast.error('Fehler beim Senden');
+      toast.error(t('error'));
     }
   };
 
@@ -100,7 +100,7 @@ export function AuftraegeView() {
       if (errMsg.includes('already exists')) {
         toast.info(t('orders_invoice_exists'));
       } else {
-        toast.error(`Fehler: ${errMsg || 'Unbekannter Fehler'}`);
+        toast.error(t('error'));
       }
     }
   };
@@ -197,7 +197,7 @@ export function AuftraegeView() {
           <div className="space-y-10">
             <div>
               <div className="flex items-center justify-between mb-2.5">
-                <h2>{selectedOrder.contact?.name || selectedOrder.customerPhone || 'Auftragsdetails'}</h2>
+                <h2>{selectedOrder.contact?.name || selectedOrder.customerPhone || t('orders_details')}</h2>
                 <StatusChip status={selectedOrder.status as any} />
               </div>
               <p className="text-muted-foreground">ID: {selectedOrder.external_ref || selectedOrder.id}</p>

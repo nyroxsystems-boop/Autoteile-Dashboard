@@ -42,7 +42,7 @@ export function HeuteView({ onNavigate }: HeuteViewProps) {
 
   // Greeting
   const hour = new Date().getHours();
-  const greeting = hour < 12 ? 'Guten Morgen' : hour < 18 ? 'Guten Tag' : 'Guten Abend';
+  const greeting = hour < 12 ? t('greeting_morning') : hour < 18 ? t('greeting_afternoon') : t('greeting_evening');
 
   const columns = [
     {
@@ -164,10 +164,10 @@ export function HeuteView({ onNavigate }: HeuteViewProps) {
             <div>
               <h3 className="text-foreground font-semibold">{t('today_revenue')}</h3>
               <p className="text-sm text-muted-foreground mt-1">
-                {timeRange === '7d' && 'Letzte 7 Tage'}
-                {timeRange === '30d' && 'Letzte 30 Tage'}
-                {timeRange === '90d' && 'Letzte 90 Tage'}
-                {timeRange === '1y' && 'Letztes Jahr'}
+                {timeRange === '7d' && t('time_7d')}
+                {timeRange === '30d' && t('time_30d')}
+                {timeRange === '90d' && t('time_90d')}
+                {timeRange === '1y' && t('time_1y')}
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -181,18 +181,18 @@ export function HeuteView({ onNavigate }: HeuteViewProps) {
                       : 'text-muted-foreground hover:text-foreground'
                       }`}
                   >
-                    {range === '7d' ? '7T' : range === '30d' ? '30T' : range === '90d' ? '90T' : 'Jahr'}
+                    {range === '7d' ? '7T' : range === '30d' ? '30T' : range === '90d' ? '90T' : t('time_year_short')}
                   </button>
                 ))}
               </div>
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
                   <div className="w-2.5 h-2.5 rounded-full bg-[var(--status-processing)]" />
-                  <span className="text-xs text-muted-foreground">Umsatz</span>
+                  <span className="text-xs text-muted-foreground">{t('today_revenue')}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-2.5 h-2.5 rounded-full bg-[var(--status-success)]" />
-                  <span className="text-xs text-muted-foreground">Bestellungen</span>
+                  <span className="text-xs text-muted-foreground">{t('today_new_orders')}</span>
                 </div>
               </div>
             </div>
@@ -209,9 +209,9 @@ export function HeuteView({ onNavigate }: HeuteViewProps) {
               <BarChart3 className="w-6 h-6 text-primary/40" />
             </div>
             <div>
-              <h3 className="text-foreground font-medium mb-1">Umsatzentwicklung</h3>
+              <h3 className="text-foreground font-medium mb-1">{t('today_revenue_chart')}</h3>
               <p className="text-sm text-muted-foreground">
-                Dein Umsatzverlauf wird hier angezeigt, sobald die ersten Buchungen eingehen.
+                {t('today_revenue_chart_empty')}
               </p>
             </div>
           </div>
@@ -231,7 +231,7 @@ export function HeuteView({ onNavigate }: HeuteViewProps) {
                 className="text-primary hover:text-primary/80 gap-1"
                 onClick={() => onNavigate('auftraege')}
               >
-                Alle ansehen <ArrowRight className="w-3.5 h-3.5" />
+                {t('today_view_all')} <ArrowRight className="w-3.5 h-3.5" />
               </Button>
             </div>
             {orders.length > 0 ? (
@@ -261,8 +261,8 @@ export function HeuteView({ onNavigate }: HeuteViewProps) {
                   <Users className="w-5 h-5 text-primary/40" />
                 </div>
                 <div>
-                  <h3 className="text-foreground font-medium text-sm mb-0.5">Top Kunden</h3>
-                  <p className="text-xs text-muted-foreground">Erscheint nach den ersten Bestellungen</p>
+                  <h3 className="text-foreground font-medium text-sm mb-0.5">{t('today_top_customers')}</h3>
+                  <p className="text-xs text-muted-foreground">{t('today_top_customers_empty')}</p>
                 </div>
               </div>
             </div>
@@ -275,7 +275,7 @@ export function HeuteView({ onNavigate }: HeuteViewProps) {
             </div>
           ) : (
             <div className="rounded-xl border border-border bg-card p-6 space-y-3">
-              <h3 className="text-foreground font-semibold text-sm mb-4">Schnellzugriff</h3>
+              <h3 className="text-foreground font-semibold text-sm mb-4">{t('today_quick_access')}</h3>
               <button
                 onClick={() => onNavigate('auftraege')}
                 className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors text-left group"
@@ -284,8 +284,8 @@ export function HeuteView({ onNavigate }: HeuteViewProps) {
                   <Package className="w-4 h-4 text-[var(--status-processing-fg)]" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-foreground">Aufträge</div>
-                  <div className="text-xs text-muted-foreground">{summary?.ordersNew || 0} neue Anfragen</div>
+                  <div className="text-sm font-medium text-foreground">{t('orders_title')}</div>
+                  <div className="text-xs text-muted-foreground">{summary?.ordersNew || 0} {t('today_new_requests')}</div>
                 </div>
                 <ArrowRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
               </button>
@@ -297,8 +297,8 @@ export function HeuteView({ onNavigate }: HeuteViewProps) {
                   <MessageSquare className="w-4 h-4 text-[var(--status-success-fg)]" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-foreground">Kunden</div>
-                  <div className="text-xs text-muted-foreground">Alle WhatsApp-Kontakte</div>
+                  <div className="text-sm font-medium text-foreground">{t('customers_title')}</div>
+                  <div className="text-xs text-muted-foreground">{t('customers_all_contacts')}</div>
                 </div>
                 <ArrowRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
               </button>
@@ -310,8 +310,8 @@ export function HeuteView({ onNavigate }: HeuteViewProps) {
                   <Zap className="w-4 h-4 text-[var(--status-waiting-fg)]" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-foreground">Angebote</div>
-                  <div className="text-xs text-muted-foreground">Offene Angebote verwalten</div>
+                  <div className="text-sm font-medium text-foreground">{t('offers_title')}</div>
+                  <div className="text-xs text-muted-foreground">{t('offers_manage')}</div>
                 </div>
                 <ArrowRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
               </button>

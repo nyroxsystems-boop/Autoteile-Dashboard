@@ -36,6 +36,25 @@ const de: Dict = {
     today_recent_orders: 'Aktuelle Aufträge',
     today_activities: 'Aktivitäten',
     today_top_customers: 'Top Kunden',
+    today_top_customers_empty: 'Erscheint nach den ersten Bestellungen',
+    today_view_all: 'Alle ansehen',
+    today_no_orders: 'Noch keine Aufträge vorhanden',
+    today_quick_access: 'Schnellzugriff',
+    today_new_requests: 'neue Anfragen',
+    today_revenue_chart: 'Umsatzentwicklung',
+    today_revenue_chart_empty: 'Dein Umsatzverlauf wird hier angezeigt, sobald die ersten Buchungen eingehen.',
+
+    // Greetings
+    greeting_morning: 'Guten Morgen',
+    greeting_afternoon: 'Guten Tag',
+    greeting_evening: 'Guten Abend',
+
+    // Time ranges
+    time_7d: 'Letzte 7 Tage',
+    time_30d: 'Letzte 30 Tage',
+    time_90d: 'Letzte 90 Tage',
+    time_1y: 'Letztes Jahr',
+    time_year_short: 'Jahr',
 
     // AuftraegeView
     orders_title: 'Aufträge',
@@ -70,6 +89,7 @@ const de: Dict = {
     orders_invoice_created: 'Rechnung erstellt!',
     orders_invoice_exists: 'Rechnung existiert bereits für diesen Auftrag',
     orders_message_sent: 'Nachricht gesendet',
+    orders_details: 'Auftragsdetails',
     orders_select_order: 'Wähle einen Auftrag aus',
     orders_invoice: 'Rechnung',
     orders_unknown_customer: 'Unbekannter Kunde',
@@ -96,6 +116,11 @@ const de: Dict = {
     offers_published: 'Veröffentlicht',
     offers_loading: 'Lade Angebote...',
     offers_empty: 'Keine Angebote vorhanden',
+    offers_create_hint: 'Angebote werden automatisch vom Bot erstellt, wenn eine Anfrage eingeht.',
+    offers_days: 'Tage',
+    offers_in_stock: 'Auf Lager',
+    offers_oem_quality: 'Original/OEM',
+    offers_manage: 'Offene Angebote verwalten',
 
     // CustomersView
     customers_title: 'Kunden & Anfragen',
@@ -105,6 +130,12 @@ const de: Dict = {
     customers_new: 'Neu',
     customers_loading: 'Lade Kundenanfragen...',
     customers_new_inquiry: 'Neue Anfrage',
+    customers_subtitle: 'WhatsApp-Kundenthreads und OEM-Anfragen verwalten',
+    customers_all_contacts: 'Alle WhatsApp-Kontakte',
+    customers_in_progress: 'In Bearbeitung',
+    customers_quoted: 'Angebot gesendet',
+    customers_oem_pending: 'OEM-Prüfung',
+    customers_none_found: 'Keine Anfragen gefunden',
 
     // DocumentsInvoicesView
     docs_title: 'Belege & Rechnungen',
@@ -130,6 +161,16 @@ const de: Dict = {
     docs_marked_paid: 'Rechnung als bezahlt markiert',
     docs_canceled: 'Rechnung storniert',
     docs_cancel_confirm: 'Diese Rechnung wirklich stornieren?',
+    docs_tax_desc: 'UStVA-Export, Quartalsberichte und Zusammenfassende Meldungen',
+    docs_incoming_desc: 'Erfassen Sie Rechnungen von Lieferanten für die Vorsteuer-Berechnung.',
+    docs_no_results: 'Keine Ergebnisse für Ihre Suche',
+    docs_create_first: 'Erstellen Sie Ihre erste Rechnung',
+    docs_search_placeholder: 'Rechnungsnummer oder Kunde suchen...',
+    docs_total: 'Summe',
+    docs_view_pdf: 'PDF anzeigen',
+    docs_download_pdf: 'PDF herunterladen',
+    docs_downloading: 'PDF wird heruntergeladen...',
+    coming_soon: 'Kommt bald',
 
     // PreisprofileView
     prices_title: 'Preise & Margen',
@@ -158,6 +199,10 @@ const de: Dict = {
     prices_over_all: 'Über alle veröffentlichten Angebote',
     prices_from_invoices: 'Geschätzte Marge aus bezahlten Rechnungen',
     prices_priority_info: 'Preisprofile werden in der Reihenfolge ihrer Spezifität angewendet.',
+    prices_loading: 'Lade Preisprofile...',
+    prices_calculator_desc: 'Der Kundenpreis wird automatisch aus Basispreis und Marge berechnet und in WhatsApp-Angeboten verwendet.',
+    prices_avg_margin_desc: 'Über alle veröffentlichten Angebote',
+    prices_margin_revenue_desc: 'Geschätzte Marge aus bezahlten Rechnungen',
 
     // LieferantenView
     suppliers_title: 'Lieferanten',
@@ -196,6 +241,9 @@ const de: Dict = {
     system_just_now: 'Gerade eben',
     system_unknown: 'Unbekannt',
     system_last_update: 'Letzte Aktualisierung',
+    system_bot_desc: 'Empfängt und verarbeitet Kundenanfragen via Twilio/WhatsApp-API',
+    system_dashboard_desc: 'REST-Schnittstellen für das Front-End Dashboard',
+    system_invoice_desc: 'Automatisierte PDF-Erzeugung für Angebote und Rechnungen',
 
     // Settings
     settings_title: 'Einstellungen',
@@ -323,6 +371,21 @@ const de: Dict = {
     all: 'Alle',
     none: 'Keine',
     unknown: 'Unbekannt',
+
+    // Login errors
+    login_error_identifier: 'Bitte Benutzername oder E-Mail eingeben',
+    login_error_password_required: 'Bitte Passwort eingeben',
+    login_error_device_limit: 'Gerätelimit erreicht',
+    login_error_invalid: 'Falsches Passwort. Bitte überprüfen Sie Ihre Eingabe.',
+    login_error_no_tenant: 'Dieser Benutzer ist keinem Mandanten zugeordnet.',
+    login_error_not_found: 'Benutzer nicht gefunden.',
+    login_error_generic: 'Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.',
+    login_device_limit_desc: 'Ihr Konto hat die maximale Anzahl gleichzeitiger Geräte erreicht.',
+    login_active_devices: 'Aktive Geräte',
+    login_contact_sales: 'Für weitere Zugänge kontaktieren Sie Ihren Verkäufer',
+    login_contact_sales_btn: 'Verkäufer kontaktieren',
+    login_device_limit_upgrade: 'Upgraden Sie Ihr Paket um weitere Mitarbeiter hinzuzufügen.',
+    login_back: 'Zurück zum Login',
 };
 
 const en: Dict = {
@@ -610,6 +673,78 @@ const en: Dict = {
     all: 'All',
     none: 'None',
     unknown: 'Unknown',
+
+    // HeuteView extended
+    today_top_customers_empty: 'Will appear after first orders',
+    today_view_all: 'View all',
+    today_no_orders: 'No orders yet',
+    today_quick_access: 'Quick Access',
+    today_new_requests: 'new inquiries',
+    today_revenue_chart: 'Revenue Trend',
+    today_revenue_chart_empty: 'Your revenue trend will appear here once you receive your first bookings.',
+    greeting_morning: 'Good Morning',
+    greeting_afternoon: 'Good Afternoon',
+    greeting_evening: 'Good Evening',
+    time_7d: 'Last 7 Days',
+    time_30d: 'Last 30 Days',
+    time_90d: 'Last 90 Days',
+    time_1y: 'Last Year',
+    time_year_short: 'Year',
+
+    // Orders extended
+    orders_details: 'Order Details',
+
+    // Offers extended
+    offers_create_hint: 'Offers are created automatically by the bot when an inquiry arrives.',
+    offers_days: 'Days',
+    offers_in_stock: 'In Stock',
+    offers_oem_quality: 'Original/OEM',
+    offers_manage: 'Manage open offers',
+
+    // Customers extended
+    customers_subtitle: 'Manage WhatsApp customer threads and OEM inquiries',
+    customers_all_contacts: 'All WhatsApp contacts',
+    customers_in_progress: 'In Progress',
+    customers_quoted: 'Quote Sent',
+    customers_oem_pending: 'OEM Check',
+    customers_none_found: 'No inquiries found',
+
+    // Docs extended
+    docs_tax_desc: 'VAT return export, quarterly reports and summary notifications',
+    docs_incoming_desc: 'Record supplier invoices for input tax calculation.',
+    docs_no_results: 'No results for your search',
+    docs_create_first: 'Create your first invoice',
+    docs_search_placeholder: 'Search invoice number or customer...',
+    docs_total: 'Total',
+    docs_view_pdf: 'View PDF',
+    docs_download_pdf: 'Download PDF',
+    docs_downloading: 'Downloading PDF...',
+    coming_soon: 'Coming soon',
+
+    // Prices extended
+    prices_loading: 'Loading price profiles...',
+    prices_calculator_desc: 'The customer price is calculated automatically from base price and margin and used in WhatsApp offers.',
+    prices_avg_margin_desc: 'Across all published offers',
+    prices_margin_revenue_desc: 'Estimated margin from paid invoices',
+    // System extended
+    system_bot_desc: 'Receives and processes customer inquiries via Twilio/WhatsApp API',
+    system_dashboard_desc: 'REST endpoints for the frontend dashboard',
+    system_invoice_desc: 'Automated PDF generation for offers and invoices',
+
+    // Login errors
+    login_error_identifier: 'Please enter username or email',
+    login_error_password_required: 'Please enter password',
+    login_error_device_limit: 'Device limit reached',
+    login_error_invalid: 'Wrong password. Please check your input.',
+    login_error_no_tenant: 'This user is not assigned to any tenant.',
+    login_error_not_found: 'User not found.',
+    login_error_generic: 'Login failed. Please try again.',
+    login_device_limit_desc: 'Your account has reached the maximum number of simultaneous devices.',
+    login_active_devices: 'Active Devices',
+    login_contact_sales: 'Contact your sales representative for additional access',
+    login_contact_sales_btn: 'Contact Sales',
+    login_device_limit_upgrade: 'Upgrade your plan to add more team members.',
+    login_back: 'Back to Login',
 };
 
 const fr: Dict = {
@@ -763,7 +898,7 @@ const fr: Dict = {
 
 // Remaining 4 languages use a factory that falls back to English for missing keys
 function makeLang(overrides: Partial<Dict>): Dict {
-    return { ...en, ...overrides };
+    return { ...en, ...overrides } as Dict;
 }
 
 const es: Dict = makeLang({

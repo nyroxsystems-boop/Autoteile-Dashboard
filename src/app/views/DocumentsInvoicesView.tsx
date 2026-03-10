@@ -9,6 +9,22 @@ import InvoiceCreationModal from '../components/tax/InvoiceCreationModal';
 import { toast } from 'sonner';
 import { useI18n } from '../../i18n';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://autoteile-bot-service-production.up.railway.app';
+
+async function fetchInvoicePdf(invoiceNumber: string): Promise<Blob> {
+  const tenantId = localStorage.getItem('selectedTenantId') || '';
+  const token = localStorage.getItem('auth_access_token') || localStorage.getItem('token');
+  const response = await fetch(`${API_BASE_URL}/api/invoices/${invoiceNumber}/pdf`, {
+    headers: {
+      ...(tenantId ? { 'X-Tenant-ID': tenantId } : {}),
+      ...(token ? { 'Authorization': `Token ${token}` } : {}),
+    },
+    credentials: 'include',
+  });
+  if (!response.ok) throw new Error('PDF fetch failed');
+  return response.blob();
+}
+
 type TabType = 'all' | 'outgoing' | 'incoming' | 'tax-office';
 
 export function DocumentsInvoicesView() {
@@ -56,7 +72,7 @@ export function DocumentsInvoicesView() {
       toast.success(t('docs_marked_paid'));
       loadInvoices();
     } catch (error: unknown) {
-      toast.error('Fehler: ' + (error instanceof Error ? error.message : 'Unbekannter Fehler'));
+      toast.error(t('error'));
     }
   };
 
@@ -68,7 +84,7 @@ export function DocumentsInvoicesView() {
       toast.success(t('docs_canceled'));
       loadInvoices();
     } catch (error: unknown) {
-      toast.error('Fehler: ' + (error instanceof Error ? error.message : 'Unbekannter Fehler'));
+      toast.error(t('error'));
     }
   };
 
@@ -104,10 +120,10 @@ export function DocumentsInvoicesView() {
 
   const getStatusBadge = (status: InvoiceStatus) => {
     const styles = {
-      draft: 'bg-gray-100 text-gray-700',
-      issued: 'bg-blue-100 text-blue-700',
-      paid: 'bg-green-100 text-green-700',
-      canceled: 'bg-red-100 text-red-700',
+      draft: 'bg-muted text-muted-foreground',
+      issued: 'bg-primary/10 text-primary',
+      paid: 'bg-[var(--status-success-bg)] text-[var(--status-success-fg)]',
+      canceled: 'bg-destructive/10 text-destructive',
     };
 
     const labels: Record<InvoiceStatus, string> = {
@@ -128,14 +144,14 @@ export function DocumentsInvoicesView() {
     if (activeTab === 'tax-office') {
       return (
         <div className="p-8 text-center">
-          <Building2 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('docs_tax')}</h3>
-          <p className="text-gray-600 mb-6">
-            UStVA-Export, Quartalsberichte und Zusammenfassende Meldungen
+          <Building2 className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-foreground mb-2">{t('docs_tax')}</h3>
+          <p className="text-muted-foreground mb-6">
+            {t('docs_tax_desc')}
           </p>
           <button
             onClick={() => navigate('/bot/tax/dashboard')}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90"
           >
             {t('docs_tax')} →
           </button>
@@ -147,13 +163,13 @@ export function DocumentsInvoicesView() {
     if (activeTab === 'incoming') {
       return (
         <div className="p-8 text-center">
-          <Upload className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('docs_incoming')}</h3>
-          <p className="text-gray-600 mb-4">
-            Erfassen Sie Rechnungen von Lieferanten für die Vorsteuer-Berechnung.
+          <Upload className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-foreground mb-2">{t('docs_incoming')}</h3>
+          <p className="text-muted-foreground mb-4">
+            {t('docs_incoming_desc')}
           </p>
-          <span className="inline-block px-4 py-2 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">
-            🚧 Kommt bald
+          <span className="inline-block px-4 py-2 bg-amber-500/10 text-amber-600 border border-amber-500/20 rounded-full text-sm font-medium">
+            🚧 {t('coming_soon')}
           </span>
         </div>
       );
@@ -163,7 +179,7 @@ export function DocumentsInvoicesView() {
     if (loading) {
       return (
         <div className="flex items-center justify-center py-12">
-          <div className="text-gray-500">{t('docs_loading')}</div>
+          <div className="text-muted-foreground">{t('docs_loading')}</div>
         </div>
       );
     }
@@ -171,15 +187,15 @@ export function DocumentsInvoicesView() {
     if (filteredInvoices.length === 0) {
       return (
         <div className="text-center py-12">
-          <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('docs_no_invoices')}</h3>
-          <p className="text-gray-600 mb-6">
-            {searchQuery ? 'Keine Ergebnisse für Ihre Suche' : 'Erstellen Sie Ihre erste Rechnung'}
+          <FileText className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-foreground mb-2">{t('docs_no_invoices')}</h3>
+          <p className="text-muted-foreground mb-6">
+            {searchQuery ? t('docs_no_results') : t('docs_create_first')}
           </p>
           {!searchQuery && (
             <button
               onClick={() => setShowCreateModal(true)}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90"
             >
               {t('orders_create_invoice')}
             </button>
@@ -191,43 +207,43 @@ export function DocumentsInvoicesView() {
     return (
       <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className="bg-muted/50 border-b border-border">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('docs_invoice_number')}</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('docs_date')}</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('docs_customer')}</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('orders_title')}</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('docs_amount')}</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('orders_status')}</th>
-              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">{t('docs_actions')}</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">{t('docs_invoice_number')}</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">{t('docs_date')}</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">{t('docs_customer')}</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">{t('orders_title')}</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">{t('docs_amount')}</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">{t('orders_status')}</th>
+              <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase">{t('docs_actions')}</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
+          <tbody className="divide-y divide-border">
             {filteredInvoices.map((invoice) => (
-              <tr key={invoice.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 text-sm font-medium text-gray-900">
+              <tr key={invoice.id} className="hover:bg-muted/30">
+                <td className="px-4 py-3 text-sm font-medium text-foreground">
                   {invoice.invoice_number}
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-600">
+                <td className="px-4 py-3 text-sm text-muted-foreground">
                   {formatDate(invoice.issue_date)}
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-900">
+                <td className="px-4 py-3 text-sm text-foreground">
                   {invoice.customer_name || '—'}
                 </td>
                 <td className="px-4 py-3 text-sm">
                   {invoice.source_order_id ? (
                     <button
                       onClick={() => navigate('/bot/auftraege')}
-                      className="text-blue-600 hover:text-blue-800 hover:underline font-medium"
-                      title="Zum Auftrag navigieren"
+                      className="text-primary hover:text-primary/80 hover:underline font-medium"
+                      title={t('orders_title')}
                     >
                       {invoice.source_order_id}
                     </button>
                   ) : (
-                    <span className="text-gray-400">—</span>
+                    <span className="text-muted-foreground">—</span>
                   )}
                 </td>
-                <td className="px-4 py-3 text-sm font-semibold text-gray-900">
+                <td className="px-4 py-3 text-sm font-semibold text-foreground">
                   {formatCurrency(invoice.gross_amount)}
                 </td>
                 <td className="px-4 py-3">
@@ -238,8 +254,8 @@ export function DocumentsInvoicesView() {
                     {invoice.status === 'issued' && (
                       <button
                         onClick={() => handleMarkAsPaid(invoice.id)}
-                        className="p-1.5 text-green-600 hover:bg-green-50 rounded"
-                        title="Als bezahlt markieren"
+                        className="p-1.5 text-[var(--status-success)] hover:bg-[var(--status-success-bg)] rounded"
+                        title={t('docs_mark_paid')}
                       >
                         <Check className="w-4 h-4" />
                       </button>
@@ -247,8 +263,8 @@ export function DocumentsInvoicesView() {
                     {invoice.status !== 'canceled' && invoice.status !== 'paid' && (
                       <button
                         onClick={() => handleCancel(invoice.id)}
-                        className="p-1.5 text-red-600 hover:bg-red-50 rounded"
-                        title="Stornieren"
+                        className="p-1.5 text-destructive hover:bg-destructive/10 rounded"
+                        title={t('cancel')}
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -256,70 +272,24 @@ export function DocumentsInvoicesView() {
                     <button
                       onClick={async () => {
                         try {
-                          // Use tenant.slug from auth session to match settings save
-                          const authSession = localStorage.getItem('auth_session');
-                          let tenantId = localStorage.getItem('selectedTenantId') || '';
-                          if (authSession) {
-                            try {
-                              const session = JSON.parse(authSession);
-                              tenantId = session.tenant?.slug || session.user?.merchant_id || tenantId;
-                            } catch (e) { /* use fallback */ }
-                          }
-                          const token = localStorage.getItem('auth_access_token') || localStorage.getItem('token');
-                          const apiBase = import.meta.env.VITE_API_BASE_URL || 'https://autoteile-bot-service-production.up.railway.app';
-                          const url = `${apiBase}/api/invoices/${invoice.invoice_number}/pdf`;
-
-                          const response = await fetch(url, {
-                            headers: {
-                              'X-Tenant-ID': tenantId || '',
-                              'Authorization': `Token ${token}`
-                            }
-                          });
-
-                          if (!response.ok) throw new Error('Failed to load PDF');
-
-                          const blob = await response.blob();
+                          const blob = await fetchInvoicePdf(invoice.invoice_number);
                           const blobUrl = window.URL.createObjectURL(blob);
                           window.open(blobUrl, '_blank');
-
-                          // Clean up after a delay
                           setTimeout(() => window.URL.revokeObjectURL(blobUrl), 1000);
                         } catch (error) {
                           console.error('PDF preview failed:', error);
-                          toast.error('PDF-Vorschau fehlgeschlagen');
+                          toast.error(t('error'));
                         }
                       }}
-                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded"
-                      title="PDF anzeigen"
+                      className="p-1.5 text-primary hover:bg-primary/10 rounded"
+                      title={t('docs_view_pdf')}
                     >
                       <Eye className="w-4 h-4" />
                     </button>
                     <button
                       onClick={async () => {
                         try {
-                          // Use tenant.slug from auth session to match settings save
-                          const authSession = localStorage.getItem('auth_session');
-                          let tenantId = localStorage.getItem('selectedTenantId') || '';
-                          if (authSession) {
-                            try {
-                              const session = JSON.parse(authSession);
-                              tenantId = session.tenant?.slug || session.user?.merchant_id || tenantId;
-                            } catch (e) { /* use fallback */ }
-                          }
-                          const token = localStorage.getItem('auth_access_token') || localStorage.getItem('token');
-                          const apiBase = import.meta.env.VITE_API_BASE_URL || 'https://autoteile-bot-service-production.up.railway.app';
-                          const url = `${apiBase}/api/invoices/${invoice.invoice_number}/pdf`;
-
-                          const response = await fetch(url, {
-                            headers: {
-                              'X-Tenant-ID': tenantId || '',
-                              'Authorization': `Token ${token}`
-                            }
-                          });
-
-                          if (!response.ok) throw new Error('Failed to download PDF');
-
-                          const blob = await response.blob();
+                          const blob = await fetchInvoicePdf(invoice.invoice_number);
                           const downloadUrl = window.URL.createObjectURL(blob);
                           const a = document.createElement('a');
                           a.href = downloadUrl;
@@ -328,14 +298,14 @@ export function DocumentsInvoicesView() {
                           a.click();
                           document.body.removeChild(a);
                           window.URL.revokeObjectURL(downloadUrl);
-                          toast.success('PDF wird heruntergeladen...');
+                          toast.success(t('docs_downloading'));
                         } catch (error) {
                           console.error('PDF download failed:', error);
-                          toast.error('PDF-Download fehlgeschlagen');
+                          toast.error(t('error'));
                         }
                       }}
-                      className="p-1.5 text-gray-600 hover:bg-gray-50 rounded"
-                      title="PDF herunterladen"
+                      className="p-1.5 text-muted-foreground hover:bg-muted rounded"
+                      title={t('docs_download_pdf')}
                     >
                       <Download className="w-4 h-4" />
                     </button>
@@ -353,17 +323,17 @@ export function DocumentsInvoicesView() {
     <div className="p-6 space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">{t('docs_title')}</h1>
+        <h1 className="text-2xl font-bold text-foreground">{t('docs_title')}</h1>
         <div className="flex gap-2">
           {activeTab === 'incoming' ? (
-            <button className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+            <button className="flex items-center gap-2 px-4 py-2 bg-[var(--status-success)] text-white rounded-lg hover:bg-[var(--status-success)]/90">
               <Upload className="w-4 h-4" />
               {t('docs_incoming')}
             </button>
           ) : (
             <button
               onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90"
             >
               <Plus className="w-4 h-4" />
               {t('docs_new_invoice')}
@@ -373,7 +343,7 @@ export function DocumentsInvoicesView() {
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-gray-200">
+      <div className="border-b border-border">
         <nav className="-mb-px flex gap-6">
           {[
             { id: 'all', label: t('all'), icon: FileText },
@@ -387,8 +357,8 @@ export function DocumentsInvoicesView() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as TabType)}
                 className={`flex items-center gap-2 px-4 py-3 border-b-2 font-medium text-sm transition ${activeTab === tab.id
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
                   }`}
               >
                 <Icon className="w-4 h-4" />
@@ -407,14 +377,14 @@ export function DocumentsInvoicesView() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Rechnungsnummer oder Kunde suchen..."
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder={t('docs_search_placeholder')}
+              className="w-full px-4 py-2 border border-border rounded-lg bg-card text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary"
             />
           </div>
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value as InvoiceStatus | 'all')}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="px-4 py-2 border border-border rounded-lg bg-card text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary"
           >
             <option value="all">{t('all')}</option>
             <option value="draft">{t('docs_status_draft')}</option>
@@ -426,24 +396,29 @@ export function DocumentsInvoicesView() {
       )}
 
       {/* Content */}
-      <div className="bg-white border rounded-lg shadow-sm">
+      <div className="bg-card border border-border rounded-lg shadow-sm">
         {renderTabContent()}
       </div>
 
       {/* Statistics Footer */}
       {activeTab !== 'tax-office' && filteredInvoices.length > 0 && (
         <div className="grid grid-cols-4 gap-4">
-          {[
-            { label: 'Gesamt', value: filteredInvoices.length, color: 'blue' },
-            { label: 'Offen', value: filteredInvoices.filter(i => i.status === 'issued').length, color: 'yellow' },
-            { label: 'Bezahlt', value: filteredInvoices.filter(i => i.status === 'paid').length, color: 'green' },
-            { label: 'Summe', value: formatCurrency(filteredInvoices.reduce((sum, i) => sum + i.gross_amount, 0)), color: 'purple' },
-          ].map((stat, index) => (
-            <div key={index} className="bg-white border rounded-lg p-4">
-              <div className="text-sm text-gray-600">{stat.label}</div>
-              <div className={`text-2xl font-bold text-${stat.color}-600`}>{stat.value}</div>
-            </div>
-          ))}
+          <div className="bg-card border border-border rounded-lg p-4">
+            <div className="text-sm text-muted-foreground">{t('all')}</div>
+            <div className="text-2xl font-bold text-primary">{filteredInvoices.length}</div>
+          </div>
+          <div className="bg-card border border-border rounded-lg p-4">
+            <div className="text-sm text-muted-foreground">{t('docs_status_issued')}</div>
+            <div className="text-2xl font-bold text-amber-600">{filteredInvoices.filter(i => i.status === 'issued').length}</div>
+          </div>
+          <div className="bg-card border border-border rounded-lg p-4">
+            <div className="text-sm text-muted-foreground">{t('docs_status_paid')}</div>
+            <div className="text-2xl font-bold text-[var(--status-success)]">{filteredInvoices.filter(i => i.status === 'paid').length}</div>
+          </div>
+          <div className="bg-card border border-border rounded-lg p-4">
+            <div className="text-sm text-muted-foreground">{t('docs_total')}</div>
+            <div className="text-2xl font-bold text-foreground">{formatCurrency(filteredInvoices.reduce((sum, i) => sum + i.gross_amount, 0))}</div>
+          </div>
         </div>
       )}
 

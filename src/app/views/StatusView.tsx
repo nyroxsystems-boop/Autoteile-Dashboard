@@ -37,8 +37,8 @@ export function StatusView() {
       name: 'WhatsApp Bot',
       icon: MessageSquare,
       status: botOnline ? 'online' : 'offline',
-      lastUpdate: botOnline ? 'Gerade eben' : 'Unbekannt',
-      description: 'Empfängt und verarbeitet Kundenanfragen via Twilio/WhatsApp-API',
+      lastUpdate: botOnline ? t('system_just_now') : t('system_unknown'),
+      description: t('system_bot_desc'),
     },
     {
       id: 2,
@@ -46,15 +46,15 @@ export function StatusView() {
       icon: Warehouse,
       status: apiOnline ? 'online' : 'offline',
       lastUpdate: lastSync,
-      description: 'Zentrales Backend für Authentifizierung, Daten und Tenant-Verwaltung',
+      description: t('system_api_desc'),
     },
     {
       id: 3,
       name: 'Dashboard API',
       icon: Activity,
       status: apiOnline ? 'online' : 'offline',
-      lastUpdate: 'Gerade eben',
-      description: 'REST-Schnittstellen für das Front-End Dashboard',
+      lastUpdate: t('system_just_now'),
+      description: t('system_dashboard_desc'),
     },
     {
       id: 4,
@@ -62,7 +62,7 @@ export function StatusView() {
       icon: FileText,
       status: apiOnline ? 'online' : 'offline',
       lastUpdate: lastSync,
-      description: 'Automatisierte PDF-Erzeugung für Angebote und Rechnungen',
+      description: t('system_invoice_desc'),
     },
   ];
 
@@ -113,7 +113,7 @@ export function StatusView() {
                       {system.description}
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Letzte Aktualisierung: {system.lastUpdate}
+                      {t('system_last_update')}: {system.lastUpdate}
                     </p>
                   </div>
                 </div>
