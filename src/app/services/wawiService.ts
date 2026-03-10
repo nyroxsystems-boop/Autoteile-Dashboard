@@ -1,17 +1,34 @@
-import { apiFetch } from '../api/client';
+import { apiFetch, ApiError } from '../api/client';
 
 // Adapter: route all calls through Bot-Service (same DB as Admin Dashboard)
+// Gracefully handles 404 for endpoints not yet implemented on the backend
 async function wawiFetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
-    return apiFetch<T>(endpoint, options);
+    try {
+        return await apiFetch<T>(endpoint, options);
+    } catch (err) {
+        if (err instanceof ApiError && err.status === 404) {
+            console.debug(`[WaWi] Endpoint not available: ${endpoint}`);
+            return {} as T;
+        }
+        throw err;
+    }
 }
 
 async function wawiFetchList<T>(endpoint: string): Promise<T[]> {
-    const data = await apiFetch<T[] | { results?: T[] }>(endpoint);
-    if (Array.isArray(data)) return data;
-    if (data && typeof data === 'object' && 'results' in data && Array.isArray(data.results)) {
-        return data.results;
+    try {
+        const data = await apiFetch<T[] | { results?: T[] }>(endpoint);
+        if (Array.isArray(data)) return data;
+        if (data && typeof data === 'object' && 'results' in data && Array.isArray(data.results)) {
+            return data.results;
+        }
+        return [];
+    } catch (err) {
+        if (err instanceof ApiError && err.status === 404) {
+            console.debug(`[WaWi] Endpoint not available: ${endpoint}`);
+            return [];
+        }
+        throw err;
     }
-    return [];
 }
 
 async function wawiFetchBlob(endpoint: string): Promise<Blob> {

@@ -161,7 +161,7 @@ export function AuftraegeView() {
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-2">
-                    <StatusChip status={order.status as any} size="sm" />
+                    <StatusChip status={order.status} size="sm" />
                     {order.generated_invoice_id && (
                       <button
                         onClick={(e) => {
@@ -198,7 +198,7 @@ export function AuftraegeView() {
             <div>
               <div className="flex items-center justify-between mb-2.5">
                 <h2>{selectedOrder.contact?.name || selectedOrder.customerPhone || t('orders_details')}</h2>
-                <StatusChip status={selectedOrder.status as any} />
+                <StatusChip status={selectedOrder.status} />
               </div>
               <p className="text-muted-foreground">ID: {selectedOrder.external_ref || selectedOrder.id}</p>
             </div>

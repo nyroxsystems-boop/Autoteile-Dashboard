@@ -19,6 +19,15 @@ function getDeviceId() {
     return id;
 }
 
+export class ApiError extends Error {
+    status: number;
+    constructor(message: string, status: number) {
+        super(message);
+        this.name = 'ApiError';
+        this.status = status;
+    }
+}
+
 export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`;
 
@@ -36,21 +45,40 @@ export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): 
         ...(options.headers as Record<string, string> || {}),
     };
 
-    const response = await fetch(url, {
-        ...options,
-        headers,
-        credentials: 'include',  // Send httpOnly cookies with every request
-    });
+    const MAX_RETRIES = 3;
+    let lastError: Error | null = null;
 
-    if (!response.ok) {
-        const error = await response.json().catch(() => ({ detail: 'Unknown error' }));
-        throw new Error(error.detail || `Request failed with status ${response.status}`);
+    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+        const response = await fetch(url, {
+            ...options,
+            headers,
+            credentials: 'include',  // Send httpOnly cookies with every request
+        });
+
+        // Retry on 429 Too Many Requests with exponential backoff
+        if (response.status === 429) {
+            const retryAfter = response.headers.get('Retry-After');
+            const waitMs = retryAfter
+                ? parseInt(retryAfter, 10) * 1000
+                : Math.pow(2, attempt) * 1000; // 1s, 2s, 4s
+            console.warn(`[API] 429 on ${endpoint}, retry ${attempt + 1}/${MAX_RETRIES} in ${waitMs}ms`);
+            await new Promise(resolve => setTimeout(resolve, waitMs));
+            continue;
+        }
+
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({ detail: 'Unknown error' }));
+            throw new ApiError(error.detail || `Request failed with status ${response.status}`, response.status);
+        }
+
+        // Some endpoints might return 204 No Content
+        if (response.status === 204) {
+            return {} as T;
+        }
+
+        return response.json();
     }
 
-    // Some endpoints might return 204 No Content
-    if (response.status === 204) {
-        return {} as T;
-    }
-
-    return response.json();
+    // All retries exhausted (only reachable for 429s)
+    throw lastError || new ApiError(`Rate limited after ${MAX_RETRIES} retries: ${endpoint}`, 429);
 }

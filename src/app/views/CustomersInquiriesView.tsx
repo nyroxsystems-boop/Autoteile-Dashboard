@@ -119,7 +119,7 @@ export function CustomersInquiriesView({ onNavigate: _onNavigate }: CustomersInq
             </div>
 
           </div>
-          <div className="text-xs font-semibold text-muted-foreground/80 uppercase">Neue Anfragen</div>
+          <div className="text-xs font-semibold text-muted-foreground/80 uppercase">{t('customers_new')}</div>
           <div className="text-3xl font-bold text-amber-600">{stats.new}</div>
         </div>
 

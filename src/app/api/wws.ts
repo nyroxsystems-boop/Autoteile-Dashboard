@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
-import { apiFetch } from './client';
+import { apiFetch, ApiError } from './client';
 
 // ── Type Definitions ─────────────────────────────────────────────────────────
 
@@ -177,12 +177,20 @@ export interface ActiveDevice {
 
 // ── Helper: fetch array safely ────────────────────────────────────────────────
 async function apiFetchList<T>(endpoint: string): Promise<T[]> {
-    const data = await apiFetch<T[] | { results?: T[] }>(endpoint);
-    if (Array.isArray(data)) return data;
-    if (data && typeof data === 'object' && 'results' in data && Array.isArray(data.results)) {
-        return data.results;
+    try {
+        const data = await apiFetch<T[] | { results?: T[] }>(endpoint);
+        if (Array.isArray(data)) return data;
+        if (data && typeof data === 'object' && 'results' in data && Array.isArray(data.results)) {
+            return data.results;
+        }
+        return [];
+    } catch (err) {
+        if (err instanceof ApiError && err.status === 404) {
+            console.debug(`[API] Endpoint not available: ${endpoint}`);
+            return [];
+        }
+        throw err;
     }
-    return [];
 }
 
 async function apiFetchBlob(endpoint: string): Promise<Blob> {

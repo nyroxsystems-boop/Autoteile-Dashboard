@@ -81,14 +81,14 @@ export function HeuteView({ onNavigate }: HeuteViewProps) {
       key: 'status',
       header: t('orders_status'),
       render: (order: Order) => {
-        return <StatusChip status={order.status as any} size="sm" />;
+        return <StatusChip status={order.status} size="sm" />;
       },
     },
     {
       key: 'action',
       header: '',
       align: 'right' as const,
-      render: (order: Order) => (
+      render: (_order: Order) => (
         <Button
           size="sm"
           variant="ghost"

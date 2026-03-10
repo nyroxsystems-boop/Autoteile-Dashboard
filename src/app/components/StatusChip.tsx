@@ -1,36 +1,41 @@
+import { useI18n } from '../../i18n';
+
+type BaseVariant = 'waiting' | 'processing' | 'success' | 'error' | 'neutral';
+type OrderStatus = 'new' | 'in_progress' | 'quoted' | 'confirmed' | 'oem_pending'
+  | 'collect_vehicle' | 'collect_part' | 'oem_lookup' | 'pricing'
+  | 'offer_ready' | 'offer_sent' | 'done' | 'invoiced' | 'cancelled' | 'rejected';
+
 interface StatusChipProps {
-  status: 'waiting' | 'processing' | 'success' | 'error' | 'neutral' | 'new' | 'in_progress' | 'quoted' | 'confirmed' | 'oem_pending';
+  status: BaseVariant | OrderStatus | string;
   label?: string;
   size?: 'sm' | 'md';
   withDot?: boolean;
 }
 
-const statusMapping = {
-  new: { variant: 'processing' as const, label: 'Neu' },
-  in_progress: { variant: 'processing' as const, label: 'In Bearbeitung' },
-  quoted: { variant: 'neutral' as const, label: 'Angebot gesendet' },
-  confirmed: { variant: 'success' as const, label: 'Bestätigt' },
-  oem_pending: { variant: 'waiting' as const, label: 'OEM-Prüfung' },
-  collect_vehicle: { variant: 'processing' as const, label: 'Fahrzeug' },
-  collect_part: { variant: 'processing' as const, label: 'Teilesuche' },
-  oem_lookup: { variant: 'waiting' as const, label: 'OEM-Prüfung' },
-  pricing: { variant: 'processing' as const, label: 'Preisfindung' },
-  offer_ready: { variant: 'success' as const, label: 'Angebot bereit' },
-  offer_sent: { variant: 'success' as const, label: 'Angebot gesendet' },
-  done: { variant: 'success' as const, label: 'Abgeschlossen' },
-  invoiced: { variant: 'success' as const, label: 'Berechnet' },
-  cancelled: { variant: 'error' as const, label: 'Storniert' },
-  rejected: { variant: 'error' as const, label: 'Abgelehnt' },
+const statusMapping: Record<string, { variant: BaseVariant; labelKey: string }> = {
+  new: { variant: 'processing', labelKey: 'customers_new' },
+  in_progress: { variant: 'processing', labelKey: 'customers_in_progress' },
+  quoted: { variant: 'neutral', labelKey: 'customers_quoted' },
+  confirmed: { variant: 'success', labelKey: 'status_order_confirmed' },
+  oem_pending: { variant: 'waiting', labelKey: 'customers_oem_pending' },
+  collect_vehicle: { variant: 'processing', labelKey: 'orders_vehicle' },
+  collect_part: { variant: 'processing', labelKey: 'orders_parts_oem' },
+  oem_lookup: { variant: 'waiting', labelKey: 'status_oem_lookup' },
+  pricing: { variant: 'processing', labelKey: 'prices_title' },
+  offer_ready: { variant: 'success', labelKey: 'orders_ready' },
+  offer_sent: { variant: 'success', labelKey: 'offers_published' },
+  done: { variant: 'success', labelKey: 'status_done' },
+  invoiced: { variant: 'success', labelKey: 'status_invoiced' },
+  cancelled: { variant: 'error', labelKey: 'cancel' },
+  rejected: { variant: 'error', labelKey: 'offers_empty' },
 };
 
 export function StatusChip({ status, label, size = 'md', withDot = true }: StatusChipProps) {
-  // Map customer status to base status
-  const mappedStatus = status in statusMapping
-    ? statusMapping[status as keyof typeof statusMapping]
-    : { variant: status as 'waiting' | 'processing' | 'success' | 'error' | 'neutral', label: label || status };
-
-  const actualVariant = mappedStatus.variant;
-  const actualLabel = label || mappedStatus.label;
+  const { t } = useI18n();
+  // Map customer/order status to base variant
+  const mapped = statusMapping[status];
+  const actualVariant: BaseVariant = mapped?.variant || (status as BaseVariant) || 'neutral';
+  const actualLabel = label || (mapped ? t(mapped.labelKey) : status);
 
   const variants = {
     waiting: 'bg-[var(--status-waiting-bg)] text-[var(--status-waiting-fg)] border-[var(--status-waiting-border)]',
