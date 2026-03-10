@@ -18,6 +18,13 @@ export function useTenants() {
 
     useEffect(() => {
         async function load() {
+            // Don't fetch if not authenticated
+            const token = localStorage.getItem('auth_access_token') || localStorage.getItem('token');
+            if (!token) {
+                setLoading(false);
+                return;
+            }
+
             try {
                 // Use real backend API to get tenant list
                 const tenantList = await getMeTenants();

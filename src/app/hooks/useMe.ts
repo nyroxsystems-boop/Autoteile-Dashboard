@@ -9,6 +9,13 @@ export function useMe() {
 
     useEffect(() => {
         async function loadMe() {
+            // Don't fetch if not authenticated
+            const token = localStorage.getItem('auth_access_token') || localStorage.getItem('token');
+            if (!token) {
+                setLoading(false);
+                return;
+            }
+
             try {
                 setLoading(true);
                 const data = await getMe();
