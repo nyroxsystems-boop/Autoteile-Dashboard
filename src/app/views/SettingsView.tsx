@@ -40,14 +40,14 @@ export function SettingsView() {
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
 
   const tabs: { id: SettingsTab; label: string; shortLabel: string; icon: LucideIcon }[] = [
-    { id: 'profile', label: 'Mein Profil', shortLabel: 'Profil', icon: User },
-    { id: 'company', label: 'Unternehmen', shortLabel: 'Firma', icon: Building2 },
-    { id: 'team', label: 'Team-Mitglieder', shortLabel: 'Team', icon: Users },
-    { id: 'notifications', label: 'Benachrichtigungen', shortLabel: 'Alerts', icon: Bell },
-    { id: 'security', label: 'Sicherheit', shortLabel: 'Sicher-\nheit', icon: Shield },
-    { id: 'billing', label: 'Abrechnung', shortLabel: 'Billing', icon: CreditCard },
-    { id: 'support', label: 'Support', shortLabel: 'Support', icon: Headphones },
-    { id: 'invoice', label: 'Rechnungen', shortLabel: 'Design', icon: FileText },
+    { id: 'profile', label: t('settings_profile'), shortLabel: t('settings_profile'), icon: User },
+    { id: 'company', label: t('settings_company'), shortLabel: t('settings_company'), icon: Building2 },
+    { id: 'team', label: t('settings_team'), shortLabel: t('settings_team'), icon: Users },
+    { id: 'notifications', label: t('settings_notifications'), shortLabel: t('settings_notifications'), icon: Bell },
+    { id: 'security', label: t('settings_security'), shortLabel: t('settings_security'), icon: Shield },
+    { id: 'billing', label: t('settings_billing'), shortLabel: t('settings_billing'), icon: CreditCard },
+    { id: 'support', label: t('settings_support'), shortLabel: t('settings_support'), icon: Headphones },
+    { id: 'invoice', label: t('settings_invoice'), shortLabel: t('settings_invoice'), icon: FileText },
     { id: 'wholesalers', label: t('wholesaler_title'), shortLabel: t('wholesaler_title'), icon: Package },
   ];
 
@@ -62,8 +62,8 @@ export function SettingsView() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-foreground mb-2">Einstellungen</h1>
-        <p className="text-muted-foreground">Verwalte dein Profil, Team und Unternehmenseinstellungen</p>
+        <h1 className="text-foreground mb-2">{t('settings_title')}</h1>
+        <p className="text-muted-foreground">{t('settings_subtitle')}</p>
       </div>
 
       <div className="flex gap-6">

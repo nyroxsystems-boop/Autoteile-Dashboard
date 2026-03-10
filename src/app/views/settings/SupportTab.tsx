@@ -1,91 +1,70 @@
-import { User, Mail, Clock, ExternalLink, Headphones, MessageCircle } from 'lucide-react';
+import { Headphones, MessageCircle, Clock, ExternalLink } from 'lucide-react';
+import { useI18n } from '../../../i18n';
 
 export function SupportTab() {
+    const { t } = useI18n();
     return (
         <div className="space-y-6">
             <div className="bg-card border border-border rounded-xl p-6">
-                <div className="flex items-center gap-2 mb-6">
-                    <User className="w-5 h-5 text-primary" />
-                    <h3 className="text-foreground font-medium">Ihr persönlicher Ansprechpartner</h3>
-                </div>
-                <div className="p-6 bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 rounded-xl">
-                    <div className="flex items-start gap-6">
-                        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-2xl ring-4 ring-blue-500/20 flex-shrink-0">
-                            PU
+                <h3 className="text-foreground font-medium mb-6">{t('settings_support_contact')}</h3>
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 bg-background rounded-lg border border-border">
+                        <div className="flex items-center gap-3 mb-2">
+                            <Headphones className="w-5 h-5 text-primary" />
+                            <span className="font-medium text-foreground">{t('settings_support_tech')}</span>
                         </div>
-                        <div className="flex-1">
-                            <div className="mb-4">
-                                <div className="text-xl font-semibold text-foreground mb-1">PartsUnion Support</div>
-                                <div className="text-sm text-muted-foreground">Technischer Support & Account-Hilfe</div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-3">
-                                <a href="mailto:support@partsunion.de"
-                                    className="flex items-center gap-2 px-4 py-3 bg-card border border-border rounded-lg hover:border-primary hover:bg-primary/5 transition-all group">
-                                    <Mail className="w-4 h-4 text-muted-foreground group-hover:text-primary" />
-                                    <div className="text-left">
-                                        <div className="text-xs text-muted-foreground">E-Mail</div>
-                                        <div className="text-sm font-medium text-foreground">support@partsunion.de</div>
-                                    </div>
-                                </a>
-                                <a href="https://partsunion.de" target="_blank" rel="noopener noreferrer"
-                                    className="flex items-center gap-2 px-4 py-3 bg-card border border-border rounded-lg hover:border-primary hover:bg-primary/5 transition-all group">
-                                    <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-primary" />
-                                    <div className="text-left">
-                                        <div className="text-xs text-muted-foreground">Website</div>
-                                        <div className="text-sm font-medium text-foreground">partsunion.de</div>
-                                    </div>
-                                </a>
-                            </div>
-                            <div className="mt-4 flex items-center gap-2 text-sm">
-                                <div className="flex items-center gap-1.5">
-                                    <Clock className="w-3.5 h-3.5 text-muted-foreground" />
-                                    <span className="text-muted-foreground">Mo-Fr 09:00-17:00 Uhr</span>
-                                </div>
-                            </div>
+                        <p className="text-sm text-muted-foreground">support@partsunion.de</p>
+                        <p className="text-sm text-muted-foreground">+49 30 123 456 789</p>
+                        <div className="mt-2 flex items-center gap-2 text-xs">
+                            <span className="w-2 h-2 rounded-full bg-green-500" />
+                            <span className="text-green-600">{t('settings_support_available')}</span>
+                            <span className="text-muted-foreground">• {t('settings_support_hours')}</span>
                         </div>
+                    </div>
+                    <div className="p-4 bg-background rounded-lg border border-border">
+                        <div className="flex items-center gap-3 mb-2">
+                            <MessageCircle className="w-5 h-5 text-primary" />
+                            <span className="font-medium text-foreground">Account Manager</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground">accounts@partsunion.de</p>
+                        <p className="text-sm text-muted-foreground">+49 30 123 456 790</p>
                     </div>
                 </div>
             </div>
 
             <div className="bg-card border border-border rounded-xl p-6">
-                <h3 className="text-foreground font-medium mb-6">Support-Ressourcen</h3>
+                <h3 className="text-foreground font-medium mb-4">{t('settings_support_resources')}</h3>
                 <div className="space-y-3">
                     {[
-                        { icon: Headphones, color: 'primary', label: 'Technischer Support', desc: '24/7 Support bei technischen Problemen' },
-                        { icon: MessageCircle, color: 'blue-600', label: 'Live Chat', desc: 'Schnelle Antworten im Chat' },
-                        { icon: ExternalLink, color: 'green-600', label: 'Wissensdatenbank', desc: 'Tutorials, FAQs und Anleitungen' },
-                    ].map((item) => (
-                        <a key={item.label} href="#"
-                            className="flex items-center justify-between p-4 bg-background border border-border rounded-lg hover:border-border-strong transition-all group">
-                            <div className="flex items-center gap-3">
-                                <div className={`w-10 h-10 rounded-lg bg-${item.color}/10 flex items-center justify-center`}>
-                                    <item.icon className={`w-5 h-5 text-${item.color}`} />
-                                </div>
-                                <div>
-                                    <div className="font-medium text-foreground">{item.label}</div>
-                                    <div className="text-sm text-muted-foreground">{item.desc}</div>
-                                </div>
-                            </div>
-                            <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-foreground" />
+                        { icon: ExternalLink, label: 'API-Dokumentation', href: '#' },
+                        { icon: ExternalLink, label: 'Knowledge Base', href: '#' },
+                        { icon: ExternalLink, label: 'Changelog', href: '#' },
+                    ].map((r, i) => (
+                        <a key={i} href={r.href} className="flex items-center gap-3 p-3 bg-background rounded-lg border border-border hover:border-primary/30 transition-all group">
+                            <r.icon className="w-4 h-4 text-muted-foreground group-hover:text-primary" />
+                            <span className="text-sm text-foreground group-hover:text-primary">{r.label}</span>
                         </a>
                     ))}
                 </div>
             </div>
 
             <div className="bg-card border border-border rounded-xl p-6">
-                <h3 className="text-foreground font-medium mb-6">Service Level</h3>
+                <h3 className="text-foreground font-medium mb-4">Service Level</h3>
                 <div className="grid grid-cols-3 gap-4">
-                    <div className="p-4 bg-background border border-border rounded-lg">
-                        <div className="text-2xl font-bold text-foreground mb-1">&lt; 2h</div>
-                        <div className="text-sm text-muted-foreground">Durchschn. Antwortzeit</div>
+                    <div className="text-center p-4 bg-background rounded-lg border border-border">
+                        <Clock className="w-6 h-6 text-primary mx-auto mb-2" />
+                        <div className="text-2xl font-bold text-foreground">99.9%</div>
+                        <div className="text-xs text-muted-foreground">Uptime</div>
                     </div>
-                    <div className="p-4 bg-background border border-border rounded-lg">
-                        <div className="text-2xl font-bold text-foreground mb-1">99.9%</div>
-                        <div className="text-sm text-muted-foreground">Verfügbarkeit</div>
+                    <div className="text-center p-4 bg-background rounded-lg border border-border">
+                        <Clock className="w-6 h-6 text-primary mx-auto mb-2" />
+                        <div className="text-2xl font-bold text-foreground">&lt;2h</div>
+                        <div className="text-xs text-muted-foreground">Response Time</div>
                     </div>
-                    <div className="p-4 bg-background border border-border rounded-lg">
-                        <div className="text-2xl font-bold text-foreground mb-1">4.9/5</div>
-                        <div className="text-sm text-muted-foreground">Kundenzufriedenheit</div>
+                    <div className="text-center p-4 bg-background rounded-lg border border-border">
+                        <Clock className="w-6 h-6 text-primary mx-auto mb-2" />
+                        <div className="text-2xl font-bold text-foreground">24/7</div>
+                        <div className="text-xs text-muted-foreground">Monitoring</div>
                     </div>
                 </div>
             </div>

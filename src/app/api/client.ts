@@ -31,13 +31,15 @@ export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): 
         'Content-Type': 'application/json',
         'X-Device-ID': deviceId,
         ...(tenantId ? { 'X-Tenant-ID': tenantId } : {}),
+        // Keep Authorization header for backwards compat — remove once all clients use cookies
         ...(token ? { 'Authorization': `Token ${token}` } : {}),
-        ...(options.headers as any || {}),
+        ...(options.headers as Record<string, string> || {}),
     };
 
     const response = await fetch(url, {
         ...options,
         headers,
+        credentials: 'include',  // Send httpOnly cookies with every request
     });
 
     if (!response.ok) {
