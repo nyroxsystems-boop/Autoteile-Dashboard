@@ -26,11 +26,18 @@ export function LoginView({ onLoginSuccess }: LoginViewProps) {
     const [tenant, setTenant] = useState('');
     const [loading, setLoading] = useState(false);
     const [deviceLimitError, setDeviceLimitError] = useState<DeviceLimitError | null>(null);
+    const [fieldError, setFieldError] = useState<{ field: 'identifier' | 'password' | 'general'; message: string } | null>(null);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!identifier || !password) {
-            toast.error(t('login_enter_credentials'));
+        setFieldError(null);
+
+        if (!identifier) {
+            setFieldError({ field: 'identifier', message: 'Bitte Benutzername oder E-Mail eingeben' });
+            return;
+        }
+        if (!password) {
+            setFieldError({ field: 'password', message: 'Bitte Passwort eingeben' });
             return;
         }
 
@@ -38,8 +45,11 @@ export function LoginView({ onLoginSuccess }: LoginViewProps) {
         setDeviceLimitError(null);
 
         try {
+            // Send both username and email so Django can match either
+            const isEmail = identifier.includes('@');
             const data = await apiLogin({
-                email: identifier,
+                email: isEmail ? identifier : undefined,
+                username: !isEmail ? identifier : undefined,
                 password,
                 tenant: tenant || undefined,
             });
@@ -73,7 +83,16 @@ export function LoginView({ onLoginSuccess }: LoginViewProps) {
                     message: err.message || 'Gerätelimit erreicht',
                 });
             } else {
-                toast.error(err.message || t('login_failed'));
+                const msg = (err.message || '').toLowerCase();
+                if (msg.includes('invalid credentials') || msg.includes('ungültige')) {
+                    setFieldError({ field: 'password', message: 'Falsches Passwort. Bitte überprüfen Sie Ihre Eingabe.' });
+                } else if (msg.includes('not a member') || msg.includes('tenant')) {
+                    setFieldError({ field: 'general', message: 'Dieser Benutzer ist keinem Mandanten zugeordnet. Bitte kontaktieren Sie Ihren Administrator.' });
+                } else if (msg.includes('not found') || msg.includes('no user')) {
+                    setFieldError({ field: 'identifier', message: 'Benutzer nicht gefunden. Bitte überprüfen Sie Ihren Benutzernamen.' });
+                } else {
+                    setFieldError({ field: 'general', message: err.message || 'Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.' });
+                }
             }
         } finally {
             setLoading(false);
@@ -170,12 +189,15 @@ export function LoginView({ onLoginSuccess }: LoginViewProps) {
                                 <Input
                                     type="text"
                                     placeholder="admin"
-                                    className="pl-10"
+                                    className={`pl-10 ${fieldError?.field === 'identifier' ? 'border-red-500 ring-1 ring-red-500/30' : ''}`}
                                     value={identifier}
-                                    onChange={(e) => setIdentifier(e.target.value)}
+                                    onChange={(e) => { setIdentifier(e.target.value); setFieldError(null); }}
                                     disabled={loading}
                                 />
                             </div>
+                            {fieldError?.field === 'identifier' && (
+                                <p className="text-sm text-red-500 mt-1">{fieldError.message}</p>
+                            )}
                         </div>
 
                         <div className="space-y-2">
@@ -187,12 +209,15 @@ export function LoginView({ onLoginSuccess }: LoginViewProps) {
                                 <Input
                                     type="password"
                                     placeholder="••••••••"
-                                    className="pl-10"
+                                    className={`pl-10 ${fieldError?.field === 'password' ? 'border-red-500 ring-1 ring-red-500/30' : ''}`}
                                     value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
+                                    onChange={(e) => { setPassword(e.target.value); setFieldError(null); }}
                                     disabled={loading}
                                 />
                             </div>
+                            {fieldError?.field === 'password' && (
+                                <p className="text-sm text-red-500 mt-1">{fieldError.message}</p>
+                            )}
                         </div>
 
                         <div className="space-y-2">
@@ -211,6 +236,12 @@ export function LoginView({ onLoginSuccess }: LoginViewProps) {
                                 />
                             </div>
                         </div>
+
+                        {fieldError?.field === 'general' && (
+                            <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-sm text-red-500">
+                                {fieldError.message}
+                            </div>
+                        )}
 
                         <Button type="submit" className="w-full h-11" disabled={loading}>
                             {loading ? (
