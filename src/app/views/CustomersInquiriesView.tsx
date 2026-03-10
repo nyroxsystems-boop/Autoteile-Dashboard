@@ -115,7 +115,7 @@ export function CustomersInquiriesView({ onNavigate: _onNavigate }: CustomersInq
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center">
               <MessageSquare className="w-5 h-5 text-white" />
             </div>
-            <div className="text-xs font-bold text-green-600 px-2 py-0.5 rounded-full bg-green-500/10">+12%</div>
+
           </div>
           <div className="text-xs font-semibold text-muted-foreground/80 uppercase">Neue Anfragen</div>
           <div className="text-3xl font-bold text-amber-600">{stats.new}</div>
@@ -129,7 +129,7 @@ export function CustomersInquiriesView({ onNavigate: _onNavigate }: CustomersInq
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
               <Clock className="w-5 h-5 text-white" />
             </div>
-            <div className="text-xs font-bold text-green-600 px-2 py-0.5 rounded-full bg-green-500/10">+8%</div>
+
           </div>
           <div className="text-xs font-semibold text-muted-foreground/80 uppercase">In Bearbeitung</div>
           <div className="text-3xl font-bold text-blue-600">{stats.in_progress}</div>
@@ -143,7 +143,7 @@ export function CustomersInquiriesView({ onNavigate: _onNavigate }: CustomersInq
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center">
               <FileText className="w-5 h-5 text-white" />
             </div>
-            <div className="text-xs font-bold text-green-600 px-2 py-0.5 rounded-full bg-green-500/10">+15%</div>
+
           </div>
           <div className="text-xs font-semibold text-muted-foreground/80 uppercase">Angebot gesendet</div>
           <div className="text-3xl font-bold text-green-600">{stats.quoted}</div>
@@ -157,7 +157,7 @@ export function CustomersInquiriesView({ onNavigate: _onNavigate }: CustomersInq
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center">
               <AlertCircle className="w-5 h-5 text-white" />
             </div>
-            <div className="text-xs font-bold text-red-600 px-2 py-0.5 rounded-full bg-red-500/10">⚠️</div>
+
           </div>
           <div className="text-xs font-semibold text-muted-foreground/80 uppercase">OEM-Prüfung</div>
           <div className="text-3xl font-bold text-red-600">{stats.oem_pending}</div>
@@ -208,7 +208,7 @@ export function CustomersInquiriesView({ onNavigate: _onNavigate }: CustomersInq
       {/* Detail Panel */}
       {selectedCustomerId && selectedCustomer && (
         <CustomerDetailPanel
-          customer={selectedCustomer as any}
+          customer={selectedCustomer}
           onClose={() => setSelectedCustomerId(null)}
           onCreateQuote={() => {
             setSelectedCustomerId(null);

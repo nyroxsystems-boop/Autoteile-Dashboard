@@ -139,7 +139,7 @@ export function AuftraegeView() {
             return (
               <button
                 key={order.id}
-                onClick={() => setSelectedOrderId(order.id as any)}
+                onClick={() => setSelectedOrderId(order.id)}
                 className={`
                   w-full p-5 rounded-xl border transition-all duration-200 text-left
                   ${selectedOrderId === order.id
@@ -160,7 +160,7 @@ export function AuftraegeView() {
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-2">
-                    <StatusChip status={mapStatus(order.status).variant as any} label={mapStatus(order.status).label} size="sm" />
+                    <StatusChip status={order.status as any} size="sm" />
                     {order.generated_invoice_id && (
                       <button
                         onClick={(e) => {
@@ -197,7 +197,7 @@ export function AuftraegeView() {
             <div>
               <div className="flex items-center justify-between mb-2.5">
                 <h2>{selectedOrder.contact?.name || selectedOrder.customerPhone || 'Auftragsdetails'}</h2>
-                <StatusChip status={mapStatus(selectedOrder.status).variant as any} label={mapStatus(selectedOrder.status).label} />
+                <StatusChip status={selectedOrder.status as any} />
               </div>
               <p className="text-muted-foreground">ID: {selectedOrder.external_ref || selectedOrder.id}</p>
             </div>
@@ -388,13 +388,4 @@ export function AuftraegeView() {
   );
 }
 
-function mapStatus(raw: string) {
-  // Status labels are translated at render time via t() in the component
-  switch (raw) {
-    case 'collect_part': return { variant: 'waiting', label: 'Wartet auf Teile' };
-    case 'lookup_oem': return { variant: 'processing', label: 'OEM Suche' };
-    case 'done': return { variant: 'success', label: 'Abgeschlossen' };
-    case 'invoiced': return { variant: 'success', label: 'Fakturiert' };
-    default: return { variant: 'neutral', label: raw };
-  }
-}
+// mapStatus is no longer needed — StatusChip handles all status mappings internally

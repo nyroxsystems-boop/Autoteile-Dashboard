@@ -120,9 +120,9 @@ export function SettingsView() {
           id: m.id.toString(),
           name: `${m.first_name} ${m.last_name}`.trim() || m.username,
           email: m.email,
-          role: m.role.toLowerCase() as any,
+          role: m.role.toLowerCase() as TeamMember['role'],
           avatar: '',
-          status: m.is_active ? 'active' : 'inactive' as any,
+          status: (m.is_active ? 'active' : 'inactive') as TeamMember['status'],
           joinedDate: '-',
           lastActive: '-',
         }));
@@ -1834,7 +1834,7 @@ export function SettingsView() {
                 </label>
                 <CustomSelect
                   value={editingMember.status}
-                  onChange={(value) => setEditingMember({ ...editingMember, status: value as any })}
+                  onChange={(value) => setEditingMember({ ...editingMember, status: value as TeamMember['status'] })}
                   options={[
                     {
                       value: 'active',

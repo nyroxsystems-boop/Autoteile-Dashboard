@@ -101,7 +101,7 @@ export function ArticleDetailView() {
                 {tabs.map(tab => (
                     <button
                         key={tab.id}
-                        onClick={() => setActiveTab(tab.id as any)}
+                        onClick={() => setActiveTab(tab.id as typeof activeTab)}
                         className={`
               flex items-center gap-2 px-6 py-4 text-sm font-semibold transition-all relative
               ${activeTab === tab.id

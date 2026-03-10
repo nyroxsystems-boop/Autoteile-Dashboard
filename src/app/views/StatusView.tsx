@@ -42,11 +42,11 @@ export function StatusView() {
     },
     {
       id: 2,
-      name: 'WWS-Backend (InvenTree)',
+      name: 'Bot-Service API',
       icon: Warehouse,
       status: apiOnline ? 'online' : 'offline',
       lastUpdate: lastSync,
-      description: 'Zentrale Datenbank für Teile, Bestände und Bestellungen',
+      description: 'Zentrales Backend für Authentifizierung, Daten und Tenant-Verwaltung',
     },
     {
       id: 3,

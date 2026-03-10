@@ -47,7 +47,7 @@ export function AngeboteView() {
       oemNumber: order.oem_number || order.part?.oemNumber || '',
       partName: order.part?.partText || 'Kfz-Teil',
       timestamp: order.created_at ? new Date(order.created_at).toLocaleDateString() : 'N/A',
-      status: (order.status === 'new' ? 'offers_ready' : order.status === 'collect_part' ? 'selected' : order.status === 'done' ? 'confirmed' : 'rejected') as any,
+      status: order.status === 'new' ? 'offers_ready' : order.status === 'collect_part' ? 'selected' : order.status === 'done' ? 'confirmed' : 'rejected',
       options: (orderOffers[order.id] || []).map((off, idx) => ({
         id: off.id.toString(),
         label: String.fromCharCode(65 + idx) as 'A' | 'B' | 'C',
@@ -131,7 +131,7 @@ export function AngeboteView() {
             <div className="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center">
               <FileText className="w-5 h-5 text-white" />
             </div>
-            <div className="text-xs font-bold text-green-600">+18%</div>
+
           </div>
           <div className="text-xs font-semibold text-muted-foreground uppercase">{t('orders_ready')}</div>
           <div className="text-3xl font-bold text-amber-600">{stats.offers_ready}</div>
@@ -145,7 +145,7 @@ export function AngeboteView() {
             <div className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center">
               <CheckCircle2 className="w-5 h-5 text-white" />
             </div>
-            <div className="text-xs font-bold text-green-600">+22%</div>
+
           </div>
           <div className="text-xs font-semibold text-muted-foreground uppercase">{t('offers_published')}</div>
           <div className="text-3xl font-bold text-blue-600">{stats.selected}</div>
@@ -159,7 +159,7 @@ export function AngeboteView() {
             <div className="w-10 h-10 rounded-xl bg-green-500 flex items-center justify-center">
               <Package className="w-5 h-5 text-white" />
             </div>
-            <div className="text-xs font-bold text-green-600">+15%</div>
+
           </div>
           <div className="text-xs font-semibold text-muted-foreground uppercase">{t('status_done')}</div>
           <div className="text-3xl font-bold text-green-600">{stats.confirmed}</div>

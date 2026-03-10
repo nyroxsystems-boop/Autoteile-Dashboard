@@ -17,7 +17,7 @@ interface Address {
 }
 
 interface CustomerProfile {
-  id: string;
+  id: string | number;
   customerName: string;
   whatsappNumber: string;
   email?: string;

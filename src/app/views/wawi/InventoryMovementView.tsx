@@ -34,7 +34,7 @@ export function InventoryMovementView() {
                 ].map((type) => (
                     <button
                         key={type.id}
-                        onClick={() => setMovementType(type.id as any)}
+                        onClick={() => setMovementType(type.id as typeof movementType)}
                         className={`
 p - 6 rounded - 3xl border - 2 transition - all flex flex - col items - center gap - 3
               ${movementType === type.id

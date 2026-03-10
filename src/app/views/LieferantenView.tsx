@@ -141,7 +141,7 @@ export function LieferantenView() {
                           : 'bg-[var(--status-waiting-bg)] text-[var(--status-waiting-fg)] border border-[var(--status-waiting-border)]'
                       }
                     `}>
-                      {(parseFloat(supplier.rating) * 20).toFixed(0)}%
+                      {((parseFloat(supplier.rating) || 0) * 20).toFixed(0)}%
                     </div>
                   </td>
                 </tr>
