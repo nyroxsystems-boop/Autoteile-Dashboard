@@ -6,7 +6,7 @@ import { RevenueChart } from '../components/RevenueChart';
 import { TopCustomers } from '../components/TopCustomers';
 import { ActivityFeed } from '../components/ActivityFeed';
 import { Button } from '../components/ui/button';
-import { Package, MessageSquare, TrendingUp, Clock, CheckCircle2 } from 'lucide-react';
+import { Package, MessageSquare, TrendingUp, Clock, CheckCircle2, Sparkles, ArrowRight } from 'lucide-react';
 import { useState } from 'react';
 import { useDashboardSummary } from '../hooks/useDashboardSummary';
 import { useOrders } from '../hooks/useOrders';
@@ -17,8 +17,6 @@ interface HeuteViewProps {
   onNavigate: (view: string, filter?: string) => void;
 }
 
-// View logic
-
 export function HeuteView({
   onNavigate
 }: HeuteViewProps) {
@@ -27,10 +25,10 @@ export function HeuteView({
   const { t } = useI18n();
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d' | '1y'>('30d');
 
-  // Chart data - from summary
+  // Chart data
   const chartData = summary?.revenueHistory || [];
 
-  // Top customers data
+  // Top customers
   const topCustomers = summary?.topCustomers?.map(c => ({
     name: c.name,
     revenue: `€${c.revenue.toLocaleString('de-DE', { minimumFractionDigits: 2 })}`,
@@ -39,14 +37,15 @@ export function HeuteView({
     avatar: c.avatar
   })) || [];
 
-  // Activity feed data
+  // Activity feed
   const activities = summary?.activities?.map(a => ({
     ...a,
     time: new Date(a.time).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })
   })) || [];
 
-  // Task Cards Data - was heute blockiert oder Geld bringt
-  // Render logic
+  // Greeting based on time of day
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Guten Morgen' : hour < 18 ? 'Guten Tag' : 'Guten Abend';
 
   const columns = [
     {
@@ -95,18 +94,20 @@ export function HeuteView({
     },
     {
       key: 'action',
-      header: t('orders_no_action'),
+      header: '',
       align: 'right' as const,
       render: (order: Order) => (
         <Button
           size="sm"
           variant="outline"
+          className="gap-1.5"
           onClick={(e: React.MouseEvent) => {
             e.stopPropagation();
             onNavigate('auftraege');
           }}
         >
           {order.status === 'new' ? t('orders_create_invoice') : 'Details'}
+          <ArrowRight className="w-3.5 h-3.5" />
         </Button>
       ),
     },
@@ -116,13 +117,24 @@ export function HeuteView({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <PageHeader
-        title={t('today_title')}
-        description={t('today_subtitle')}
-      />
+      {/* Welcome Header with subtle gradient accent */}
+      <div className="relative">
+        <div className="absolute -top-2 -left-2 w-32 h-32 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="relative flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <Sparkles className="w-4 h-4 text-primary/60" />
+              <span className="text-sm font-medium text-primary/70">{greeting}</span>
+            </div>
+            <PageHeader
+              title={t('today_title')}
+              description={t('today_subtitle')}
+            />
+          </div>
+        </div>
+      </div>
 
-      {/* Top Metrics */}
+      {/* Top Metrics with subtle gradient borders */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <MetricCard
           label={t('today_new_orders')}
@@ -155,109 +167,84 @@ export function HeuteView({
         />
       </div>
 
-      {/* Main Dashboard Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Left Column - Chart & Current Tasks Combined */}
-        <div className="lg:col-span-2">
-          <div className="rounded-xl border border-border bg-card p-6 flex flex-col h-[calc(100vh-220px)]">
-            {/* Revenue Chart Section */}
-            <div className="flex-shrink-0">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h3 className="text-foreground">{t('today_revenue')}</h3>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {timeRange === '7d' && 'Letzte 7 Tage'}
-                    {timeRange === '30d' && 'Letzte 30 Tage'}
-                    {timeRange === '90d' && 'Letzte 90 Tage'}
-                    {timeRange === '1y' && 'Letztes Jahr'}
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  {/* Time Range Selector */}
-                  <div className="inline-flex items-center rounded-lg border border-border bg-background p-1">
-                    <button
-                      onClick={() => setTimeRange('7d')}
-                      className={`px-3 py-1 text-sm rounded-md transition-all ${timeRange === '7d'
-                        ? 'bg-card text-foreground shadow-sm'
-                        : 'text-muted-foreground hover:text-foreground'
-                        }`}
-                    >
-                      7T
-                    </button>
-                    <button
-                      onClick={() => setTimeRange('30d')}
-                      className={`px-3 py-1 text-sm rounded-md transition-all ${timeRange === '30d'
-                        ? 'bg-card text-foreground shadow-sm'
-                        : 'text-muted-foreground hover:text-foreground'
-                        }`}
-                    >
-                      30T
-                    </button>
-                    <button
-                      onClick={() => setTimeRange('90d')}
-                      className={`px-3 py-1 text-sm rounded-md transition-all ${timeRange === '90d'
-                        ? 'bg-card text-foreground shadow-sm'
-                        : 'text-muted-foreground hover:text-foreground'
-                        }`}
-                    >
-                      90T
-                    </button>
-                    <button
-                      onClick={() => setTimeRange('1y')}
-                      className={`px-3 py-1 text-sm rounded-md transition-all ${timeRange === '1y'
-                        ? 'bg-card text-foreground shadow-sm'
-                        : 'text-muted-foreground hover:text-foreground'
-                        }`}
-                    >
-                      Jahr
-                    </button>
-                  </div>
-
-                  {/* Legend */}
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-[var(--status-processing)]"></div>
-                      <span className="text-sm text-muted-foreground">Umsatz</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-[var(--status-success)]"></div>
-                      <span className="text-sm text-muted-foreground">Bestellungen</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="h-[280px] flex items-center justify-center">
-                {chartData.length > 0 ? (
-                  <RevenueChart data={chartData} />
-                ) : (
-                  <div className="text-muted-foreground text-sm italic">{t('orders_no_offers')}</div>
-                )}
-              </div>
+      {/* Revenue Chart — Full Width */}
+      <div className="rounded-xl border border-border bg-card p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-foreground font-semibold">{t('today_revenue')}</h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              {timeRange === '7d' && 'Letzte 7 Tage'}
+              {timeRange === '30d' && 'Letzte 30 Tage'}
+              {timeRange === '90d' && 'Letzte 90 Tage'}
+              {timeRange === '1y' && 'Letztes Jahr'}
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="inline-flex items-center rounded-lg border border-border bg-background p-1">
+              {(['7d', '30d', '90d', '1y'] as const).map(range => (
+                <button
+                  key={range}
+                  onClick={() => setTimeRange(range)}
+                  className={`px-3 py-1 text-sm rounded-md transition-all ${timeRange === range
+                    ? 'bg-card text-foreground shadow-sm font-medium'
+                    : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                >
+                  {range === '7d' ? '7T' : range === '30d' ? '30T' : range === '90d' ? '90T' : 'Jahr'}
+                </button>
+              ))}
             </div>
-
-            {/* Divider */}
-            <div className="border-t border-border my-6 flex-shrink-0"></div>
-
-            {/* Current Tasks Section */}
-            <div className="flex-1 flex flex-col min-h-0">
-              <h3 className="text-foreground mb-4">{t('today_recent_orders')}</h3>
-              <div className="overflow-auto flex-1">
-                <DataTable
-                  columns={columns}
-                  data={orders.slice(0, 10)}
-                  onRowClick={() => onNavigate('auftraege')}
-                />
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-[var(--status-processing)]"></div>
+                <span className="text-sm text-muted-foreground">Umsatz</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-[var(--status-success)]"></div>
+                <span className="text-sm text-muted-foreground">Bestellungen</span>
               </div>
             </div>
           </div>
         </div>
+        <div className="h-[280px] flex items-center justify-center">
+          {chartData.length > 0 ? (
+            <RevenueChart data={chartData} />
+          ) : (
+            <div className="text-muted-foreground text-sm italic">{t('orders_no_offers')}</div>
+          )}
+        </div>
+      </div>
 
-        {/* Right Column - Top Customers & Activity Feed */}
-        <div className="flex flex-col gap-4 h-[calc(100vh-220px)]">
-          <div className="flex-shrink-0 h-[380px]">
+      {/* Bottom Grid: Orders (left) + Top Customers & Activity (right) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Orders Table — Left 2/3 */}
+        <div className="lg:col-span-2">
+          <div className="rounded-xl border border-border bg-card p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-foreground font-semibold">{t('today_recent_orders')}</h3>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="text-primary hover:text-primary/80 gap-1"
+                onClick={() => onNavigate('auftraege')}
+              >
+                Alle ansehen <ArrowRight className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+            <DataTable
+              columns={columns}
+              data={orders.slice(0, 8)}
+              onRowClick={() => onNavigate('auftraege')}
+            />
+          </div>
+        </div>
+
+        {/* Right Column — Top Customers + Activity Feed */}
+        <div className="flex flex-col gap-4">
+          <div className="flex-shrink-0">
             <TopCustomers customers={topCustomers} />
           </div>
-          <div className="flex-1 min-h-0">
+          <div className="min-h-[400px]">
             <ActivityFeed activities={activities} />
           </div>
         </div>

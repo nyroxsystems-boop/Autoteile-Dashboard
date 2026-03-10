@@ -89,8 +89,8 @@ export function DashboardSidebar({
         <span className="text-primary-foreground font-semibold text-base">AT</span>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 flex flex-col gap-1 w-full px-3">
+      {/* Navigation — scrollable when many items */}
+      <nav className="flex-1 flex flex-col gap-1 w-full px-3 overflow-y-auto min-h-0">
         {allNavItems.map((item, index) => {
           const Icon = item.icon;
           const isActive = activeView === item.id;

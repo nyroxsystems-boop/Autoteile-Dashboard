@@ -52,6 +52,8 @@ export function DashboardHeader({
 }: DashboardHeaderProps) {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showLangMenu, setShowLangMenu] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const notifRef = useRef<HTMLDivElement>(null);
 
   const roleLabels: Record<string, string> = {
     owner: 'Inhaber',
@@ -103,16 +105,54 @@ export function DashboardHeader({
         {/* Right: Controls */}
         <div className="flex items-center gap-3">
           {/* Notifications */}
-          <button
-            className="w-10 h-10 rounded-lg hover:bg-accent flex items-center justify-center transition-colors relative group"
-            title="Benachrichtigungen"
-            onClick={onOpenCommandPalette}
-          >
-            <Bell className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" strokeWidth={1.5} />
-            {notificationCount && notificationCount > 0 && (
-              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+          <div className="relative" ref={notifRef}>
+            <button
+              className="w-10 h-10 rounded-lg hover:bg-accent flex items-center justify-center transition-colors relative group"
+              title="Benachrichtigungen"
+              onClick={() => setShowNotifications(!showNotifications)}
+            >
+              <Bell className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" strokeWidth={1.5} />
+              {notificationCount && notificationCount > 0 && (
+                <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-[10px] text-white font-bold animate-pulse">
+                  {notificationCount > 9 ? '9+' : notificationCount}
+                </span>
+              )}
+            </button>
+
+            {showNotifications && (
+              <>
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setShowNotifications(false)}
+                ></div>
+                <div className="absolute top-full right-0 mt-2 w-96 bg-card border border-border rounded-xl shadow-xl z-50 overflow-hidden">
+                  <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+                    <h3 className="font-semibold text-foreground text-sm">Benachrichtigungen</h3>
+                    <span className="text-xs text-muted-foreground">Heute</span>
+                  </div>
+                  <div className="max-h-80 overflow-y-auto">
+                    {/* Empty state or notifications */}
+                    <div className="p-8 text-center">
+                      <Bell className="w-8 h-8 text-muted-foreground/30 mx-auto mb-3" strokeWidth={1.5} />
+                      <p className="text-sm text-muted-foreground">Keine neuen Benachrichtigungen</p>
+                      <p className="text-xs text-muted-foreground/60 mt-1">Wir informieren dich bei neuen Aufträgen</p>
+                    </div>
+                  </div>
+                  <div className="px-4 py-2.5 border-t border-border">
+                    <button
+                      onClick={() => {
+                        setShowNotifications(false);
+                        onNavigate?.('settings');
+                      }}
+                      className="text-xs text-primary hover:text-primary/80 font-medium transition-colors"
+                    >
+                      Benachrichtigungen verwalten →
+                    </button>
+                  </div>
+                </div>
+              </>
             )}
-          </button>
+          </div>
 
           {/* Divider */}
           <div className="w-px h-6 bg-border"></div>
