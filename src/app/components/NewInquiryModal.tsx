@@ -68,8 +68,8 @@ export function NewInquiryModal({ open, onOpenChange, onSuccess }: NewInquiryMod
                 partDescription: '',
                 oemNumber: '',
             });
-        } catch (err: any) {
-            toast.error(err.message || 'Fehler beim Erstellen der Anfrage');
+        } catch (err: unknown) {
+            toast.error(err instanceof Error ? err.message : 'Fehler beim Erstellen der Anfrage');
         } finally {
             setLoading(false);
         }

@@ -13,8 +13,8 @@ export function useConversations() {
             const data = await getConversations();
             setConversations(data);
             setError(null);
-        } catch (err: any) {
-            setError(err.message || 'Fehler beim Laden der Konversationen');
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Fehler beim Laden der Konversationen');
         } finally {
             setLoading(false);
         }

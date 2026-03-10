@@ -13,8 +13,8 @@ export function useCustomers() {
             const data = await getCustomers();
             setCustomers(data);
             setError(null);
-        } catch (err: any) {
-            setError(err.message || 'Fehler beim Laden der Kunden');
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Fehler beim Laden der Kunden');
         } finally {
             setLoading(false);
         }

@@ -85,8 +85,8 @@ export interface PeriodCalculation {
 export async function getTaxProfile(): Promise<TaxProfile | null> {
     try {
         return await apiFetch<TaxProfile>('/api/tax/profile');
-    } catch (error: any) {
-        if (error.message?.includes('404')) {
+    } catch (error: unknown) {
+        if (((error instanceof Error ? error.message : '') as string).includes('404')) {
             return null;
         }
         throw error;

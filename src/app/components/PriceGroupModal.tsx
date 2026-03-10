@@ -57,8 +57,8 @@ export function PriceGroupModal({ open, onOpenChange, onSuccess }: PriceGroupMod
                 value: '',
                 appliesTo: 'all',
             });
-        } catch (err: any) {
-            toast.error(err.message || 'Fehler beim Erstellen');
+        } catch (err: unknown) {
+            toast.error(err instanceof Error ? err.message : 'Fehler beim Erstellen');
         } finally {
             setLoading(false);
         }

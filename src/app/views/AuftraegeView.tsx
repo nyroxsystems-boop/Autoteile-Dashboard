@@ -94,12 +94,13 @@ export function AuftraegeView() {
       window.dispatchEvent(new CustomEvent('invoiceCreated', { detail: invoice }));
 
       refresh(); // update order status
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : '';
       // Check if it's a duplicate
-      if (err.message?.includes('already exists')) {
+      if (errMsg.includes('already exists')) {
         toast.info(t('orders_invoice_exists'));
       } else {
-        toast.error(`Fehler: ${err.message || 'Unbekannter Fehler'}`);
+        toast.error(`Fehler: ${errMsg || 'Unbekannter Fehler'}`);
       }
     }
   };

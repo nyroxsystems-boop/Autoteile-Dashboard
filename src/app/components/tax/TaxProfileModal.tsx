@@ -46,9 +46,9 @@ export default function TaxProfileModal({ isOpen, onClose, existingProfile, onSu
             toast.success('Steuer-Profil erfolgreich gespeichert');
             onSuccess();
             onClose();
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Failed to save tax profile:', error);
-            toast.error('Fehler beim Speichern: ' + error.message);
+            toast.error('Fehler beim Speichern: ' + (error instanceof Error ? error.message : 'Unbekannter Fehler'));
         } finally {
             setLoading(false);
         }

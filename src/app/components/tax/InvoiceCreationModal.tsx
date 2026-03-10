@@ -115,20 +115,19 @@ export default function InvoiceCreationModal({ isOpen, onClose, onSuccess, prefi
             toast.success('Rechnung erfolgreich erstellt');
             onSuccess();
             onClose();
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Failed to create invoice:', error);
-
-            // Provide specific error messages
+            const errMsg = error instanceof Error ? error.message : '';
             let errorMessage = 'Fehler beim Erstellen der Rechnung';
 
-            if (error.message?.includes('network') || error.message?.includes('fetch')) {
+            if (errMsg.includes('network') || errMsg.includes('fetch')) {
                 errorMessage = 'Netzwerkfehler. Bitte Verbindung prüfen.';
-            } else if (error.message?.includes('401') || error.message?.includes('403')) {
+            } else if (errMsg.includes('401') || errMsg.includes('403')) {
                 errorMessage = 'Keine Berechtigung. Bitte neu anmelden.';
-            } else if (error.message?.includes('duplicate') || error.message?.includes('bereits')) {
+            } else if (errMsg.includes('duplicate') || errMsg.includes('bereits')) {
                 errorMessage = 'Rechnung existiert bereits für diesen Auftrag';
-            } else if (error.message) {
-                errorMessage = error.message;
+            } else if (errMsg) {
+                errorMessage = errMsg;
             }
 
             toast.error(errorMessage);

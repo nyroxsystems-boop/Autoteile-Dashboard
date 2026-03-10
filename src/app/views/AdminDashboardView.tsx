@@ -22,7 +22,7 @@ export function AdminDashboardView() {
             setLoading(true);
             const data = await getAdminStats();
             setStats(data);
-        } catch (err: any) {
+        } catch (err: unknown) {
             toast.error('Fehler beim Laden der Admin-Statistiken');
         } finally {
             setLoading(false);
@@ -71,8 +71,8 @@ export function AdminDashboardView() {
             toast.success('Benutzer erfolgreich angelegt');
             setShowUserModal(false);
             loadStats();
-        } catch (err: any) {
-            toast.error(err.message || 'Fehler beim Anlegen des Benutzers');
+        } catch (err: unknown) {
+            toast.error(err instanceof Error ? err.message : 'Fehler beim Anlegen des Benutzers');
         }
     };
 

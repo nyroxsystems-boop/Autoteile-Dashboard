@@ -14,8 +14,8 @@ export function useBillingSettings() {
             const data = await getBillingSettings();
             setSettings(data);
             setError(null);
-        } catch (err: any) {
-            setError(err.message || 'Fehler beim Laden der Rechnungs-Einstellungen');
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Fehler beim Laden der Rechnungs-Einstellungen');
         } finally {
             setLoading(false);
         }
@@ -26,7 +26,7 @@ export function useBillingSettings() {
             await updateBillingSettings(newSettings);
             toast.success('Design-Einstellungen gespeichert');
             refresh();
-        } catch (err: any) {
+        } catch (err: unknown) {
             toast.error('Fehler beim Speichern des Designs');
         }
     };

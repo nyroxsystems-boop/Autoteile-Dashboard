@@ -55,8 +55,8 @@ export function DocumentsInvoicesView() {
       await markInvoiceAsPaid(id);
       toast.success(t('docs_marked_paid'));
       loadInvoices();
-    } catch (error: any) {
-      toast.error('Fehler: ' + error.message);
+    } catch (error: unknown) {
+      toast.error('Fehler: ' + (error instanceof Error ? error.message : 'Unbekannter Fehler'));
     }
   };
 
@@ -67,8 +67,8 @@ export function DocumentsInvoicesView() {
       await cancelInvoice(id);
       toast.success(t('docs_canceled'));
       loadInvoices();
-    } catch (error: any) {
-      toast.error('Fehler: ' + error.message);
+    } catch (error: unknown) {
+      toast.error('Fehler: ' + (error instanceof Error ? error.message : 'Unbekannter Fehler'));
     }
   };
 

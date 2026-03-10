@@ -6,13 +6,65 @@ import {
 import { Button } from '../../components/ui/button';
 import { wawiService } from '../../services/wawiService';
 
+interface BriefingProduct { name: string; sold: number }
+interface Briefing {
+    orders?: { today: number };
+    revenue?: { today: number };
+    inventory?: { low_stock_alerts: number };
+    returns?: { open: number };
+    top_products?: BriefingProduct[];
+    briefing_text?: string;
+}
+interface ReorderSuggestion {
+    product?: { name: string; IPN: string };
+    urgency: string;
+    reorder_quantity: number;
+    days_of_stock_remaining: number;
+    daily_rate: number;
+    suggested_supplier?: { name: string; price: number; lead_time_days: number };
+    estimated_cost?: number;
+}
+interface ReorderData {
+    suggestions: ReorderSuggestion[];
+    lookback_days: number;
+    forecast_days: number;
+    total_estimated_cost?: number;
+}
+interface PriceOptItem {
+    product?: { name: string; IPN: string };
+    current_price: number;
+    suggested_price: number;
+    price_change_pct: number;
+    action: 'increase' | 'decrease';
+    current_margin_pct: number;
+    new_margin_pct: number;
+    reason: string;
+}
+interface AnomalyItem {
+    product?: { name: string; IPN: string };
+    movement_type: 'OUT' | 'IN';
+    severity: 'high' | 'medium' | 'low';
+    deviation_factor: number;
+    recent_daily_qty: number;
+    historical_daily_avg: number;
+    possible_causes?: string[];
+}
+interface AnomalyData { total_anomalies: number; anomalies: AnomalyItem[] }
+interface OemResult {
+    product?: { name: string; IPN: string };
+    match_type: string;
+    matched_number: string;
+    matched_brand?: string;
+    confidence: number;
+}
+
 export function AIInsightsView() {
-    const [briefing, setBriefing] = useState<any>(null);
-    const [reorder, setReorder] = useState<any>(null);
-    const [priceOpt, setPriceOpt] = useState<any[]>([]);
-    const [anomalies, setAnomalies] = useState<any>(null);
+    const [briefing, setBriefing] = useState<Briefing | null>(null);
+    const [reorder, setReorder] = useState<ReorderData | null>(null);
+    const [priceOpt, setPriceOpt] = useState<PriceOptItem[]>([]);
+    const [anomalies, setAnomalies] = useState<AnomalyData | null>(null);
     const [oemQuery, setOemQuery] = useState('');
-    const [oemResults, setOemResults] = useState<any[]>([]);
+    const [oemResults, setOemResults] = useState<OemResult[]>([]);
     const [loading, setLoading] = useState({ briefing: true, reorder: false, priceOpt: false, anomaly: false, oem: false });
     const [expanded, setExpanded] = useState<Record<string, boolean>>({ briefing: true, reorder: false, price: false, anomaly: false });
 
@@ -39,7 +91,7 @@ export function AIInsightsView() {
     const loadPriceOpt = async () => {
         setLoading(l => ({ ...l, priceOpt: true }));
         try {
-            const data = await wawiService.getPriceOptimization() as any[];
+            const data = await wawiService.getPriceOptimization() as PriceOptItem[];
             setPriceOpt(data);
         } catch { console.error('Price optimization failed'); }
         finally { setLoading(l => ({ ...l, priceOpt: false })); }
@@ -58,7 +110,7 @@ export function AIInsightsView() {
         if (!oemQuery || oemQuery.length < 3) return;
         setLoading(l => ({ ...l, oem: true }));
         try {
-            const data = await wawiService.fuzzyOemSearch(oemQuery) as any[];
+            const data = await wawiService.fuzzyOemSearch(oemQuery) as OemResult[];
             setOemResults(data);
         } catch { console.error('OEM search failed'); }
         finally { setLoading(l => ({ ...l, oem: false })); }
@@ -124,7 +176,7 @@ export function AIInsightsView() {
                                     <div>
                                         <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">Top Produkte diese Woche</h4>
                                         <div className="flex gap-3 flex-wrap">
-                                            {briefing.top_products.map((tp: any, i: number) => (
+                                            {briefing.top_products.map((tp: BriefingProduct, i: number) => (
                                                 <div key={i} className="bg-primary/5 border border-primary/20 rounded-xl px-4 py-2 text-sm">
                                                     <span className="font-bold">{tp.name}</span> <span className="text-muted-foreground ml-1">{tp.sold}x</span>
                                                 </div>
@@ -163,7 +215,7 @@ export function AIInsightsView() {
                 </div>
                 {oemResults.length > 0 && (
                     <div className="mt-4 divide-y divide-border">
-                        {oemResults.map((r: any, i: number) => (
+                        {oemResults.map((r: OemResult, i: number) => (
                             <div key={i} className="py-3 flex items-center justify-between">
                                 <div>
                                     <span className="font-bold text-sm">{r.product?.name || 'Unbekannt'}</span>
@@ -202,7 +254,7 @@ export function AIInsightsView() {
                                     <span>Basierend auf {reorder.lookback_days} Tagen · Prognose {reorder.forecast_days} Tage</span>
                                     <span className="font-bold">Geschätzte Kosten: {reorder.total_estimated_cost?.toLocaleString('de-DE')} €</span>
                                 </div>
-                                {reorder.suggestions.map((s: any, i: number) => (
+                                {reorder.suggestions.map((s: ReorderSuggestion, i: number) => (
                                     <div key={i} className={`p-4 rounded-2xl border ${urgencyColor(s.urgency)}`}>
                                         <div className="flex items-center justify-between">
                                             <div>
@@ -249,7 +301,7 @@ export function AIInsightsView() {
                                         <th className="py-3 px-2">Artikel</th><th className="py-3 px-2">Aktuell</th><th className="py-3 px-2">Vorschlag</th><th className="py-3 px-2">Änderung</th><th className="py-3 px-2">Marge</th><th className="py-3 px-2">Grund</th>
                                     </tr></thead>
                                     <tbody>
-                                        {priceOpt.map((p: any, i: number) => (
+                                        {priceOpt.map((p: PriceOptItem, i: number) => (
                                             <tr key={i} className="border-b border-border/50 hover:bg-muted/20">
                                                 <td className="py-3 px-2"><span className="font-bold">{p.product?.name}</span> <span className="block text-xs text-muted-foreground font-mono">{p.product?.IPN}</span></td>
                                                 <td className="py-3 px-2">{p.current_price} €</td>
@@ -285,7 +337,7 @@ export function AIInsightsView() {
                             <div className="text-center py-8 text-muted-foreground animate-pulse">Analysiere Bewegungen...</div>
                         ) : anomalies?.anomalies?.length > 0 ? (
                             <div className="space-y-3">
-                                {anomalies.anomalies.map((a: any, i: number) => (
+                                {anomalies.anomalies.map((a: AnomalyItem, i: number) => (
                                     <div key={i} className={`p-4 rounded-2xl border ${a.severity === 'high' ? 'bg-red-50 border-red-200' : 'bg-yellow-50 border-yellow-200'}`}>
                                         <div className="flex items-center justify-between">
                                             <div>
@@ -298,9 +350,9 @@ export function AIInsightsView() {
                                         <div className="mt-2 text-xs text-muted-foreground">
                                             Aktuell: {a.recent_daily_qty}/Tag vs. Ø {a.historical_daily_avg}/Tag
                                         </div>
-                                        {a.possible_causes?.length > 0 && (
+                                        {(a.possible_causes?.length ?? 0) > 0 && (
                                             <div className="mt-2 flex gap-2 flex-wrap">
-                                                {a.possible_causes.map((c: string, j: number) => (
+                                                {a.possible_causes?.map((c: string, j: number) => (
                                                     <span key={j} className="text-[11px] bg-white/80 border border-border px-2 py-0.5 rounded-full">{c}</span>
                                                 ))}
                                             </div>

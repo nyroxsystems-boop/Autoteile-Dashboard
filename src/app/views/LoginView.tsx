@@ -74,16 +74,19 @@ export function LoginView({ onLoginSuccess }: LoginViewProps) {
 
             toast.success(t('login_success'));
             onLoginSuccess?.();
-        } catch (err: any) {
+        } catch (err: unknown) {
+            const e = (typeof err === 'object' && err !== null ? err : {}) as Record<string, unknown>;
+            const errMsg = String(e.message || '');
+            const errCode = String(e.code || '');
             // Check for device limit error
-            if (err.code === 'DEVICE_LIMIT_REACHED' || err.message?.includes('DEVICE_LIMIT_REACHED')) {
+            if (errCode === 'DEVICE_LIMIT_REACHED' || errMsg.includes('DEVICE_LIMIT_REACHED')) {
                 setDeviceLimitError({
-                    current_devices: err.current_devices || 0,
-                    max_devices: err.max_devices || 2,
-                    message: err.message || 'Gerätelimit erreicht',
+                    current_devices: Number(e.current_devices) || 0,
+                    max_devices: Number(e.max_devices) || 2,
+                    message: errMsg || 'Gerätelimit erreicht',
                 });
             } else {
-                const msg = (err.message || '').toLowerCase();
+                const msg = errMsg.toLowerCase();
                 if (msg.includes('invalid credentials') || msg.includes('ungültige')) {
                     setFieldError({ field: 'password', message: 'Falsches Passwort. Bitte überprüfen Sie Ihre Eingabe.' });
                 } else if (msg.includes('not a member') || msg.includes('tenant')) {
@@ -91,7 +94,7 @@ export function LoginView({ onLoginSuccess }: LoginViewProps) {
                 } else if (msg.includes('not found') || msg.includes('no user')) {
                     setFieldError({ field: 'identifier', message: 'Benutzer nicht gefunden. Bitte überprüfen Sie Ihren Benutzernamen.' });
                 } else {
-                    setFieldError({ field: 'general', message: err.message || 'Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.' });
+                    setFieldError({ field: 'general', message: errMsg || 'Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.' });
                 }
             }
         } finally {
