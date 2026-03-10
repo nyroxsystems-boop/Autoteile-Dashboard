@@ -1,12 +1,15 @@
-import { StatusChip } from '../components/StatusChip';
 import { PageHeader } from '../components/PageHeader';
 import { MetricCard } from '../components/MetricCard';
 import { DataTable } from '../components/DataTable';
 import { RevenueChart } from '../components/RevenueChart';
 import { TopCustomers } from '../components/TopCustomers';
 import { ActivityFeed } from '../components/ActivityFeed';
+import { StatusChip } from '../components/StatusChip';
 import { Button } from '../components/ui/button';
-import { Package, MessageSquare, TrendingUp, Clock, CheckCircle2, Sparkles, ArrowRight } from 'lucide-react';
+import {
+  Package, MessageSquare, TrendingUp, Clock, CheckCircle2,
+  ArrowRight, BarChart3, Users, Zap
+} from 'lucide-react';
 import { useState } from 'react';
 import { useDashboardSummary } from '../hooks/useDashboardSummary';
 import { useOrders } from '../hooks/useOrders';
@@ -17,18 +20,13 @@ interface HeuteViewProps {
   onNavigate: (view: string, filter?: string) => void;
 }
 
-export function HeuteView({
-  onNavigate
-}: HeuteViewProps) {
+export function HeuteView({ onNavigate }: HeuteViewProps) {
   const { summary, loading: summaryLoading } = useDashboardSummary();
   const { orders, loading: ordersLoading } = useOrders();
   const { t } = useI18n();
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d' | '1y'>('30d');
 
-  // Chart data
   const chartData = summary?.revenueHistory || [];
-
-  // Top customers
   const topCustomers = summary?.topCustomers?.map(c => ({
     name: c.name,
     revenue: `€${c.revenue.toLocaleString('de-DE', { minimumFractionDigits: 2 })}`,
@@ -37,13 +35,12 @@ export function HeuteView({
     avatar: c.avatar
   })) || [];
 
-  // Activity feed
   const activities = summary?.activities?.map(a => ({
     ...a,
     time: new Date(a.time).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })
   })) || [];
 
-  // Greeting based on time of day
+  // Greeting
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Guten Morgen' : hour < 18 ? 'Guten Tag' : 'Guten Abend';
 
@@ -75,7 +72,7 @@ export function HeuteView({
       key: 'oem',
       header: t('orders_oem_number'),
       render: (order: Order) => (
-        <code className="px-2 py-1 bg-muted rounded text-xs text-mono">
+        <code className="px-2 py-1 bg-muted rounded text-xs">
           {order.oem_number || order.part?.oemNumber || order.oem || '-'}
         </code>
       ),
@@ -84,12 +81,7 @@ export function HeuteView({
       key: 'status',
       header: t('orders_status'),
       render: (order: Order) => {
-        let status: 'waiting' | 'processing' | 'success' | 'error' = 'processing';
-        if (order.status === 'new') status = 'processing';
-        else if (order.status === 'collect_part') status = 'waiting';
-        else if (order.status === 'done' || order.status === 'invoiced') status = 'success';
-
-        return <StatusChip status={status} label={order.status} size="sm" />;
+        return <StatusChip status={order.status as any} size="sm" />;
       },
     },
     {
@@ -99,56 +91,56 @@ export function HeuteView({
       render: (order: Order) => (
         <Button
           size="sm"
-          variant="outline"
-          className="gap-1.5"
+          variant="ghost"
+          className="text-primary hover:text-primary/80 gap-1"
           onClick={(e: React.MouseEvent) => {
             e.stopPropagation();
             onNavigate('auftraege');
           }}
         >
-          {order.status === 'new' ? t('orders_create_invoice') : 'Details'}
-          <ArrowRight className="w-3.5 h-3.5" />
+          Details <ArrowRight className="w-3.5 h-3.5" />
         </Button>
       ),
     },
   ];
 
-  if (summaryLoading || ordersLoading) return <div className="p-20 text-center text-muted-foreground">{t('loading')}</div>;
+  if (summaryLoading || ordersLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="h-8 w-48 bg-muted rounded animate-pulse" />
+        <div className="h-5 w-64 bg-muted rounded animate-pulse" />
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-32 bg-muted/50 rounded-xl border border-border animate-pulse" />
+          ))}
+        </div>
+        <div className="h-80 bg-muted/30 rounded-xl border border-border animate-pulse" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      {/* Welcome Header with subtle gradient accent */}
-      <div className="relative">
-        <div className="absolute -top-2 -left-2 w-32 h-32 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
-        <div className="relative flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <Sparkles className="w-4 h-4 text-primary/60" />
-              <span className="text-sm font-medium text-primary/70">{greeting}</span>
-            </div>
-            <PageHeader
-              title={t('today_title')}
-              description={t('today_subtitle')}
-            />
-          </div>
-        </div>
+      {/* Header */}
+      <div>
+        <p className="text-sm text-muted-foreground mb-1">{greeting}</p>
+        <PageHeader
+          title={t('today_title')}
+          description={t('today_subtitle')}
+        />
       </div>
 
-      {/* Top Metrics with subtle gradient borders */}
+      {/* Metrics — only show trend if real data */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <MetricCard
           label={t('today_new_orders')}
           value={summary?.ordersNew.toString() || "0"}
-          change={12}
-          changeLabel="vs. gestern"
           icon={<MessageSquare className="w-5 h-5" />}
           variant="primary"
         />
         <MetricCard
           label={t('today_in_progress')}
           value={summary?.ordersInProgress.toString() || "0"}
-          change={2.3}
-          changeLabel="vs. letzte Woche"
           icon={<CheckCircle2 className="w-5 h-5" />}
           variant="success"
         />
@@ -160,64 +152,75 @@ export function HeuteView({
         <MetricCard
           label={t('today_revenue')}
           value={`€${(summary?.revenueToday ?? 0).toLocaleString('de-DE', { minimumFractionDigits: 2 })}`}
-          change={18}
-          changeLabel="vs. gestern"
           icon={<TrendingUp className="w-5 h-5" />}
           variant="success"
         />
       </div>
 
-      {/* Revenue Chart — Full Width */}
-      <div className="rounded-xl border border-border bg-card p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h3 className="text-foreground font-semibold">{t('today_revenue')}</h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              {timeRange === '7d' && 'Letzte 7 Tage'}
-              {timeRange === '30d' && 'Letzte 30 Tage'}
-              {timeRange === '90d' && 'Letzte 90 Tage'}
-              {timeRange === '1y' && 'Letztes Jahr'}
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="inline-flex items-center rounded-lg border border-border bg-background p-1">
-              {(['7d', '30d', '90d', '1y'] as const).map(range => (
-                <button
-                  key={range}
-                  onClick={() => setTimeRange(range)}
-                  className={`px-3 py-1 text-sm rounded-md transition-all ${timeRange === range
-                    ? 'bg-card text-foreground shadow-sm font-medium'
-                    : 'text-muted-foreground hover:text-foreground'
-                    }`}
-                >
-                  {range === '7d' ? '7T' : range === '30d' ? '30T' : range === '90d' ? '90T' : 'Jahr'}
-                </button>
-              ))}
+      {/* Revenue Chart — full width */}
+      {chartData.length > 0 ? (
+        <div className="rounded-xl border border-border bg-card p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-foreground font-semibold">{t('today_revenue')}</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                {timeRange === '7d' && 'Letzte 7 Tage'}
+                {timeRange === '30d' && 'Letzte 30 Tage'}
+                {timeRange === '90d' && 'Letzte 90 Tage'}
+                {timeRange === '1y' && 'Letztes Jahr'}
+              </p>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-[var(--status-processing)]"></div>
-                <span className="text-sm text-muted-foreground">Umsatz</span>
+            <div className="flex items-center gap-3">
+              <div className="inline-flex items-center rounded-lg border border-border bg-background p-1">
+                {(['7d', '30d', '90d', '1y'] as const).map(range => (
+                  <button
+                    key={range}
+                    onClick={() => setTimeRange(range)}
+                    className={`px-3 py-1 text-sm rounded-md transition-colors ${timeRange === range
+                      ? 'bg-card text-foreground shadow-sm font-medium'
+                      : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                  >
+                    {range === '7d' ? '7T' : range === '30d' ? '30T' : range === '90d' ? '90T' : 'Jahr'}
+                  </button>
+                ))}
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-[var(--status-success)]"></div>
-                <span className="text-sm text-muted-foreground">Bestellungen</span>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-[var(--status-processing)]" />
+                  <span className="text-xs text-muted-foreground">Umsatz</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-[var(--status-success)]" />
+                  <span className="text-xs text-muted-foreground">Bestellungen</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        <div className="h-[280px] flex items-center justify-center">
-          {chartData.length > 0 ? (
+          <div className="h-[280px]">
             <RevenueChart data={chartData} />
-          ) : (
-            <div className="text-muted-foreground text-sm italic">{t('orders_no_offers')}</div>
-          )}
+          </div>
         </div>
-      </div>
+      ) : (
+        /* Empty chart state — don't show a blank white box */
+        <div className="rounded-xl border border-border bg-card p-8">
+          <div className="flex items-center gap-6">
+            <div className="w-12 h-12 rounded-xl bg-primary/5 flex items-center justify-center flex-shrink-0">
+              <BarChart3 className="w-6 h-6 text-primary/40" />
+            </div>
+            <div>
+              <h3 className="text-foreground font-medium mb-1">Umsatzentwicklung</h3>
+              <p className="text-sm text-muted-foreground">
+                Dein Umsatzverlauf wird hier angezeigt, sobald die ersten Buchungen eingehen.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
-      {/* Bottom Grid: Orders (left) + Top Customers & Activity (right) */}
+      {/* Bottom: Orders (2/3) + Right Column (1/3) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Orders Table — Left 2/3 */}
+        {/* Orders Table */}
         <div className="lg:col-span-2">
           <div className="rounded-xl border border-border bg-card p-6">
             <div className="flex items-center justify-between mb-4">
@@ -231,22 +234,89 @@ export function HeuteView({
                 Alle ansehen <ArrowRight className="w-3.5 h-3.5" />
               </Button>
             </div>
-            <DataTable
-              columns={columns}
-              data={orders.slice(0, 8)}
-              onRowClick={() => onNavigate('auftraege')}
-            />
+            {orders.length > 0 ? (
+              <DataTable
+                columns={columns}
+                data={orders.slice(0, 8)}
+                onRowClick={() => onNavigate('auftraege')}
+              />
+            ) : (
+              <div className="py-12 text-center">
+                <Package className="w-8 h-8 text-muted-foreground/30 mx-auto mb-3" />
+                <p className="text-sm text-muted-foreground">Noch keine Aufträge vorhanden</p>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Right Column — Top Customers + Activity Feed */}
+        {/* Right Column */}
         <div className="flex flex-col gap-4">
-          <div className="flex-shrink-0">
+          {/* Top Customers — only show if we have data */}
+          {topCustomers.length > 0 ? (
             <TopCustomers customers={topCustomers} />
-          </div>
-          <div className="min-h-[400px]">
-            <ActivityFeed activities={activities} />
-          </div>
+          ) : (
+            <div className="rounded-xl border border-border bg-card p-6">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-primary/5 flex items-center justify-center flex-shrink-0">
+                  <Users className="w-5 h-5 text-primary/40" />
+                </div>
+                <div>
+                  <h3 className="text-foreground font-medium text-sm mb-0.5">Top Kunden</h3>
+                  <p className="text-xs text-muted-foreground">Erscheint nach den ersten Bestellungen</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Activity Feed — or Quick Actions if empty */}
+          {activities.length > 0 ? (
+            <div className="min-h-[400px]">
+              <ActivityFeed activities={activities} />
+            </div>
+          ) : (
+            <div className="rounded-xl border border-border bg-card p-6 space-y-3">
+              <h3 className="text-foreground font-semibold text-sm mb-4">Schnellzugriff</h3>
+              <button
+                onClick={() => onNavigate('auftraege')}
+                className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors text-left group"
+              >
+                <div className="w-9 h-9 rounded-lg bg-[var(--status-processing-bg)] flex items-center justify-center flex-shrink-0">
+                  <Package className="w-4 h-4 text-[var(--status-processing-fg)]" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-foreground">Aufträge</div>
+                  <div className="text-xs text-muted-foreground">{summary?.ordersNew || 0} neue Anfragen</div>
+                </div>
+                <ArrowRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+              </button>
+              <button
+                onClick={() => onNavigate('kunden')}
+                className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors text-left group"
+              >
+                <div className="w-9 h-9 rounded-lg bg-[var(--status-success-bg)] flex items-center justify-center flex-shrink-0">
+                  <MessageSquare className="w-4 h-4 text-[var(--status-success-fg)]" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-foreground">Kunden</div>
+                  <div className="text-xs text-muted-foreground">Alle WhatsApp-Kontakte</div>
+                </div>
+                <ArrowRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+              </button>
+              <button
+                onClick={() => onNavigate('angebote')}
+                className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors text-left group"
+              >
+                <div className="w-9 h-9 rounded-lg bg-[var(--status-waiting-bg)] flex items-center justify-center flex-shrink-0">
+                  <Zap className="w-4 h-4 text-[var(--status-waiting-fg)]" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-foreground">Angebote</div>
+                  <div className="text-xs text-muted-foreground">Offene Angebote verwalten</div>
+                </div>
+                <ArrowRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

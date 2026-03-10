@@ -6,16 +6,26 @@ interface StatusChipProps {
 }
 
 const statusMapping = {
-  new: { variant: 'waiting' as const, label: 'Neu' },
+  new: { variant: 'processing' as const, label: 'Neu' },
   in_progress: { variant: 'processing' as const, label: 'In Bearbeitung' },
   quoted: { variant: 'neutral' as const, label: 'Angebot gesendet' },
   confirmed: { variant: 'success' as const, label: 'Bestätigt' },
-  oem_pending: { variant: 'error' as const, label: '⚠️ OEM-Prüfung' },
+  oem_pending: { variant: 'waiting' as const, label: 'OEM-Prüfung' },
+  collect_vehicle: { variant: 'processing' as const, label: 'Fahrzeug' },
+  collect_part: { variant: 'processing' as const, label: 'Teilesuche' },
+  oem_lookup: { variant: 'waiting' as const, label: 'OEM-Prüfung' },
+  pricing: { variant: 'processing' as const, label: 'Preisfindung' },
+  offer_ready: { variant: 'success' as const, label: 'Angebot bereit' },
+  offer_sent: { variant: 'success' as const, label: 'Angebot gesendet' },
+  done: { variant: 'success' as const, label: 'Abgeschlossen' },
+  invoiced: { variant: 'success' as const, label: 'Berechnet' },
+  cancelled: { variant: 'error' as const, label: 'Storniert' },
+  rejected: { variant: 'error' as const, label: 'Abgelehnt' },
 };
 
 export function StatusChip({ status, label, size = 'md', withDot = true }: StatusChipProps) {
   // Map customer status to base status
-  const mappedStatus = status in statusMapping 
+  const mappedStatus = status in statusMapping
     ? statusMapping[status as keyof typeof statusMapping]
     : { variant: status as 'waiting' | 'processing' | 'success' | 'error' | 'neutral', label: label || status };
 

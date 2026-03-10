@@ -55,15 +55,15 @@ export function MetricCard({
   return (
     <div
       className={`
-        group relative rounded-xl border transition-all duration-300 overflow-hidden
-        hover:shadow-lg hover:-translate-y-0.5
+        relative rounded-xl border transition-all duration-200 overflow-hidden
+        hover:shadow-md hover:-translate-y-px
         ${variantStyles[variant]}
         ${sizeStyles[size].padding}
       `}
     >
       {/* Subtle gradient overlay for visual interest */}
       <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/[0.02] pointer-events-none" />
-      
+
       {/* Content container */}
       <div className="relative">
         <div className="flex items-center gap-4 mb-5">
@@ -71,10 +71,6 @@ export function MetricCard({
             <div className={`
               ${sizeStyles[size].iconSize} rounded-xl flex items-center justify-center 
               ${iconContainerStyles[variant]} 
-              ring-4 ring-white/50
-              transition-all duration-300 
-              group-hover:scale-110 group-hover:rotate-3
-              shadow-sm
             `}>
               <div className={sizeStyles[size].iconInner}>
                 {icon}
@@ -102,14 +98,11 @@ export function MetricCard({
             )}
           </div>
         </div>
-        
-        <div className={`font-semibold tabular-nums tracking-tight ${sizeStyles[size].valueSize} transition-all duration-300 group-hover:scale-105`}>
+
+        <div className={`font-semibold tabular-nums tracking-tight ${sizeStyles[size].valueSize}`}>
           {value}
         </div>
       </div>
-      
-      {/* Accent line at bottom */}
-      <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary/20 to-transparent transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
     </div>
   );
 }
