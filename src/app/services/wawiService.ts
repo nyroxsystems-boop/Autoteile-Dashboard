@@ -1,4 +1,30 @@
-import { wawiFetch, wawiFetchBlob, wawiFetchList } from '../api/wawiClient';
+import { apiFetch } from '../api/client';
+
+// Adapter: route all calls through Bot-Service (same DB as Admin Dashboard)
+async function wawiFetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
+    return apiFetch<T>(endpoint, options);
+}
+
+async function wawiFetchList<T>(endpoint: string): Promise<T[]> {
+    const data = await apiFetch<T[] | { results?: T[] }>(endpoint);
+    if (Array.isArray(data)) return data;
+    if (data && typeof data === 'object' && 'results' in data && Array.isArray(data.results)) {
+        return data.results;
+    }
+    return [];
+}
+
+async function wawiFetchBlob(endpoint: string): Promise<Blob> {
+    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://autoteile-bot-service-production.up.railway.app';
+    const token = localStorage.getItem('token') || localStorage.getItem('auth_access_token');
+    const res = await fetch(`${API_BASE}${endpoint}`, {
+        headers: {
+            ...(token ? { 'Authorization': `Token ${token}` } : {}),
+        },
+    });
+    if (!res.ok) throw new Error(`Failed to fetch blob: ${res.status}`);
+    return res.blob();
+}
 
 export interface Part {
     id: number | string;

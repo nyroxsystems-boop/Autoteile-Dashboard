@@ -323,11 +323,13 @@ export async function getBotHealth(): Promise<{ status: string }> {
 }
 
 export async function getMerchantSettings(): Promise<MerchantSettings> {
-    return apiFetch<MerchantSettings>('/api/settings/merchant');
+    const tenantId = localStorage.getItem('selectedTenantId') || '1';
+    return apiFetch<MerchantSettings>(`/api/dashboard/merchant/settings/${tenantId}`);
 }
 
 export async function updateMerchantSettings(settings: Partial<MerchantSettings>): Promise<{ ok: boolean }> {
-    return apiFetch<{ ok: boolean }>('/api/settings/merchant', {
+    const tenantId = localStorage.getItem('selectedTenantId') || '1';
+    return apiFetch<{ ok: boolean }>(`/api/dashboard/merchant/settings/${tenantId}`, {
         method: 'POST',
         body: JSON.stringify(settings),
     });
