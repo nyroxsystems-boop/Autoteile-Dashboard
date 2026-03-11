@@ -5,9 +5,11 @@ import { Button } from '../../components/ui/button';
 import { StatusChip } from '../../components/StatusChip';
 import { wawiService, Part } from '../../services/wawiService';
 import { ArticleFormModal, type ArticleFormData } from '../../components/ArticleFormModal';
+import { useI18n } from '../../../i18n';
 
 export function ArticleListView() {
     const [articles, setArticles] = useState<Part[]>([]);
+    const { t } = useI18n();
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);

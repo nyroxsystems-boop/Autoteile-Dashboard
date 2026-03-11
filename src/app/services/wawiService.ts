@@ -1,4 +1,4 @@
-import { apiFetch, ApiError } from '../api/client';
+import { apiFetch, ApiError, API_BASE_URL, getAuthToken } from '../api/client';
 
 // Adapter: route all calls through Bot-Service (same DB as Admin Dashboard)
 // Gracefully handles 404 for endpoints not yet implemented on the backend
@@ -32,9 +32,8 @@ async function wawiFetchList<T>(endpoint: string): Promise<T[]> {
 }
 
 async function wawiFetchBlob(endpoint: string): Promise<Blob> {
-    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://autoteile-bot-service-production.up.railway.app';
-    const token = localStorage.getItem('token') || localStorage.getItem('auth_access_token');
-    const res = await fetch(`${API_BASE}${endpoint}`, {
+    const token = getAuthToken();
+    const res = await fetch(`${API_BASE_URL}${endpoint}`, {
         headers: {
             ...(token ? { 'Authorization': `Token ${token}` } : {}),
         },

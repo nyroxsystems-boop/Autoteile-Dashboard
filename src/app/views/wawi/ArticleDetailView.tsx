@@ -13,9 +13,11 @@ import { StatusChip } from '../../components/StatusChip';
 import { BOMManager } from '../../components/BOMManager';
 import { MovementLog } from '../../components/MovementLog';
 import { StockLocationManager } from '../../components/StockLocationManager';
+import { useI18n } from '../../../i18n';
 
 export function ArticleDetailView() {
     const { id } = useParams();
+    const { t } = useI18n();
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState<'overview' | 'stock' | 'bom' | 'oem' | 'vehicles' | 'pricing' | 'purchase' | 'history'>('overview');
     const [crossRefs, setCrossRefs] = useState<OemCrossRef[]>([]);
@@ -54,7 +56,7 @@ export function ArticleDetailView() {
         }
     };
 
-    if (loading) return <div className="p-20 text-center animate-pulse">Lade Artikeldetails...</div>;
+    if (loading) return <div className="p-20 text-center animate-pulse">{t('wawi_loading')}</div>;
     if (!article) return <div className="p-20 text-center">Artikel nicht gefunden.</div>;
 
     const tabs = [
@@ -296,9 +298,9 @@ export function ArticleDetailView() {
                             <h3 className="font-bold text-xl">Staffelpreise & Mengenrabatte</h3>
                             <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                                 <select className="px-4 py-3 rounded-xl border border-border bg-background text-sm" value={newPrice.profile} onChange={e => setNewPrice({ ...newPrice, profile: e.target.value })}>
-                                    <option value="endkunde">Endkunde</option>
-                                    <option value="werkstatt">Werkstatt</option>
-                                    <option value="haendler">Händler</option>
+                                    <option value="endkunde">{t('wawi_customer')}</option>
+                                    <option value="werkstatt">{t('wawi_workshop')}</option>
+                                    <option value="haendler">{t('wawi_dealer')}</option>
                                 </select>
                                 <input type="number" className="px-4 py-3 rounded-xl border border-border bg-background text-sm" placeholder="Ab Menge" value={newPrice.min_quantity} onChange={e => setNewPrice({ ...newPrice, min_quantity: Number(e.target.value) })} />
                                 <input type="number" className="px-4 py-3 rounded-xl border border-border bg-background text-sm" placeholder="Preis €" value={newPrice.price || ''} onChange={e => setNewPrice({ ...newPrice, price: Number(e.target.value) })} />

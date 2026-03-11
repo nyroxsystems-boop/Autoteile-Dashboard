@@ -5,9 +5,11 @@ import type { Supplier } from '../../services/wawiService';
 import { Button } from '../../components/ui/button';
 import { SupplierModal } from '../../components/SupplierModal';
 import { toast } from 'sonner';
+import { useI18n } from '../../../i18n';
 
 export function SupplierListView() {
     const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+    const { t } = useI18n();
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -77,7 +79,7 @@ export function SupplierListView() {
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Lieferanten</h1>
+                    <h1 className="text-3xl font-bold tracking-tight">{t('wawi_supplier_list')}</h1>
                     <p className="text-muted-foreground mt-1">
                         Verwalte deine Lieferanten und Lieferbedingungen.
                     </p>

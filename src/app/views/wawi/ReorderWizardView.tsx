@@ -3,6 +3,7 @@ import { AlertTriangle, Package, TrendingDown, ShoppingCart, Plus } from 'lucide
 import { Button } from '../../components/ui/button';
 import { wawiService, Part } from '../../services/wawiService';
 import { Link } from 'react-router-dom';
+import { useI18n } from '../../../i18n';
 
 interface ReorderSuggestion {
     part: Part;
@@ -13,6 +14,7 @@ interface ReorderSuggestion {
 
 export function ReorderWizardView() {
     const [suggestions, setSuggestions] = useState<ReorderSuggestion[]>([]);
+    const { t } = useI18n();
     const [loading, setLoading] = useState(true);
     const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
 

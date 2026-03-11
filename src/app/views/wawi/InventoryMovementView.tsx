@@ -3,9 +3,11 @@ import { ArrowDownLeft, ArrowUpRight, Repeat, Edit, Save, History } from 'lucide
 import { Button } from '../../components/ui/button';
 import { toast } from 'sonner';
 import { wawiService, WarehouseLocation } from '../../services/wawiService';
+import { useI18n } from '../../../i18n';
 
 export function InventoryMovementView() {
     const [movementType, setMovementType] = useState<'IN' | 'OUT' | 'TRANSFER' | 'CORRECTION'>('IN');
+    const { t } = useI18n();
     const [locations, setLocations] = useState<WarehouseLocation[]>([]);
 
     useEffect(() => {

@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
-import { apiFetch, ApiError } from './client';
+import { apiFetch, ApiError, API_BASE_URL, getAuthToken, getTenantId, getDeviceId } from './client';
 
 // ── Type Definitions ─────────────────────────────────────────────────────────
 
@@ -194,9 +194,8 @@ async function apiFetchList<T>(endpoint: string): Promise<T[]> {
 }
 
 async function apiFetchBlob(endpoint: string): Promise<Blob> {
-    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://autoteile-bot-service-production.up.railway.app';
-    const token = localStorage.getItem('token') || localStorage.getItem('auth_access_token');
-    const res = await fetch(`${API_BASE}${endpoint}`, {
+    const token = getAuthToken();
+    const res = await fetch(`${API_BASE_URL}${endpoint}`, {
         headers: {
             ...(token ? { 'Authorization': `Token ${token}` } : {}),
         },
@@ -261,7 +260,7 @@ export async function getSuppliers(): Promise<Supplier[]> {
 // ── Auth (Bot-Service) ────────────────────────────────────────────────────────
 
 export async function login(credentials: { email?: string, username?: string, password?: string, tenant?: string }): Promise<any> {
-    const device_id = localStorage.getItem('deviceId');
+    const device_id = getDeviceId();
     const data = await apiFetch<any>('/api/auth/login', {
         method: 'POST',
         body: JSON.stringify({ ...credentials, device_id }),
@@ -339,12 +338,12 @@ export async function getBotHealth(): Promise<{ status: string }> {
 }
 
 export async function getMerchantSettings(): Promise<MerchantSettings> {
-    const tenantId = localStorage.getItem('selectedTenantId') || '1';
+    const tenantId = getTenantId() || '1';
     return apiFetch<MerchantSettings>(`/api/dashboard/merchant/settings/${tenantId}`);
 }
 
 export async function updateMerchantSettings(settings: Partial<MerchantSettings>): Promise<{ ok: boolean }> {
-    const tenantId = localStorage.getItem('selectedTenantId') || '1';
+    const tenantId = getTenantId() || '1';
     return apiFetch<{ ok: boolean }>(`/api/dashboard/merchant/settings/${tenantId}`, {
         method: 'POST',
         body: JSON.stringify(settings),

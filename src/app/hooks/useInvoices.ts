@@ -16,7 +16,7 @@ export function useInvoices() {
         } catch (err: unknown) {
             // Always silently handle errors - billing endpoint is optional
             // The backend may not be configured yet
-            console.warn('Invoices not available:', err instanceof Error ? err.message : err);
+            // debug('Invoices not available:', err instanceof Error ? err.message : err);
             setInvoices([]);
             setError(null); // Don't show error to user
         } finally {

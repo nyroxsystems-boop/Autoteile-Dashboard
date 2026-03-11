@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { wawiService } from '../../services/wawiService';
+import { useI18n } from '../../../i18n';
 
 interface BriefingProduct { name: string; sold: number }
 interface Briefing {
@@ -60,6 +61,7 @@ interface OemResult {
 
 export function AIInsightsView() {
     const [briefing, setBriefing] = useState<Briefing | null>(null);
+    const { t } = useI18n();
     const [reorder, setReorder] = useState<ReorderData | null>(null);
     const [priceOpt, setPriceOpt] = useState<PriceOptItem[]>([]);
     const [anomalies, setAnomalies] = useState<AnomalyData | null>(null);

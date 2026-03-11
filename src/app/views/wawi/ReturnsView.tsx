@@ -3,6 +3,7 @@ import { RotateCcw, CheckCircle2, PackageCheck, CreditCard, XCircle, Plus, Filte
 import { toast } from 'sonner';
 import { Button } from '../../components/ui/button';
 import { wawiService, type ReturnItem } from '../../services/wawiService';
+import { useI18n } from '../../../i18n';
 
 const STATUS_MAP: Record<string, { label: string; color: string; icon: LucideIcon }> = {
     requested: { label: 'Angefragt', color: 'bg-yellow-100 text-yellow-800 border-yellow-200', icon: RotateCcw },
@@ -14,6 +15,7 @@ const STATUS_MAP: Record<string, { label: string; color: string; icon: LucideIco
 
 export function ReturnsView() {
     const [returns, setReturns] = useState<ReturnItem[]>([]);
+    const { t } = useI18n();
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('');
     const [showCreate, setShowCreate] = useState(false);
@@ -45,7 +47,7 @@ export function ReturnsView() {
         <div className="space-y-8 animate-in fade-in duration-500">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Retouren</h1>
+                    <h1 className="text-3xl font-bold tracking-tight">{t('wawi_returns_title')}</h1>
                     <p className="text-muted-foreground mt-2">Retourenmanagement mit Workflow und Gutschriften.</p>
                 </div>
                 <Button className="rounded-xl" onClick={() => setShowCreate(!showCreate)}>
@@ -84,7 +86,7 @@ export function ReturnsView() {
                                 setShowCreate(false);
                                 loadReturns();
                             } catch { toast.error('Fehler'); }
-                        }}>Anlegen</Button>
+                        }}>{t('wawi_new_return')}</Button>
                     </div>
                 </div>
             )}

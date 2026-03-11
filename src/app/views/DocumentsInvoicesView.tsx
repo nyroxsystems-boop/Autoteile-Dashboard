@@ -8,12 +8,11 @@ import { listInvoices, markInvoiceAsPaid, cancelInvoice, type Invoice, type Invo
 import InvoiceCreationModal from '../components/tax/InvoiceCreationModal';
 import { toast } from 'sonner';
 import { useI18n } from '../../i18n';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://autoteile-bot-service-production.up.railway.app';
+import { API_BASE_URL, getAuthToken, getTenantId } from '../api/client';
 
 async function fetchInvoicePdf(invoiceNumber: string): Promise<Blob> {
-  const tenantId = localStorage.getItem('selectedTenantId') || '';
-  const token = localStorage.getItem('auth_access_token') || localStorage.getItem('token');
+  const tenantId = getTenantId() || '';
+  const token = getAuthToken();
   const response = await fetch(`${API_BASE_URL}/api/invoices/${invoiceNumber}/pdf`, {
     headers: {
       ...(tenantId ? { 'X-Tenant-ID': tenantId } : {}),

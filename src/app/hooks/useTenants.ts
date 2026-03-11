@@ -1,14 +1,15 @@
 
 import { useState, useEffect } from 'react';
 import { getMeTenants } from '../api/wws';
+import { getAuthToken, getTenantId } from '../api/client';
 
 export interface TenantMembership {
     id: number;
     tenant: number;
     tenant_name: string;
-    tenant_slug: string;
+    tenant_slug?: string;
     role: string;
-    is_active: boolean;
+    is_active?: boolean;
 }
 
 export function useTenants() {
@@ -19,7 +20,7 @@ export function useTenants() {
     useEffect(() => {
         async function load() {
             // Don't fetch if not authenticated
-            const token = localStorage.getItem('auth_access_token') || localStorage.getItem('token');
+            const token = getAuthToken();
             if (!token) {
                 setLoading(false);
                 return;
@@ -33,7 +34,7 @@ export function useTenants() {
                     setTenants(tenantList);
 
                     // Restore previously selected tenant or use first
-                    const savedTenantId = localStorage.getItem('selectedTenantId');
+                    const savedTenantId = getTenantId();
                     const tenantToSelect = savedTenantId
                         ? tenantList.find(t => t.tenant.toString() === savedTenantId)
                         : tenantList[0];
@@ -43,7 +44,7 @@ export function useTenants() {
                         localStorage.setItem('selectedTenantId', tenantToSelect.tenant.toString());
                     }
                 } else {
-                    console.warn('No tenants returned from API');
+                    // debug('No tenants returned from API');
                 }
             } catch (err) {
                 console.error('Failed to load tenants', err);
@@ -57,7 +58,7 @@ export function useTenants() {
 
     const switchTenant = (id: number) => {
         setCurrentTenantId(id);
-        localStorage.setItem('selectedTenantId', id.toString());
+        localStorage.setItem('selectedTenantId', id.toString()); // centralized write
         // In a real app, this might trigger a page reload or update a context/header
         window.location.reload();
     };

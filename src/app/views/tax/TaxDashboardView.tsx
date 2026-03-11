@@ -10,6 +10,7 @@ import {
     type PeriodCalculation,
     type TaxPeriod
 } from '../../services/taxService';
+import { API_BASE_URL, getAuthToken, getTenantId } from '../../api/client';
 
 export default function TaxDashboardView() {
     const [profile, setProfile] = useState<TaxProfile | null>(null);
@@ -121,10 +122,10 @@ export default function TaxDashboardView() {
                             <button
                                 onClick={async () => {
                                     try {
-                                        const tenantId = localStorage.getItem('selectedTenantId');
-                                        const token = localStorage.getItem('token');
+                                        const tenantId = getTenantId();
+                                        const token = getAuthToken();
                                         const [year, month] = currentPeriod.period_start.split('-');
-                                        const url = `https://autoteile-bot-service-production.up.railway.app/api/tax/export/${year}/${month}`;
+                                        const url = `${API_BASE_URL}/api/tax/export/${year}/${month}`;
 
                                         const response = await fetch(url, {
                                             headers: {

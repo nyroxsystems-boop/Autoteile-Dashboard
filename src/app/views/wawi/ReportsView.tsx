@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown, DollarSign, Package, AlertTriangle, Download } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { wawiService, Part } from '../../services/wawiService';
+import { useI18n } from '../../../i18n';
 
 interface ReportData {
     totalInventoryValue: number;
@@ -14,6 +15,7 @@ interface ReportData {
 
 export function ReportsView() {
     const [reportData, setReportData] = useState<ReportData | null>(null);
+    const { t } = useI18n();
     const [loading, setLoading] = useState(true);
     const [dateRange, setDateRange] = useState('30d');
 
@@ -60,7 +62,7 @@ export function ReportsView() {
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Berichte & Analysen</h1>
+                    <h1 className="text-3xl font-bold tracking-tight">{t('wawi_reports_title')}</h1>
                     <p className="text-muted-foreground mt-1">
                         Lagerwert, Umschlag und kritische Bestände im Überblick.
                     </p>
@@ -71,10 +73,10 @@ export function ReportsView() {
                         onChange={(e) => setDateRange(e.target.value)}
                         className="bg-muted/30 border border-border rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-primary focus:outline-none"
                     >
-                        <option value="7d">Letzte 7 Tage</option>
-                        <option value="30d">Letzte 30 Tage</option>
-                        <option value="90d">Letzte 90 Tage</option>
-                        <option value="year">Dieses Jahr</option>
+                        <option value="7d">{t('wawi_time_7d')}</option>
+                        <option value="30d">{t('wawi_time_30d')}</option>
+                        <option value="90d">{t('wawi_time_90d')}</option>
+                        <option value="year">{t('wawi_time_year')}</option>
                     </select>
                     <Button
                         variant="outline"

@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { getMe, MeResponse } from '../api/wws';
+import { getAuthToken } from '../api/client';
 
 export function useMe() {
     const [me, setMe] = useState<MeResponse | null>(null);
@@ -10,7 +11,7 @@ export function useMe() {
     useEffect(() => {
         async function loadMe() {
             // Don't fetch if not authenticated
-            const token = localStorage.getItem('auth_access_token') || localStorage.getItem('token');
+            const token = getAuthToken();
             if (!token) {
                 setLoading(false);
                 return;
@@ -23,8 +24,7 @@ export function useMe() {
 
                 // Automatically persist tenant ID to localStorage for API requests
                 if (data?.tenant?.id) {
-                    localStorage.setItem('selectedTenantId', data.tenant.id.toString());
-                    // Tenant ID saved to localStorage
+                    localStorage.setItem('selectedTenantId', data.tenant.id.toString()); // centralized write
                 }
             } catch (err) {
                 setError(err as Error);

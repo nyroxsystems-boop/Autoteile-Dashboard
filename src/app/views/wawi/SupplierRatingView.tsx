@@ -3,10 +3,12 @@ import { Star, Plus, Clock, Truck, BarChart3 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../../components/ui/button';
 import { wawiService, Supplier, type SupplierRating } from '../../services/wawiService';
+import { useI18n } from '../../../i18n';
 
 
 export function SupplierRatingView() {
     const [ratings, setRatings] = useState<SupplierRating[]>([]);
+    const { t } = useI18n();
     const [suppliers, setSuppliers] = useState<Supplier[]>([]);
     const [loading, setLoading] = useState(true);
     const [showCreate, setShowCreate] = useState(false);
@@ -59,7 +61,7 @@ export function SupplierRatingView() {
                     <h3 className="font-bold">Neue Periode bewerten</h3>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                         <select className="px-4 py-3 rounded-xl border border-border bg-background text-sm" value={form.supplier} onChange={e => setForm({ ...form, supplier: e.target.value })}>
-                            <option value="">Lieferant wählen</option>
+                            <option value="">{t('wawi_rating_choose')}</option>
                             {suppliers.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
                         </select>
                         <input className="px-4 py-3 rounded-xl border border-border bg-background text-sm" placeholder="Periode (z.B. 2026-Q1)" value={form.period} onChange={e => setForm({ ...form, period: e.target.value })} />
@@ -78,7 +80,7 @@ export function SupplierRatingView() {
                                 setShowCreate(false);
                                 loadData();
                             } catch { toast.error('Fehler'); }
-                        }}>Speichern</Button>
+                        }}>{t('wawi_rating_save')}</Button>
                     </div>
                 </div>
             )}

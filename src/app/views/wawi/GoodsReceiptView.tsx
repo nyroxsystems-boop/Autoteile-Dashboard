@@ -3,6 +3,7 @@ import { CheckCircle2, Printer, TruckIcon, Calendar, Plus, Minus } from 'lucide-
 import { Button } from '../../components/ui/button';
 import { wawiService, PurchaseOrder, PurchaseOrderItem, WarehouseLocation } from '../../services/wawiService';
 import { toast } from 'sonner';
+import { useI18n } from '../../../i18n';
 
 interface ReceiptItem extends PurchaseOrderItem {
     received_quantity: number;
@@ -11,6 +12,7 @@ interface ReceiptItem extends PurchaseOrderItem {
 
 export function GoodsReceiptView() {
     const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
+    const { t } = useI18n();
     const [selectedPO, setSelectedPO] = useState<PurchaseOrder | null>(null);
     const [receiptItems, setReceiptItems] = useState<ReceiptItem[]>([]);
     const [loading, setLoading] = useState(true);
@@ -89,7 +91,7 @@ export function GoodsReceiptView() {
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Wareneingang</h1>
+                    <h1 className="text-3xl font-bold tracking-tight">{t('wawi_goods_receipt')}</h1>
                     <p className="text-muted-foreground mt-1">
                         Empfange Bestellungen und aktualisiere den Lagerbestand.
                     </p>

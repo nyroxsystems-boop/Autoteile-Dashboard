@@ -1,16 +1,26 @@
 /// <reference types="vite/client" />
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://autoteile-bot-service-production.up.railway.app';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://autoteile-bot-service-production.up.railway.app';
+
+/** Centralized token access — single point for all auth token reads */
+export function getAuthToken(): string | null {
+    return localStorage.getItem('token') || localStorage.getItem('auth_access_token');
+}
+
+/** Centralized tenant ID access — single point for all tenant ID reads */
+export function getTenantId(): string | null {
+    return localStorage.getItem('selectedTenantId');
+}
 
 // Validate API_BASE_URL at module load
 if (!API_BASE_URL || API_BASE_URL.startsWith('/')) {
-    console.error('[API Client] Invalid API_BASE_URL:', API_BASE_URL);
-    console.error('[API Client] Environment:', import.meta.env);
+    // console.error('[API Client] Invalid API_BASE_URL:', API_BASE_URL);
+    // console.error('[API Client] Environment:', import.meta.env);
 } else {
     // API_BASE_URL configured via env
 }
 
-function getDeviceId() {
+export function getDeviceId() {
     let id = localStorage.getItem('deviceId');
     if (!id) {
         id = 'dev_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
@@ -31,9 +41,9 @@ export class ApiError extends Error {
 export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`;
 
-    // Multi-tenancy support
-    const tenantId = localStorage.getItem('selectedTenantId');
-    const token = localStorage.getItem('token') || localStorage.getItem('auth_access_token');
+    // Multi-tenancy support (centralized via helpers above)
+    const tenantId = getTenantId();
+    const token = getAuthToken();
     const deviceId = getDeviceId();
 
     const headers: Record<string, string> = {
@@ -61,7 +71,7 @@ export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): 
             const waitMs = retryAfter
                 ? parseInt(retryAfter, 10) * 1000
                 : Math.pow(2, attempt) * 1000; // 1s, 2s, 4s
-            console.warn(`[API] 429 on ${endpoint}, retry ${attempt + 1}/${MAX_RETRIES} in ${waitMs}ms`);
+            // debug(`[API] 429 on ${endpoint}, retry ${attempt + 1}/${MAX_RETRIES} in ${waitMs}ms`);
             await new Promise(resolve => setTimeout(resolve, waitMs));
             continue;
         }
