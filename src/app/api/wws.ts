@@ -36,10 +36,10 @@ export interface Order {
     oem_number?: string | null;
 
     external_ref?: string;
-    order_data?: any;
+    order_data?: Record<string, unknown>;
     contact?: { name: string; wa_id?: string };
-    vehicle_json?: any;
-    part_json?: any;
+    vehicle_json?: Record<string, unknown>;
+    part_json?: Record<string, unknown>;
     oem?: string;
     generated_invoice_id?: string | null;
 }
@@ -61,7 +61,7 @@ export interface Offer {
 
     status: string;
     tier?: string | null;
-    meta_json?: any;
+    meta_json?: Record<string, unknown>;
 
     product_name?: string;
     price?: string;
@@ -138,7 +138,7 @@ export interface MerchantSettings {
     merchantId: string;
     wholesalers: WholesalerConfig[];
     marginPercent: number;
-    priceProfiles: any[];
+    priceProfiles: Array<{ id: string | number; name: string; type: string; value: number; isDefault?: boolean }>;
     notifications?: Record<string, boolean>;
 }
 
@@ -226,7 +226,7 @@ export async function getOrderOffers(orderId: string | number): Promise<Offer[]>
     return apiFetchList<Offer>(`/api/dashboard/offers?orderId=${orderId}`);
 }
 
-export async function createOffer(orderId: string | number, offerData: any): Promise<Offer> {
+export async function createOffer(orderId: string | number, offerData: Partial<Offer>): Promise<Offer> {
     return apiFetch<Offer>(`/api/dashboard/orders/${orderId}/offers`, {
         method: 'POST',
         body: JSON.stringify(offerData)
@@ -269,16 +269,24 @@ export async function login(credentials: { email?: string, username?: string, pa
     return data;
 }
 
-export async function getMeTenants(): Promise<any[]> {
-    return apiFetchList<any>('/api/auth/me/tenants');
+export async function getMeTenants(): Promise<Array<{ id: number; tenant: number; tenant_name: string; role: string }>> {
+    return apiFetchList<{ id: number; tenant: number; tenant_name: string; role: string }>('/api/auth/me/tenants');
 }
 
-export async function getCustomers(): Promise<any[]> {
-    return apiFetchList<any>('/api/dashboard/customers');
+export async function getCustomers(): Promise<Array<{ id: number; name: string; wa_id?: string }>> {
+    return apiFetchList<{ id: number; name: string; wa_id?: string }>('/api/dashboard/customers');
 }
 
-export async function getConversations(): Promise<any[]> {
-    return apiFetchList<any>('/api/dashboard/conversations');
+export interface Conversation {
+    id: number;
+    contact?: { name: string; wa_id?: string };
+    state_json?: { status?: string; last_text?: string; oem_list?: string[]; history?: Array<{ role: string; text: string }> };
+    last_message_at?: string;
+    created_at?: string;
+}
+
+export async function getConversations(): Promise<Conversation[]> {
+    return apiFetchList<Conversation>('/api/dashboard/conversations');
 }
 
 export async function downloadInvoicePdf(id: number): Promise<void> {
@@ -365,15 +373,15 @@ export async function updateTenantLimits(tenantId: number, limits: { max_users: 
     });
 }
 
-export async function createTenantUser(tenantId: number, userData: any): Promise<void> {
+export async function createTenantUser(tenantId: number, userData: { username: string; email: string; password: string; role?: string }): Promise<void> {
     return apiFetch(`/api/admin/tenants/${tenantId}/users`, {
         method: 'POST',
         body: JSON.stringify(userData),
     });
 }
 
-export async function getTeam(): Promise<any[]> {
-    return apiFetchList<any>('/api/auth/team/');
+export async function getTeam(): Promise<Array<{ id: number; username: string; email: string; role: string; joined: string }>> {
+    return apiFetchList<{ id: number; username: string; email: string; role: string; joined: string }>('/api/auth/team/');
 }
 
 // ── Billing Settings ──────────────────────────────────────────────────────────
@@ -420,7 +428,7 @@ export async function createInvoiceFromOrder(orderId: string): Promise<any> {
 }
 
 export async function bulkCreateInvoicesFromOrders(orderIds: string[]): Promise<{
-    success: any[];
+    success: Invoice[];
     failed: { orderId: string; error: string }[];
 }> {
     return apiFetch('/api/invoices/bulk-from-orders', {
@@ -429,7 +437,7 @@ export async function bulkCreateInvoicesFromOrders(orderIds: string[]): Promise<
     });
 }
 
-export async function getInvoiceByOrderId(orderId: string): Promise<any | null> {
+export async function getInvoiceByOrderId(orderId: string): Promise<Invoice[] | null> {
     try {
         return await apiFetchList(`/api/invoices/by-order/${orderId}`);
     } catch (error) {

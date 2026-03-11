@@ -2,24 +2,35 @@ import { useState } from 'react';
 import { X, Building2, Mail, Phone, MapPin, User } from 'lucide-react';
 import { Button } from './ui/button';
 
+interface SupplierFormData {
+    name: string;
+    email: string;
+    phone: string;
+    address: string;
+    contact_person: string;
+    website: string;
+    notes: string;
+    status: 'active' | 'inactive';
+}
+
 interface SupplierModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSubmit: (data: any) => void;
-    initialData?: any;
+    onSubmit: (data: SupplierFormData) => void;
+    initialData?: Partial<SupplierFormData>;
     title?: string;
 }
 
 export function SupplierModal({ isOpen, onClose, onSubmit, initialData, title = "Neuer Lieferant" }: SupplierModalProps) {
-    const [formData, setFormData] = useState(initialData || {
-        name: '',
-        email: '',
-        phone: '',
-        address: '',
-        contact_person: '',
-        website: '',
-        notes: '',
-        status: 'active'
+    const [formData, setFormData] = useState<SupplierFormData>({
+        name: initialData?.name || '',
+        email: initialData?.email || '',
+        phone: initialData?.phone || '',
+        address: initialData?.address || '',
+        contact_person: initialData?.contact_person || '',
+        website: initialData?.website || '',
+        notes: initialData?.notes || '',
+        status: initialData?.status || 'active'
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -27,8 +38,8 @@ export function SupplierModal({ isOpen, onClose, onSubmit, initialData, title = 
         onSubmit(formData);
     };
 
-    const handleChange = (field: string, value: any) => {
-        setFormData((prev: any) => ({ ...prev, [field]: value }));
+    const handleChange = (field: keyof SupplierFormData, value: string) => {
+        setFormData((prev) => ({ ...prev, [field]: value }));
     };
 
     if (!isOpen) return null;

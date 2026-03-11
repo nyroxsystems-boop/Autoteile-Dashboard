@@ -326,7 +326,7 @@ export const wawiService = {
         return await wawiFetchList(`/api/vehicle-applications/search/?${qs}`);
     },
 
-    createVehicleApplication: async (data: any) => {
+    createVehicleApplication: async (data: { product: number; hsn?: string; tsn?: string; make?: string; model?: string; year_from?: number; year_to?: number }) => {
         return await wawiFetch('/api/vehicle-applications/', { method: 'POST', body: JSON.stringify(data) });
     },
 
@@ -431,7 +431,7 @@ export const wawiService = {
         return await wawiFetch('/api/supplier-ratings/', { method: 'POST', body: JSON.stringify(data) });
     },
 
-    updateSupplierRating: async (id: number, data: any) => {
+    updateSupplierRating: async (id: number, data: Partial<{ supplier: number; period: string; orders_total: number; orders_on_time: number; orders_late: number; avg_delivery_days: number; quality_score: number; return_rate: number; communication_score: number; notes: string }>) => {
         return await wawiFetch(`/api/supplier-ratings/${id}/`, { method: 'PATCH', body: JSON.stringify(data) });
     },
 

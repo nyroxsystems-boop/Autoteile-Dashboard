@@ -3,11 +3,21 @@ import { X, Package, Box, Archive, Save } from 'lucide-react';
 import { Button } from './ui/button';
 import { toast } from 'sonner';
 
+interface ArticleFormData {
+    name: string;
+    ipn: string;
+    description: string;
+    article_type: string;
+    category: string;
+    brand: string;
+    minimum_stock: number;
+}
+
 interface ArticleFormModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSave: (article: any) => void;
-    article?: any;
+    onSave: (article: ArticleFormData) => void;
+    article?: Partial<ArticleFormData> & { IPN?: string; category_name?: string };
 }
 
 export function ArticleFormModal({ isOpen, onClose, onSave, article }: ArticleFormModalProps) {

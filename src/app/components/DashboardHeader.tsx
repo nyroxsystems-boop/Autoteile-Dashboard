@@ -1,17 +1,16 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import {
-  Sun, Moon, Globe, Settings, User, LogOut, Bell, ChevronDown,
-  ChevronsUpDown, Plus, Check, Building2, Users, Crown, Shield,
+  Sun, Moon, Globe, Settings, LogOut, Bell, ChevronDown,
+  Check, Crown,
   ArrowLeft
 } from 'lucide-react';
+import { useI18n } from '../../i18n';
 
-interface Account {
-  id: string;
-  name: string;
-  email: string;
+interface TenantMembership {
+  id: number;
+  tenant: number;
+  tenant_name: string;
   role: 'owner' | 'admin' | 'member';
-  company: string;
-  isActive: boolean;
 }
 
 interface DashboardHeaderProps {
@@ -26,8 +25,8 @@ interface DashboardHeaderProps {
   onOpenCommandPalette: () => void;
   onNavigate?: (view: string) => void;
   // Multi-account props
-  tenants?: any[];
-  currentTenant?: any;
+  tenants?: TenantMembership[];
+  currentTenant?: TenantMembership;
   onSwitchTenant?: (id: number) => void;
   isWawi?: boolean;
   onLogout?: () => void;
@@ -40,9 +39,9 @@ export function DashboardHeader({
   onLanguageChange,
   userName,
   userEmail,
-  companyName,
+  companyName: _companyName,
   notificationCount,
-  onOpenCommandPalette,
+  onOpenCommandPalette: _onOpenCommandPalette,
   onNavigate,
   tenants = [],
   currentTenant,
@@ -50,15 +49,16 @@ export function DashboardHeader({
   isWawi,
   onLogout,
 }: DashboardHeaderProps) {
+  const { t } = useI18n();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showLangMenu, setShowLangMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
 
   const roleLabels: Record<string, string> = {
-    owner: 'Inhaber',
-    admin: 'Administrator',
-    member: 'Mitarbeiter',
+    owner: t('settings_role_owner'),
+    admin: t('settings_role_admin'),
+    member: t('settings_role_member'),
     superuser: 'Superuser',
   };
 
@@ -95,10 +95,10 @@ export function DashboardHeader({
 
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <kbd className="px-2 py-1 bg-muted border border-border rounded font-mono">⌘K</kbd>
-            <span>für Suche</span>
+            <span>{t('header_search_hint')}</span>
             <span className="mx-2">·</span>
             <kbd className="px-2 py-1 bg-muted border border-border rounded font-mono">?</kbd>
-            <span>für Shortcuts</span>
+            <span>{t('header_shortcuts_hint')}</span>
           </div>
         </div>
 
@@ -108,7 +108,7 @@ export function DashboardHeader({
           <div className="relative" ref={notifRef}>
             <button
               className="w-10 h-10 rounded-lg hover:bg-accent flex items-center justify-center transition-colors relative group"
-              title="Benachrichtigungen"
+              title={t('header_notifications')}
               onClick={() => setShowNotifications(!showNotifications)}
             >
               <Bell className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" strokeWidth={1.5} />
@@ -127,15 +127,15 @@ export function DashboardHeader({
                 ></div>
                 <div className="absolute top-full right-0 mt-2 w-96 bg-card border border-border rounded-xl shadow-xl z-50 overflow-hidden">
                   <div className="px-4 py-3 border-b border-border flex items-center justify-between">
-                    <h3 className="font-semibold text-foreground text-sm">Benachrichtigungen</h3>
-                    <span className="text-xs text-muted-foreground">Heute</span>
+                    <h3 className="font-semibold text-foreground text-sm">{t('header_notifications')}</h3>
+                    <span className="text-xs text-muted-foreground">{t('today')}</span>
                   </div>
                   <div className="max-h-80 overflow-y-auto">
                     {/* Empty state or notifications */}
                     <div className="p-8 text-center">
                       <Bell className="w-8 h-8 text-muted-foreground/30 mx-auto mb-3" strokeWidth={1.5} />
-                      <p className="text-sm text-muted-foreground">Keine neuen Benachrichtigungen</p>
-                      <p className="text-xs text-muted-foreground/60 mt-1">Wir informieren dich bei neuen Aufträgen</p>
+                      <p className="text-sm text-muted-foreground">{t('header_no_notifications')}</p>
+                      <p className="text-xs text-muted-foreground/60 mt-1">{t('header_notif_info')}</p>
                     </div>
                   </div>
                   <div className="px-4 py-2.5 border-t border-border">
@@ -146,7 +146,7 @@ export function DashboardHeader({
                       }}
                       className="text-xs text-primary hover:text-primary/80 font-medium transition-colors"
                     >
-                      Benachrichtigungen verwalten →
+                      {t('header_manage_notifications')} →
                     </button>
                   </div>
                 </div>
@@ -228,7 +228,7 @@ export function DashboardHeader({
             >
               <div className="text-right">
                 <div className="text-sm font-medium text-foreground leading-none mb-1">{currentTenant?.tenant_name || userName}</div>
-                <div className="text-xs text-muted-foreground leading-none">{currentTenant?.role ? roleLabels[currentTenant.role] : 'Gast'}</div>
+                <div className="text-xs text-muted-foreground leading-none">{currentTenant?.role ? roleLabels[currentTenant.role] : t('header_guest')}</div>
               </div>
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary via-primary/80 to-blue-600 flex items-center justify-center text-white font-semibold text-sm ring-2 ring-primary/20 transition-all group-hover:ring-primary/40">
                 {getInitials(currentTenant?.tenant_name || userName)}
@@ -264,7 +264,7 @@ export function DashboardHeader({
                               ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white'
                               : 'bg-gradient-to-r from-slate-500 to-slate-600 text-white'
                             }`}>
-                            {currentTenant?.role ? roleLabels[currentTenant.role] : 'Benutzer'}
+                            {currentTenant?.role ? roleLabels[currentTenant.role] : t('settings_role_member')}
                           </span>
                         </div>
                       </div>
@@ -275,7 +275,7 @@ export function DashboardHeader({
                   <div className="py-2">
                     <div className="px-4 py-2">
                       <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                        Meine Accounts
+                        {t('header_my_accounts')}
                       </div>
                     </div>
 
@@ -312,7 +312,7 @@ export function DashboardHeader({
                       className="w-full px-4 py-2.5 text-left text-sm text-foreground hover:bg-accent transition-colors flex items-center gap-3"
                     >
                       <Settings className="w-4 h-4 text-muted-foreground" strokeWidth={1.5} />
-                      <span>Einstellungen</span>
+                      <span>{t('nav_settings')}</span>
                     </button>
                   </div>
 
@@ -326,7 +326,7 @@ export function DashboardHeader({
                       className="w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-500/10 transition-colors flex items-center gap-3"
                     >
                       <LogOut className="w-4 h-4" strokeWidth={1.5} />
-                      <span className="font-medium">Abmelden</span>
+                      <span className="font-medium">{t('logout')}</span>
                     </button>
                   </div>
                 </div>

@@ -69,7 +69,7 @@ export function MovementLog({ partId }: MovementLogProps) {
                     <Filter className="w-4 h-4 text-muted-foreground" />
                     <select
                         value={filter}
-                        onChange={(e) => setFilter(e.target.value as any)}
+                        onChange={(e) => setFilter(e.target.value as typeof filter)}
                         className="bg-muted/30 border border-border rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-primary focus:outline-none"
                     >
                         <option value="all">Alle Bewegungen</option>

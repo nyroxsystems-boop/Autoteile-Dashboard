@@ -185,18 +185,21 @@ export default function TaxDashboardView() {
                         <div className="mt-6">
                             <h3 className="text-sm font-semibold text-gray-900 mb-3">Rechnungen in diesem Zeitraum</h3>
                             <div className="space-y-2">
-                                {currentPeriod.invoices.map((inv: any) => (
-                                    <div key={inv.id} className="flex justify-between items-center p-3 bg-gray-50 rounded text-sm">
+                                {currentPeriod.invoices.map((inv) => {
+                                    const extInv = inv as typeof inv & { customer_name?: string; gross_amount: number; tax_rate: number };
+                                    return (
+                                        <div key={extInv.id} className="flex justify-between items-center p-3 bg-gray-50 rounded text-sm">
                                         <div>
-                                            <div className="font-medium">{inv.invoice_number}</div>
-                                            <div className="text-xs text-gray-600">{inv.customer_name || '—'}</div>
+                                            <div className="font-medium">{extInv.invoice_number}</div>
+                                            <div className="text-xs text-gray-600">{extInv.customer_name || '—'}</div>
                                         </div>
                                         <div className="text-right">
-                                            <div className="font-semibold">{formatCurrency(inv.gross_amount)}</div>
-                                            <div className="text-xs text-gray-600">{inv.tax_rate}% MwSt</div>
+                                            <div className="font-semibold">{formatCurrency(extInv.gross_amount)}</div>
+                                            <div className="text-xs text-gray-600">{extInv.tax_rate}% MwSt</div>
                                         </div>
                                     </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         </div>
                     )}

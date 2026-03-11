@@ -5,6 +5,7 @@ import { CustomerThreadRow } from '../components/CustomerThreadRow';
 import { CustomerDetailPanel } from '../components/CustomerDetailPanel';
 import { TableDensityToggle, getTableDensityClasses, type TableDensity } from '../components/TableDensityToggle';
 import { useConversations } from '../hooks/useConversations';
+import type { Conversation } from '../api/wws';
 import { NewInquiryModal } from '../components/NewInquiryModal';
 import { useI18n } from '../../i18n';
 
@@ -22,7 +23,7 @@ export function CustomersInquiriesView({ onNavigate: _onNavigate }: CustomersInq
   const [showNewInquiryModal, setShowNewInquiryModal] = useState(false);
 
   const mappedCustomers = useMemo(() => {
-    return conversations.map((conv: any) => ({
+    return conversations.map((conv: Conversation) => ({
       id: conv.id,
       customerName: conv.contact?.name || conv.contact?.wa_id || t('orders_unknown_customer'),
       lastMessage: conv.state_json?.last_text || t('orders_no_messages'),
@@ -34,9 +35,9 @@ export function CustomersInquiriesView({ onNavigate: _onNavigate }: CustomersInq
       phone: '',
       contactPerson: conv.contact?.name || '',
       customerType: 'werkstatt' as const,
-      messages: (conv.state_json?.history || []).map((h: any, i: number) => ({
+      messages: (conv.state_json?.history || []).map((h: { role: string; text: string; timestamp?: string }, i: number) => ({
         id: `m-${i}`,
-        sender: h.sender === 'user' ? 'customer' : 'bot',
+        sender: (h.role === 'user' ? 'customer' : 'bot') as 'customer' | 'bot' | 'agent',
         text: h.text,
         timestamp: h.timestamp || ''
       })),

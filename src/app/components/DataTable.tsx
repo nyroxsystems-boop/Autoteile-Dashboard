@@ -91,7 +91,7 @@ export function DataTable<T extends { id: string | number }>({
                   >
                     {column.render
                       ? column.render(item)
-                      : (item as any)[column.key]}
+                      : (item as Record<string, unknown>)[column.key] as ReactNode}
                   </td>
                 ))}
               </tr>

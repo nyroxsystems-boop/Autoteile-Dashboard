@@ -386,6 +386,16 @@ const de: Dict = {
     login_contact_sales_btn: 'Verkäufer kontaktieren',
     login_device_limit_upgrade: 'Upgraden Sie Ihr Paket um weitere Mitarbeiter hinzuzufügen.',
     login_back: 'Zurück zum Login',
+
+    // DashboardHeader
+    header_search_hint: 'für Suche',
+    header_shortcuts_hint: 'für Shortcuts',
+    header_notifications: 'Benachrichtigungen',
+    header_no_notifications: 'Keine neuen Benachrichtigungen',
+    header_notif_info: 'Wir informieren dich bei neuen Aufträgen',
+    header_manage_notifications: 'Benachrichtigungen verwalten',
+    header_guest: 'Gast',
+    header_my_accounts: 'Meine Accounts',
 };
 
 const en: Dict = {
@@ -745,6 +755,16 @@ const en: Dict = {
     login_contact_sales_btn: 'Contact Sales',
     login_device_limit_upgrade: 'Upgrade your plan to add more team members.',
     login_back: 'Back to Login',
+
+    // DashboardHeader
+    header_search_hint: 'for Search',
+    header_shortcuts_hint: 'for Shortcuts',
+    header_notifications: 'Notifications',
+    header_no_notifications: 'No new notifications',
+    header_notif_info: 'We\'ll notify you about new orders',
+    header_manage_notifications: 'Manage notifications',
+    header_guest: 'Guest',
+    header_my_accounts: 'My Accounts',
 };
 
 const fr: Dict = {
