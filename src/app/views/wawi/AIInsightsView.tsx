@@ -77,7 +77,7 @@ export function AIInsightsView() {
         try {
             const data = await wawiService.getBriefing();
             setBriefing(data);
-        } catch { console.error('Briefing failed'); }
+        } catch {  }
         finally { setLoading(l => ({ ...l, briefing: false })); }
     };
 
@@ -86,7 +86,7 @@ export function AIInsightsView() {
         try {
             const data = await wawiService.getSmartReorder(90, 30);
             setReorder(data);
-        } catch { console.error('Reorder failed'); }
+        } catch {  }
         finally { setLoading(l => ({ ...l, reorder: false })); }
     };
 
@@ -95,7 +95,7 @@ export function AIInsightsView() {
         try {
             const data = await wawiService.getPriceOptimization() as PriceOptItem[];
             setPriceOpt(data);
-        } catch { console.error('Price optimization failed'); }
+        } catch {  }
         finally { setLoading(l => ({ ...l, priceOpt: false })); }
     };
 
@@ -104,7 +104,7 @@ export function AIInsightsView() {
         try {
             const data = await wawiService.getAnomalies(7, 3.0);
             setAnomalies(data);
-        } catch { console.error('Anomaly detection failed'); }
+        } catch {  }
         finally { setLoading(l => ({ ...l, anomaly: false })); }
     };
 
@@ -114,7 +114,7 @@ export function AIInsightsView() {
         try {
             const data = await wawiService.fuzzyOemSearch(oemQuery) as OemResult[];
             setOemResults(data);
-        } catch { console.error('OEM search failed'); }
+        } catch {  }
         finally { setLoading(l => ({ ...l, oem: false })); }
     };
 
@@ -131,13 +131,13 @@ export function AIInsightsView() {
                             <Brain className="w-5 h-5 text-white" />
                         </div>
                         <div>
-                            <h1 className="text-3xl font-bold tracking-tight">KI-Insights</h1>
-                            <p className="text-muted-foreground text-sm">Intelligente Analysen & Empfehlungen für dein Warenlager.</p>
+                            <h1 className="text-3xl font-bold tracking-tight">{t('wawi_ai_insights')}</h1>
+                            <p className="text-muted-foreground text-sm">{t('wawi_ai_insights_sub')}</p>
                         </div>
                     </div>
                 </div>
                 <Button variant="outline" className="rounded-xl" onClick={loadBriefing}>
-                    <RefreshCw className={`w-4 h-4 mr-2 ${loading.briefing ? 'animate-spin' : ''}`} /> Aktualisieren
+                    <RefreshCw className={`w-4 h-4 mr-2 ${loading.briefing ? 'animate-spin' : ''}`} /> {t('wawi_refresh')}
                 </Button>
             </div>
 
@@ -146,37 +146,37 @@ export function AIInsightsView() {
                 <button className="w-full p-6 flex items-center justify-between text-left" onClick={() => toggle('briefing')}>
                     <div className="flex items-center gap-3">
                         <Calendar className="w-5 h-5 text-primary" />
-                        <h3 className="font-bold text-lg">Tagesbriefing</h3>
+                        <h3 className="font-bold text-lg">{t('wawi_daily_briefing')}</h3>
                     </div>
                     {expanded.briefing ? <ChevronUp className="w-5 h-5 text-muted-foreground" /> : <ChevronDown className="w-5 h-5 text-muted-foreground" />}
                 </button>
                 {expanded.briefing && (
                     <div className="px-6 pb-6 space-y-4">
                         {loading.briefing ? (
-                            <div className="text-center py-8 text-muted-foreground animate-pulse">Lade Briefing...</div>
+                            <div className="text-center py-8 text-muted-foreground animate-pulse">{t('wawi_loading_briefing')}</div>
                         ) : briefing ? (
                             <>
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                     <div className="bg-muted/30 rounded-2xl p-4 text-center">
                                         <div className="text-2xl font-bold">{briefing.orders?.today ?? 0}</div>
-                                        <div className="text-xs text-muted-foreground mt-1">Bestellungen heute</div>
+                                        <div className="text-xs text-muted-foreground mt-1">{t('wawi_orders_today')}</div>
                                     </div>
                                     <div className="bg-muted/30 rounded-2xl p-4 text-center">
                                         <div className="text-2xl font-bold">{briefing.revenue?.today?.toLocaleString('de-DE') ?? 0} €</div>
-                                        <div className="text-xs text-muted-foreground mt-1">Umsatz heute</div>
+                                        <div className="text-xs text-muted-foreground mt-1">{t('wawi_revenue_today')}</div>
                                     </div>
                                     <div className="bg-muted/30 rounded-2xl p-4 text-center">
                                         <div className={`text-2xl font-bold ${briefing.inventory?.low_stock_alerts > 0 ? 'text-red-500' : ''}`}>{briefing.inventory?.low_stock_alerts ?? 0}</div>
-                                        <div className="text-xs text-muted-foreground mt-1">Bestandswarnungen</div>
+                                        <div className="text-xs text-muted-foreground mt-1">{t('wawi_stock_alerts')}</div>
                                     </div>
                                     <div className="bg-muted/30 rounded-2xl p-4 text-center">
                                         <div className="text-2xl font-bold">{briefing.returns?.open ?? 0}</div>
-                                        <div className="text-xs text-muted-foreground mt-1">Offene Retouren</div>
+                                        <div className="text-xs text-muted-foreground mt-1">{t('wawi_open_returns')}</div>
                                     </div>
                                 </div>
                                 {briefing.top_products?.length > 0 && (
                                     <div>
-                                        <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">Top Produkte diese Woche</h4>
+                                        <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">{t('wawi_top_products')}</h4>
                                         <div className="flex gap-3 flex-wrap">
                                             {briefing.top_products.map((tp: BriefingProduct, i: number) => (
                                                 <div key={i} className="bg-primary/5 border border-primary/20 rounded-xl px-4 py-2 text-sm">
@@ -192,7 +192,7 @@ export function AIInsightsView() {
                                     </div>
                                 )}
                             </>
-                        ) : <div className="text-center text-muted-foreground">Kein Briefing verfügbar.</div>}
+                        ) : <div className="text-center text-muted-foreground">{t('wawi_no_briefing')}</div>}
                     </div>
                 )}
             </div>
@@ -201,18 +201,18 @@ export function AIInsightsView() {
             <div className="bg-card border border-border rounded-3xl p-6 shadow-sm">
                 <div className="flex items-center gap-3 mb-4">
                     <Search className="w-5 h-5 text-primary" />
-                    <h3 className="font-bold text-lg">Intelligente OEM-Suche</h3>
+                    <h3 className="font-bold text-lg">{t('wawi_oem_search')}</h3>
                 </div>
                 <div className="flex gap-3">
                     <input
                         className="flex-1 px-4 py-3 rounded-xl border border-border bg-background text-sm"
-                        placeholder="OEM-Nummer eingeben (z.B. 1K0615301AD, 34 11 6 864 906)..."
+                        placeholder={t('wawi_oem_placeholder')}
                         value={oemQuery}
                         onChange={e => setOemQuery(e.target.value)}
                         onKeyDown={e => e.key === 'Enter' && searchOem()}
                     />
                     <Button className="rounded-xl px-6" onClick={searchOem} disabled={loading.oem}>
-                        {loading.oem ? <RefreshCw className="w-4 h-4 animate-spin" /> : 'Suchen'}
+                        {loading.oem ? <RefreshCw className="w-4 h-4 animate-spin" /> : t('wawi_search_btn')}
                     </Button>
                 </div>
                 {oemResults.length > 0 && (
@@ -220,7 +220,7 @@ export function AIInsightsView() {
                         {oemResults.map((r: OemResult, i: number) => (
                             <div key={i} className="py-3 flex items-center justify-between">
                                 <div>
-                                    <span className="font-bold text-sm">{r.product?.name || 'Unbekannt'}</span>
+                                    <span className="font-bold text-sm">{r.product?.name || t('wawi_unknown')}</span>
                                     <span className="ml-3 font-mono text-xs text-muted-foreground">{r.product?.IPN}</span>
                                     <span className="ml-3 text-xs text-muted-foreground">via {r.match_type} · "{r.matched_number}"</span>
                                 </div>
@@ -241,7 +241,7 @@ export function AIInsightsView() {
                 <button className="w-full p-6 flex items-center justify-between text-left" onClick={() => { toggle('reorder'); if (!reorder) loadReorder(); }}>
                     <div className="flex items-center gap-3">
                         <TrendingUp className="w-5 h-5 text-orange-500" />
-                        <h3 className="font-bold text-lg">Smart Reorder — Nachbestellvorschläge</h3>
+                        <h3 className="font-bold text-lg">{t('wawi_smart_reorder')}</h3>
                         {reorder?.suggestions && <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">{reorder.suggestions.length}</span>}
                     </div>
                     {expanded.reorder ? <ChevronUp className="w-5 h-5 text-muted-foreground" /> : <ChevronDown className="w-5 h-5 text-muted-foreground" />}
@@ -249,7 +249,7 @@ export function AIInsightsView() {
                 {expanded.reorder && (
                     <div className="px-6 pb-6">
                         {loading.reorder ? (
-                            <div className="text-center py-8 text-muted-foreground animate-pulse">Analysiere Nachfrage...</div>
+                            <div className="text-center py-8 text-muted-foreground animate-pulse">{t('wawi_analyzing_demand')}</div>
                         ) : reorder?.suggestions?.length > 0 ? (
                             <div className="space-y-3">
                                 <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
@@ -277,7 +277,7 @@ export function AIInsightsView() {
                                     </div>
                                 ))}
                             </div>
-                        ) : <div className="text-center py-8 text-muted-foreground italic">Keine Nachbestellvorschläge.</div>}
+                        ) : <div className="text-center py-8 text-muted-foreground italic">{t('wawi_no_reorder')}</div>}
                     </div>
                 )}
             </div>
@@ -287,7 +287,7 @@ export function AIInsightsView() {
                 <button className="w-full p-6 flex items-center justify-between text-left" onClick={() => { toggle('price'); if (!priceOpt.length) loadPriceOpt(); }}>
                     <div className="flex items-center gap-3">
                         <DollarSign className="w-5 h-5 text-emerald-500" />
-                        <h3 className="font-bold text-lg">Preisoptimierung</h3>
+                        <h3 className="font-bold text-lg">{t('wawi_price_opt')}</h3>
                         {priceOpt.length > 0 && <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">{priceOpt.length}</span>}
                     </div>
                     {expanded.price ? <ChevronUp className="w-5 h-5 text-muted-foreground" /> : <ChevronDown className="w-5 h-5 text-muted-foreground" />}
@@ -295,12 +295,12 @@ export function AIInsightsView() {
                 {expanded.price && (
                     <div className="px-6 pb-6">
                         {loading.priceOpt ? (
-                            <div className="text-center py-8 text-muted-foreground animate-pulse">Analysiere Preise...</div>
+                            <div className="text-center py-8 text-muted-foreground animate-pulse">{t('wawi_analyzing_prices')}</div>
                         ) : priceOpt.length > 0 ? (
                             <div className="overflow-x-auto">
                                 <table className="w-full text-sm">
                                     <thead><tr className="border-b border-border text-left text-xs font-bold uppercase text-muted-foreground">
-                                        <th className="py-3 px-2">Artikel</th><th className="py-3 px-2">Aktuell</th><th className="py-3 px-2">Vorschlag</th><th className="py-3 px-2">Änderung</th><th className="py-3 px-2">Marge</th><th className="py-3 px-2">Grund</th>
+                                        <th className="py-3 px-2">{t('wawi_article_col')}</th><th className="py-3 px-2">{t('wawi_current_price')}</th><th className="py-3 px-2">{t('wawi_suggestion')}</th><th className="py-3 px-2">{t('wawi_change')}</th><th className="py-3 px-2">{t('wawi_margin')}</th><th className="py-3 px-2">{t('wawi_reason')}</th>
                                     </tr></thead>
                                     <tbody>
                                         {priceOpt.map((p: PriceOptItem, i: number) => (
@@ -318,7 +318,7 @@ export function AIInsightsView() {
                                     </tbody>
                                 </table>
                             </div>
-                        ) : <div className="text-center py-8 text-muted-foreground italic">Keine Preisvorschläge.</div>}
+                        ) : <div className="text-center py-8 text-muted-foreground italic">{t('wawi_no_price_suggestions')}</div>}
                     </div>
                 )}
             </div>
@@ -328,7 +328,7 @@ export function AIInsightsView() {
                 <button className="w-full p-6 flex items-center justify-between text-left" onClick={() => { toggle('anomaly'); if (!anomalies) loadAnomalies(); }}>
                     <div className="flex items-center gap-3">
                         <AlertTriangle className="w-5 h-5 text-red-500" />
-                        <h3 className="font-bold text-lg">Anomalie-Erkennung</h3>
+                        <h3 className="font-bold text-lg">{t('wawi_anomaly')}</h3>
                         {anomalies?.total_anomalies > 0 && <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full">{anomalies.total_anomalies}</span>}
                     </div>
                     {expanded.anomaly ? <ChevronUp className="w-5 h-5 text-muted-foreground" /> : <ChevronDown className="w-5 h-5 text-muted-foreground" />}
@@ -336,7 +336,7 @@ export function AIInsightsView() {
                 {expanded.anomaly && (
                     <div className="px-6 pb-6">
                         {loading.anomaly ? (
-                            <div className="text-center py-8 text-muted-foreground animate-pulse">Analysiere Bewegungen...</div>
+                            <div className="text-center py-8 text-muted-foreground animate-pulse">{t('wawi_analyzing_movements')}</div>
                         ) : anomalies?.anomalies?.length > 0 ? (
                             <div className="space-y-3">
                                 {anomalies.anomalies.map((a: AnomalyItem, i: number) => (
@@ -345,7 +345,7 @@ export function AIInsightsView() {
                                             <div>
                                                 <span className="font-bold text-sm">{a.product?.name}</span>
                                                 <span className="ml-2 font-mono text-xs">{a.product?.IPN}</span>
-                                                <span className="ml-3 text-xs px-2 py-0.5 rounded-full bg-muted">{a.movement_type === 'OUT' ? 'Abgang' : 'Zugang'}</span>
+                                                <span className="ml-3 text-xs px-2 py-0.5 rounded-full bg-muted">{a.movement_type === 'OUT' ? t('wawi_outgoing') : t('wawi_incoming')}</span>
                                             </div>
                                             <span className="text-sm font-bold text-red-600">{a.deviation_factor}x Abweichung</span>
                                         </div>
@@ -362,7 +362,7 @@ export function AIInsightsView() {
                                     </div>
                                 ))}
                             </div>
-                        ) : <div className="text-center py-8 text-muted-foreground italic">Keine Anomalien erkannt. ✅</div>}
+                        ) : <div className="text-center py-8 text-muted-foreground italic">{t('wawi_no_anomalies')}</div>}
                     </div>
                 )}
             </div>

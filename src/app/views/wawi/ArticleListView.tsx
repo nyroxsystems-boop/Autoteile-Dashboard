@@ -23,8 +23,8 @@ export function ArticleListView() {
         try {
             const data = await wawiService.getArticles();
             setArticles(data);
-        } catch (err) {
-            console.error('Failed to load articles', err);
+        } catch {
+            // Failed to load articles
         } finally {
             setLoading(false);
         }
@@ -44,9 +44,9 @@ export function ArticleListView() {
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Artikelstamm</h1>
+                    <h1 className="text-3xl font-bold tracking-tight">{t('wawi_article_master')}</h1>
                     <p className="text-muted-foreground mt-1">
-                        Verwalte deine Produkte, Bestände und Kategorien.
+                        {t('wawi_article_master_sub')}
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
@@ -67,13 +67,13 @@ export function ArticleListView() {
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                         <input
                             className="w-full bg-background border border-border rounded-xl pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary focus:outline-none transition-all"
-                            placeholder="Suchen nach Name, SKU, OEM..."
+                            placeholder={t('wawi_search_sku')}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
                     <Button variant="ghost" size="sm" className="text-muted-foreground">
-                        <Filter className="w-4 h-4 mr-2" /> Filter
+                        <Filter className="w-4 h-4 mr-2" /> {t('wawi_filter')}
                     </Button>
                     <div className="h-6 w-px bg-border mx-2" />
                     <div className="flex items-center gap-1 bg-background border border-border rounded-lg p-1">
@@ -90,18 +90,18 @@ export function ArticleListView() {
                     <table className="w-full">
                         <thead>
                             <tr className="text-left text-xs uppercase tracking-wider text-muted-foreground font-semibold bg-muted/30">
-                                <th className="px-6 py-4">Produkt</th>
-                                <th className="px-6 py-4">Kategorie</th>
-                                <th className="px-6 py-4">Lagerbestand</th>
-                                <th className="px-6 py-4">Status</th>
-                                <th className="px-6 py-4 text-right">Aktion</th>
+                                <th className="px-6 py-4">{t('wawi_product')}</th>
+                                <th className="px-6 py-4">{t('wawi_category')}</th>
+                                <th className="px-6 py-4">{t('wawi_inventory')}</th>
+                                <th className="px-6 py-4">{t('wawi_status')}</th>
+                                <th className="px-6 py-4 text-right">{t('wawi_action')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border">
                             {loading ? (
-                                <tr><td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">Lade Artikel...</td></tr>
+                                <tr><td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">{t('wawi_loading_articles')}</td></tr>
                             ) : filteredArticles.length === 0 ? (
-                                <tr><td colSpan={5} className="px-6 py-12 text-center text-muted-foreground italic">Keine Artikel gefunden.</td></tr>
+                                <tr><td colSpan={5} className="px-6 py-12 text-center text-muted-foreground italic">{t('wawi_no_articles')}</td></tr>
                             ) : filteredArticles.map(article => (
                                 <tr key={article.id} className="hover:bg-muted/30 transition-colors group">
                                     <td className="px-6 py-4">
@@ -121,7 +121,7 @@ export function ArticleListView() {
                                     <td className="px-6 py-4">
                                         <div className="flex flex-col">
                                             <span className={`font-bold text-sm ${article.total_in_stock < article.minimum_stock ? 'text-red-500' : 'text-foreground'}`}>
-                                                {article.total_in_stock} Stück
+                                                {article.total_in_stock} {t('wawi_pieces')}
                                             </span>
                                             <span className="text-[10px] text-muted-foreground">Min: {article.minimum_stock}</span>
                                         </div>
@@ -129,7 +129,7 @@ export function ArticleListView() {
                                     <td className="px-6 py-4">
                                         <StatusChip
                                             status={article.total_in_stock < article.minimum_stock ? 'error' : 'success'}
-                                            label={article.total_in_stock < article.minimum_stock ? 'Mangel' : 'OK'}
+                                            label={article.total_in_stock < article.minimum_stock ? t('wawi_shortage') : t('wawi_ok')}
                                             size="sm"
                                         />
                                     </td>

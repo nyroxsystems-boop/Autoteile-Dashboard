@@ -28,7 +28,7 @@ export function ReorderWizardView() {
             const data = await wawiService.getReorderSuggestions();
             setSuggestions(data);
         } catch (err) {
-            console.error('Failed to load reorder suggestions', err);
+            // Failed to load reorder suggestions
         } finally {
             setLoading(false);
         }
@@ -53,9 +53,9 @@ export function ReorderWizardView() {
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Nachbestellungs-Assistent</h1>
+                    <h1 className="text-3xl font-bold tracking-tight">{t('wawi_reorder_assistant')}</h1>
                     <p className="text-muted-foreground mt-1">
-                        Artikel mit kritischem Bestand automatisch nachbestellen.
+                        {t('wawi_reorder_assistant_sub')}
                     </p>
                 </div>
                 <Button
@@ -64,20 +64,20 @@ export function ReorderWizardView() {
                     className="bg-primary text-white rounded-xl font-bold"
                 >
                     <ShoppingCart className="w-4 h-4 mr-2" />
-                    Bestellung erstellen ({selectedItems.size})
+                    {t('wawi_create_po')} ({selectedItems.size})
                 </Button>
             </div>
 
             {loading ? (
                 <div className="p-20 text-center text-muted-foreground animate-pulse">
-                    Analysiere Lagerbestände...
+                    {t('wawi_analyzing')}
                 </div>
             ) : suggestions.length === 0 ? (
                 <div className="bg-card border border-border rounded-3xl p-12 text-center">
                     <Package className="w-16 h-16 mx-auto mb-4 text-emerald-500" />
-                    <h3 className="text-xl font-bold text-foreground mb-2">Alles im grünen Bereich!</h3>
+                    <h3 className="text-xl font-bold text-foreground mb-2">{t('wawi_all_good')}</h3>
                     <p className="text-muted-foreground">
-                        Alle Artikel haben ausreichend Bestand.
+                        {t('wawi_all_good_sub')}
                     </p>
                 </div>
             ) : (
@@ -86,11 +86,10 @@ export function ReorderWizardView() {
                         <AlertTriangle className="w-6 h-6 text-amber-600 flex-shrink-0 mt-0.5" />
                         <div>
                             <h3 className="font-bold text-amber-700 mb-1">
-                                {suggestions.length} Artikel unter Mindestbestand
+                                {suggestions.length} {t('wawi_below_min')}
                             </h3>
                             <p className="text-sm text-amber-600">
-                                Wähle die Artikel aus, die du nachbestellen möchtest, und erstelle eine
-                                Sammelbestellung.
+                                {t('wawi_select_reorder')}
                             </p>
                         </div>
                     </div>
@@ -114,12 +113,12 @@ export function ReorderWizardView() {
                                                 className="rounded border-border"
                                             />
                                         </th>
-                                        <th className="px-6 py-4">Artikel</th>
-                                        <th className="px-6 py-4">Aktuell</th>
-                                        <th className="px-6 py-4">Mindest</th>
-                                        <th className="px-6 py-4">Fehlmenge</th>
-                                        <th className="px-6 py-4">Empfohlen</th>
-                                        <th className="px-6 py-4 text-right">Aktion</th>
+                                        <th className="px-6 py-4">{t('wawi_article_col')}</th>
+                                        <th className="px-6 py-4">{t('wawi_current_col')}</th>
+                                        <th className="px-6 py-4">{t('wawi_minimum_col')}</th>
+                                        <th className="px-6 py-4">{t('wawi_deficit')}</th>
+                                        <th className="px-6 py-4">{t('wawi_recommended')}</th>
+                                        <th className="px-6 py-4 text-right">{t('wawi_action')}</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border">
@@ -177,7 +176,7 @@ export function ReorderWizardView() {
                                                     onClick={() => toggleSelection(suggestion.part.id)}
                                                 >
                                                     <Plus className="w-3 h-3 mr-1" />
-                                                    Hinzufügen
+                                                    {t('wawi_add')}
                                                 </Button>
                                             </td>
                                         </tr>
