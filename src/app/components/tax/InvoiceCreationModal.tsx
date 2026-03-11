@@ -50,7 +50,7 @@ export default function InvoiceCreationModal({ isOpen, onClose, onSuccess, prefi
         setLines(lines.filter((_, i) => i !== index));
     };
 
-    const updateLine = (index: number, field: keyof InvoiceLine, value: any) => {
+    const updateLine = (index: number, field: keyof InvoiceLine, value: string | number | TaxRate) => {
         const newLines = [...lines];
         newLines[index] = { ...newLines[index], [field]: value };
         setLines(newLines);

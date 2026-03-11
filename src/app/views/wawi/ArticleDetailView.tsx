@@ -8,7 +8,7 @@ import {
 import { toast } from 'sonner';
 
 import { Button } from '../../components/ui/button';
-import { wawiService, Part } from '../../services/wawiService';
+import { wawiService, Part, type OemCrossRef, type VehicleApplication, type PriceRule } from '../../services/wawiService';
 import { StatusChip } from '../../components/StatusChip';
 import { BOMManager } from '../../components/BOMManager';
 import { MovementLog } from '../../components/MovementLog';
@@ -18,9 +18,9 @@ export function ArticleDetailView() {
     const { id } = useParams();
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState<'overview' | 'stock' | 'bom' | 'oem' | 'vehicles' | 'pricing' | 'purchase' | 'history'>('overview');
-    const [crossRefs, setCrossRefs] = useState<any[]>([]);
-    const [vehicleApps, setVehicleApps] = useState<any[]>([]);
-    const [priceRules, setPriceRules] = useState<any[]>([]);
+    const [crossRefs, setCrossRefs] = useState<OemCrossRef[]>([]);
+    const [vehicleApps, setVehicleApps] = useState<VehicleApplication[]>([]);
+    const [priceRules, setPriceRules] = useState<PriceRule[]>([]);
     const [newOem, setNewOem] = useState({ oem_number: '', brand: '', oem_type: 'aftermarket' });
     const [newVehicle, setNewVehicle] = useState({ kba_hsn: '', kba_tsn: '', make: '', model: '', year_from: '' });
     const [newPrice, setNewPrice] = useState({ profile: 'endkunde', min_quantity: 1, price: 0, discount_percent: 0 });
@@ -198,8 +198,8 @@ export function ArticleDetailView() {
                     {activeTab === 'bom' && article.article_type === 'set' && (
                         <div className="bg-card border border-border rounded-3xl p-8 shadow-sm">
                             <BOMManager
-                                components={article.bom_components || []}
-                                onChange={(components) => {
+                                components={(article as Part & { bom_components?: Array<{id: number; component: number; component_name: string; quantity: number}> }).bom_components || []}
+                                onChange={(_components) => {
                                     // In a real app, this would trigger an API call
                                     // BOM components updated
                                 }}
@@ -231,7 +231,7 @@ export function ArticleDetailView() {
                             <div className="divide-y divide-border">
                                 {crossRefs.length === 0 ? (
                                     <div className="py-12 text-center text-muted-foreground text-sm italic">Keine OEM-Querverweise hinterlegt.</div>
-                                ) : crossRefs.map((ref: any) => (
+                                ) : crossRefs.map((ref) => (
                                     <div key={ref.id} className="py-3 flex items-center justify-between">
                                         <div>
                                             <span className="font-mono font-bold text-sm">{ref.oem_number}</span>
@@ -261,7 +261,7 @@ export function ArticleDetailView() {
                                 <Button className="rounded-xl" onClick={async () => {
                                     if (!newVehicle.make && !newVehicle.kba_hsn) return;
                                     try {
-                                        await wawiService.createVehicleApplication({ product: Number(id), ...newVehicle });
+                                        await wawiService.createVehicleApplication({ product: Number(id), hsn: newVehicle.kba_hsn, tsn: newVehicle.kba_tsn, make: newVehicle.make, model: newVehicle.model, year_from: newVehicle.year_from ? Number(newVehicle.year_from) : undefined });
                                         const vehs = await wawiService.getVehicleApplications(Number(id));
                                         setVehicleApps(vehs);
                                         setNewVehicle({ kba_hsn: '', kba_tsn: '', make: '', model: '', year_from: '' });
@@ -272,7 +272,7 @@ export function ArticleDetailView() {
                             <div className="divide-y divide-border">
                                 {vehicleApps.length === 0 ? (
                                     <div className="py-12 text-center text-muted-foreground text-sm italic">Keine Fahrzeug-Zuordnungen.</div>
-                                ) : vehicleApps.map((va: any) => (
+                                ) : vehicleApps.map((va) => (
                                     <div key={va.id} className="py-3 flex items-center justify-between">
                                         <div>
                                             <span className="font-bold text-sm">{va.make} {va.model}</span>
@@ -321,7 +321,7 @@ export function ArticleDetailView() {
                                     <tbody>
                                         {priceRules.length === 0 ? (
                                             <tr><td colSpan={5} className="py-12 text-center text-muted-foreground italic">Keine Preisregeln.</td></tr>
-                                        ) : priceRules.map((rule: any) => (
+                                        ) : priceRules.map((rule) => (
                                             <tr key={rule.id} className="border-b border-border/50 hover:bg-muted/20">
                                                 <td className="py-3 px-2 capitalize">{rule.profile}</td>
                                                 <td className="py-3 px-2">≥ {rule.min_quantity}</td>

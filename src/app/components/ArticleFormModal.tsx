@@ -3,7 +3,7 @@ import { X, Package, Box, Archive, Save } from 'lucide-react';
 import { Button } from './ui/button';
 import { toast } from 'sonner';
 
-interface ArticleFormData {
+export interface ArticleFormData {
     name: string;
     ipn: string;
     description: string;

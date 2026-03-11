@@ -140,12 +140,70 @@ export interface PurchaseOrder {
 export interface PurchaseOrderItem {
     id: number;
     product: number;
+    part_id?: number;
     part_name: string;
     part_ipn: string;
     quantity: number;
     unit_price: number;
     total_price: number;
     received_quantity?: number;
+}
+
+export interface SupplierRating {
+    id: number;
+    supplier: number;
+    supplier_name: string;
+    period: string;
+    orders_total: number;
+    orders_on_time: number;
+    orders_late: number;
+    avg_delivery_days: number;
+    quality_score: number | string;
+    return_rate: number | string;
+    communication_score: number | string;
+    overall_score: number | string;
+    notes?: string;
+}
+
+export interface ReturnItem {
+    id: number;
+    product?: number;
+    product_name?: string;
+    product_ipn?: string;
+    quantity: number;
+    reason: string;
+    notes?: string;
+    status: string;
+    contact_name?: string;
+    refund_amount?: number;
+}
+
+export interface OemCrossRef {
+    id: number;
+    product: number;
+    oem_number: string;
+    brand?: string;
+    oem_type?: string;
+}
+
+export interface VehicleApplication {
+    id: number;
+    product: number;
+    kba_hsn?: string;
+    kba_tsn?: string;
+    make?: string;
+    model?: string;
+    year_from?: number;
+    year_to?: number;
+}
+
+export interface PriceRule {
+    id: number;
+    product: number;
+    profile: string;
+    min_quantity: number;
+    price: number;
+    discount_percent: number;
 }
 
 export const wawiService = {
@@ -300,7 +358,7 @@ export const wawiService = {
     // ── Feature 1: OEM Cross-References ──────────────────────
     getOemCrossRefs: async (productId?: number) => {
         const url = productId ? `/api/oem-cross-refs/?product=${productId}` : '/api/oem-cross-refs/';
-        return await wawiFetchList(url);
+        return await wawiFetchList<OemCrossRef>(url);
     },
 
     searchByOem: async (query: string) => {
@@ -318,7 +376,7 @@ export const wawiService = {
     // ── Feature 3: Vehicle Applications ──────────────────────
     getVehicleApplications: async (productId?: number) => {
         const url = productId ? `/api/vehicle-applications/?product=${productId}` : '/api/vehicle-applications/';
-        return await wawiFetchList(url);
+        return await wawiFetchList<VehicleApplication>(url);
     },
 
     searchByVehicle: async (params: { hsn?: string; tsn?: string; make?: string; model?: string }) => {
@@ -337,7 +395,7 @@ export const wawiService = {
     // ── Feature 2: Returns ───────────────────────────────────
     getReturns: async (statusFilter?: string) => {
         const url = statusFilter ? `/api/returns/?status=${statusFilter}` : '/api/returns/';
-        return await wawiFetchList(url);
+        return await wawiFetchList<ReturnItem>(url);
     },
 
     createReturn: async (data: { order?: number; product?: number; contact?: number; quantity: number; reason: string; notes?: string; location?: number }) => {
@@ -366,7 +424,7 @@ export const wawiService = {
     // ── Feature 5: Price Rules ───────────────────────────────
     getPriceRules: async (productId?: number) => {
         const url = productId ? `/api/price-rules/?product=${productId}` : '/api/price-rules/';
-        return await wawiFetchList(url);
+        return await wawiFetchList<PriceRule>(url);
     },
 
     createPriceRule: async (data: { product: number; profile: string; min_quantity: number; price: number; discount_percent?: number }) => {
@@ -419,7 +477,7 @@ export const wawiService = {
     // ── Feature 8: Supplier Ratings ──────────────────────────
     getSupplierRatings: async (supplierId?: number) => {
         const url = supplierId ? `/api/supplier-ratings/?supplier=${supplierId}` : '/api/supplier-ratings/';
-        return await wawiFetchList(url);
+        return await wawiFetchList<SupplierRating>(url);
     },
 
     createSupplierRating: async (data: {

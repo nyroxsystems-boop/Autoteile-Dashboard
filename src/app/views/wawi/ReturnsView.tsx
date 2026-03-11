@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { RotateCcw, CheckCircle2, PackageCheck, CreditCard, XCircle, Plus, Filter } from 'lucide-react';
+import { RotateCcw, CheckCircle2, PackageCheck, CreditCard, XCircle, Plus, Filter, type LucideIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../../components/ui/button';
-import { wawiService } from '../../services/wawiService';
+import { wawiService, type ReturnItem } from '../../services/wawiService';
 
-const STATUS_MAP: Record<string, { label: string; color: string; icon: any }> = {
+const STATUS_MAP: Record<string, { label: string; color: string; icon: LucideIcon }> = {
     requested: { label: 'Angefragt', color: 'bg-yellow-100 text-yellow-800 border-yellow-200', icon: RotateCcw },
     approved: { label: 'Genehmigt', color: 'bg-blue-100 text-blue-800 border-blue-200', icon: CheckCircle2 },
     received: { label: 'Empfangen', color: 'bg-emerald-100 text-emerald-800 border-emerald-200', icon: PackageCheck },
@@ -13,7 +13,7 @@ const STATUS_MAP: Record<string, { label: string; color: string; icon: any }> = 
 };
 
 export function ReturnsView() {
-    const [returns, setReturns] = useState<any[]>([]);
+    const [returns, setReturns] = useState<ReturnItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('');
     const [showCreate, setShowCreate] = useState(false);
@@ -97,7 +97,7 @@ export function ReturnsView() {
                     <div className="p-12 text-center text-muted-foreground italic">Keine Retouren gefunden.</div>
                 ) : (
                     <div className="divide-y divide-border">
-                        {returns.map((ret: any) => {
+                        {returns.map((ret) => {
                             const st = STATUS_MAP[ret.status] || STATUS_MAP.requested;
                             const StIcon = st.icon;
                             return (

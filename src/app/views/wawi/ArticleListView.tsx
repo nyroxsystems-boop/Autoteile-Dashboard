@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '../../components/ui/button';
 import { StatusChip } from '../../components/StatusChip';
 import { wawiService, Part } from '../../services/wawiService';
-import { ArticleFormModal } from '../../components/ArticleFormModal';
+import { ArticleFormModal, type ArticleFormData } from '../../components/ArticleFormModal';
 
 export function ArticleListView() {
     const [articles, setArticles] = useState<Part[]>([]);
@@ -32,7 +32,7 @@ export function ArticleListView() {
         .filter(a => searchTerm ? (a.name.toLowerCase().includes(searchTerm.toLowerCase()) || a.IPN.toLowerCase().includes(searchTerm.toLowerCase())) : true)
         .sort((a, b) => a.name.localeCompare(b.name));
 
-    const handleCreateArticle = (articleData: any) => {
+    const handleCreateArticle = (_articleData: ArticleFormData) => {
         // Creating article with provided data
         // In a real app, this would trigger an API call
         loadArticles();

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { CheckCircle2, Printer, TruckIcon, Calendar, Plus, Minus } from 'lucide-react';
 import { Button } from '../../components/ui/button';
-import { wawiService, PurchaseOrder, PurchaseOrderItem } from '../../services/wawiService';
+import { wawiService, PurchaseOrder, PurchaseOrderItem, WarehouseLocation } from '../../services/wawiService';
 import { toast } from 'sonner';
 
 interface ReceiptItem extends PurchaseOrderItem {
@@ -14,7 +14,7 @@ export function GoodsReceiptView() {
     const [selectedPO, setSelectedPO] = useState<PurchaseOrder | null>(null);
     const [receiptItems, setReceiptItems] = useState<ReceiptItem[]>([]);
     const [loading, setLoading] = useState(true);
-    const [locations, setLocations] = useState<any[]>([]);
+    const [locations, setLocations] = useState<WarehouseLocation[]>([]);
 
     useEffect(() => {
         loadOrders();
@@ -63,11 +63,11 @@ export function GoodsReceiptView() {
             for (const item of receiptItems) {
                 if (item.received_quantity > 0) {
                     await wawiService.createMovement({
-                        part_id: item.part_id,
+                        part_id: item.part_id ?? item.product,
                         type: 'IN',
                         quantity: item.received_quantity,
                         reference: `PO-${selectedPO.order_number}`,
-                        to_location: locations.find(l => l.id === item.location_id)?.name,
+                        to_location: item.location_id,
                         notes: `Wareneingang von ${selectedPO.supplier_name}`,
                     });
                 }

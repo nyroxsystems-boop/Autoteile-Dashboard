@@ -31,7 +31,7 @@ export function SupplierListView() {
         }
     };
 
-    const handleCreateSupplier = async (formData: any) => {
+    const handleCreateSupplier = async (formData: Parameters<typeof wawiService.createSupplier>[0]) => {
         try {
             await wawiService.createSupplier(formData);
             toast.success('Lieferant erfolgreich erstellt');
@@ -43,7 +43,7 @@ export function SupplierListView() {
         }
     };
 
-    const handleUpdateSupplier = async (formData: any) => {
+    const handleUpdateSupplier = async (formData: Parameters<typeof wawiService.updateSupplier>[1]) => {
         if (!editingSupplier) return;
         try {
             await wawiService.updateSupplier(editingSupplier.id, formData);

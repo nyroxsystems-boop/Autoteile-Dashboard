@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react';
 import { Star, Plus, Clock, Truck, BarChart3 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../../components/ui/button';
-import { wawiService } from '../../services/wawiService';
+import { wawiService, Supplier, type SupplierRating } from '../../services/wawiService';
+
 
 export function SupplierRatingView() {
-    const [ratings, setRatings] = useState<any[]>([]);
-    const [suppliers, setSuppliers] = useState<any[]>([]);
+    const [ratings, setRatings] = useState<SupplierRating[]>([]);
+    const [suppliers, setSuppliers] = useState<Supplier[]>([]);
     const [loading, setLoading] = useState(true);
     const [showCreate, setShowCreate] = useState(false);
     const [form, setForm] = useState({
@@ -59,7 +60,7 @@ export function SupplierRatingView() {
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                         <select className="px-4 py-3 rounded-xl border border-border bg-background text-sm" value={form.supplier} onChange={e => setForm({ ...form, supplier: e.target.value })}>
                             <option value="">Lieferant wählen</option>
-                            {suppliers.map((s: any) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                            {suppliers.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
                         </select>
                         <input className="px-4 py-3 rounded-xl border border-border bg-background text-sm" placeholder="Periode (z.B. 2026-Q1)" value={form.period} onChange={e => setForm({ ...form, period: e.target.value })} />
                         <input type="number" className="px-4 py-3 rounded-xl border border-border bg-background text-sm" placeholder="Bestellungen gesamt" value={form.orders_total || ''} onChange={e => setForm({ ...form, orders_total: Number(e.target.value) })} />
@@ -91,7 +92,7 @@ export function SupplierRatingView() {
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {ratings.map((r: any) => (
+                    {ratings.map((r) => (
                         <div key={r.id} className="bg-card border border-border rounded-3xl p-6 shadow-sm space-y-4 hover:shadow-md transition-shadow">
                             <div className="flex items-center justify-between">
                                 <div>
