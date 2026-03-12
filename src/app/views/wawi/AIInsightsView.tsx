@@ -77,7 +77,7 @@ export function AIInsightsView() {
         setLoading(l => ({ ...l, briefing: true }));
         try {
             const data = await wawiService.getBriefing();
-            setBriefing(data);
+            setBriefing(data as Briefing);
         } catch (err) {
             console.error('Briefing load failed:', err);
             toast.error(t('error'));
@@ -89,7 +89,7 @@ export function AIInsightsView() {
         setLoading(l => ({ ...l, reorder: true }));
         try {
             const data = await wawiService.getSmartReorder(90, 30);
-            setReorder(data);
+            setReorder(data as ReorderData);
         } catch (err) {
             console.error('Reorder load failed:', err);
             toast.error(t('error'));
@@ -113,7 +113,7 @@ export function AIInsightsView() {
         setLoading(l => ({ ...l, anomaly: true }));
         try {
             const data = await wawiService.getAnomalies(7, 3.0);
-            setAnomalies(data);
+            setAnomalies(data as AnomalyData);
         } catch (err) {
             console.error('Anomaly load failed:', err);
             toast.error(t('error'));
@@ -182,7 +182,7 @@ export function AIInsightsView() {
                                         <div className="text-xs text-muted-foreground mt-1">{t('wawi_revenue_today')}</div>
                                     </div>
                                     <div className="bg-muted/30 rounded-2xl p-4 text-center">
-                                        <div className={`text-2xl font-bold ${briefing.inventory?.low_stock_alerts > 0 ? 'text-red-500' : ''}`}>{briefing.inventory?.low_stock_alerts ?? 0}</div>
+                                        <div className={`text-2xl font-bold ${(briefing.inventory?.low_stock_alerts ?? 0) > 0 ? 'text-red-500' : ''}`}>{briefing.inventory?.low_stock_alerts ?? 0}</div>
                                         <div className="text-xs text-muted-foreground mt-1">{t('wawi_stock_alerts')}</div>
                                     </div>
                                     <div className="bg-muted/30 rounded-2xl p-4 text-center">
@@ -190,11 +190,11 @@ export function AIInsightsView() {
                                         <div className="text-xs text-muted-foreground mt-1">{t('wawi_open_returns')}</div>
                                     </div>
                                 </div>
-                                {briefing.top_products?.length > 0 && (
+                                {(briefing.top_products?.length ?? 0) > 0 && (
                                     <div>
                                         <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">{t('wawi_top_products')}</h4>
                                         <div className="flex gap-3 flex-wrap">
-                                            {briefing.top_products.map((tp: BriefingProduct, i: number) => (
+                                            {briefing.top_products!.map((tp: BriefingProduct, i: number) => (
                                                 <div key={i} className="bg-primary/5 border border-primary/20 rounded-xl px-4 py-2 text-sm">
                                                     <span className="font-bold">{tp.name}</span> <span className="text-muted-foreground ml-1">{tp.sold}x</span>
                                                 </div>
@@ -266,13 +266,13 @@ export function AIInsightsView() {
                     <div className="px-6 pb-6">
                         {loading.reorder ? (
                             <div className="text-center py-8 text-muted-foreground animate-pulse">{t('wawi_analyzing_demand')}</div>
-                        ) : reorder?.suggestions?.length > 0 ? (
+                        ) : (reorder?.suggestions?.length ?? 0) > 0 ? (
                             <div className="space-y-3">
                                 <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
-                                    <span>Basierend auf {reorder.lookback_days} Tagen · Prognose {reorder.forecast_days} Tage</span>
-                                    <span className="font-bold">Geschätzte Kosten: {reorder.total_estimated_cost?.toLocaleString('de-DE')} €</span>
+                                    <span>Basierend auf {reorder!.lookback_days} Tagen · Prognose {reorder!.forecast_days} Tage</span>
+                                    <span className="font-bold">Geschätzte Kosten: {reorder!.total_estimated_cost?.toLocaleString('de-DE')} €</span>
                                 </div>
-                                {reorder.suggestions.map((s: ReorderSuggestion, i: number) => (
+                                {reorder!.suggestions.map((s: ReorderSuggestion, i: number) => (
                                     <div key={i} className={`p-4 rounded-2xl border ${urgencyColor(s.urgency)}`}>
                                         <div className="flex items-center justify-between">
                                             <div>
@@ -345,7 +345,7 @@ export function AIInsightsView() {
                     <div className="flex items-center gap-3">
                         <AlertTriangle className="w-5 h-5 text-red-500" />
                         <h3 className="font-bold text-lg">{t('wawi_anomaly')}</h3>
-                        {anomalies?.total_anomalies > 0 && <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full">{anomalies.total_anomalies}</span>}
+                        {(anomalies?.total_anomalies ?? 0) > 0 && <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full">{anomalies!.total_anomalies}</span>}
                     </div>
                     {expanded.anomaly ? <ChevronUp className="w-5 h-5 text-muted-foreground" /> : <ChevronDown className="w-5 h-5 text-muted-foreground" />}
                 </button>
@@ -353,9 +353,9 @@ export function AIInsightsView() {
                     <div className="px-6 pb-6">
                         {loading.anomaly ? (
                             <div className="text-center py-8 text-muted-foreground animate-pulse">{t('wawi_analyzing_movements')}</div>
-                        ) : anomalies?.anomalies?.length > 0 ? (
+                        ) : (anomalies?.anomalies?.length ?? 0) > 0 ? (
                             <div className="space-y-3">
-                                {anomalies.anomalies.map((a: AnomalyItem, i: number) => (
+                                {anomalies!.anomalies.map((a: AnomalyItem, i: number) => (
                                     <div key={i} className={`p-4 rounded-2xl border ${a.severity === 'high' ? 'bg-red-50 border-red-200' : 'bg-yellow-50 border-yellow-200'}`}>
                                         <div className="flex items-center justify-between">
                                             <div>

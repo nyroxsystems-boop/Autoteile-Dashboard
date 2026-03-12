@@ -3,23 +3,13 @@ import { Plus, X, Package } from 'lucide-react';
 import { useMerchantSettings } from '../../hooks/useMerchantSettings';
 import { useI18n } from '../../../i18n';
 import { toast } from 'sonner';
-
-interface Wholesaler {
-    id: string;
-    name: string;
-    portal: string;
-    apiKey: string;
-    accountId?: string;
-    status: 'connected' | 'pending' | 'error';
-    lastSync?: string;
-    createdAt: string;
-}
+import type { WholesalerConfig } from '../../api/wws';
 
 export function WholesalersTab() {
     const { t } = useI18n();
     const { settings: merchantSettings, update: updateMerchantSettings } = useMerchantSettings();
 
-    const [wholesalers, setWholesalers] = useState<Wholesaler[]>([]);
+    const [wholesalers, setWholesalers] = useState<WholesalerConfig[]>([]);
     const [showAddForm, setShowAddForm] = useState(false);
     const [newPortal, setNewPortal] = useState('tecdoc');
     const [newName, setNewName] = useState('');
@@ -36,9 +26,9 @@ export function WholesalersTab() {
     }, [merchantSettings]);
 
     const handleAdd = async () => {
-        const newEntry: Wholesaler = {
+        const newEntry: WholesalerConfig = {
             id: Date.now().toString(), name: newName || portalLabels[newPortal] || newPortal,
-            portal: newPortal, apiKey: newApiKey, accountId: newAccountId || undefined, status: 'pending', createdAt: new Date().toISOString(),
+            portal: newPortal as WholesalerConfig['portal'], apiKey: newApiKey, accountId: newAccountId || undefined, status: 'pending', createdAt: new Date().toISOString(),
         };
         const updated = [...wholesalers, newEntry];
         setWholesalers(updated);
