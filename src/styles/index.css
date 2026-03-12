@@ -261,6 +261,10 @@
         @apply px-4 py-3 text-sm;
     }
 
+    .table-premium tbody tr:nth-child(even) {
+        @apply bg-muted/20;
+    }
+
     /* Stat Card - Professional KPI Display */
     .stat-card {
         @apply rounded-xl p-5 border border-border/50 bg-card relative overflow-hidden;

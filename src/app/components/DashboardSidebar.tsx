@@ -80,18 +80,20 @@ export function DashboardSidebar({
 
       <div
         className={`
-          fixed left-0 top-0 h-screen w-20 bg-sidebar/95 backdrop-blur-md border-r border-sidebar-border/60 flex flex-col items-center py-8 z-50
+          fixed left-0 top-0 h-screen w-20 backdrop-blur-md border-r border-sidebar-border/60 flex flex-col items-center py-8 z-50
           transition-transform duration-200 ease-out
           ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
           md:translate-x-0
         `}
+        style={{ background: 'var(--gradient-sidebar)' }}
       >
         {/* Logo + Mobile Close */}
         <div className="relative w-full flex justify-center mb-10">
           <div
-            className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center cursor-pointer"
+            className="w-11 h-11 rounded-xl flex items-center justify-center cursor-pointer shadow-md"
+            style={{ background: 'linear-gradient(135deg, hsl(221 83% 53%), hsl(240 80% 50%))' }}
           >
-            <span className="text-primary-foreground font-semibold text-base">PU</span>
+            <span className="text-white font-bold text-base">PU</span>
           </div>
           {/* Mobile close button */}
           <button
@@ -118,20 +120,20 @@ export function DashboardSidebar({
                 <button
                   onClick={() => handleNavClick(item.id)}
                   className={`
-                    relative flex flex-col items-center gap-1 py-2.5 rounded-lg transition-colors duration-150 w-full
+                    relative flex flex-col items-center gap-1 py-2.5 rounded-lg transition-all duration-150 w-full
                     ${isActive
-                      ? 'bg-primary/5 text-primary'
+                      ? 'bg-primary/15 text-primary shadow-sm'
                       : 'text-muted-foreground hover:bg-accent hover:text-foreground'
                     }
                   `}
                   title={item.label}
                 >
-                  <Icon className="w-5 h-5" />
-                  <span className={`text-[0.6rem] font-medium leading-tight ${isActive ? 'text-primary' : ''}`}>
+                  <Icon className={`w-5 h-5 ${isActive ? 'drop-shadow-sm' : ''}`} />
+                  <span className={`text-[0.6rem] font-medium leading-tight ${isActive ? 'text-primary font-semibold' : ''}`}>
                     {item.label}
                   </span>
                   {isActive && (
-                    <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-0.5 h-7 bg-primary rounded-r-full" />
+                    <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary rounded-r-full shadow-sm" style={{ boxShadow: '2px 0 8px hsl(221 83% 53% / 0.3)' }} />
                   )}
                 </button>
               </div>

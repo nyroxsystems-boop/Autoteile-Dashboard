@@ -107,14 +107,14 @@ export function HeuteView({ onNavigate }: HeuteViewProps) {
   if (summaryLoading || ordersLoading) {
     return (
       <div className="space-y-6">
-        <div className="h-8 w-48 bg-muted rounded animate-pulse" />
-        <div className="h-5 w-64 bg-muted rounded animate-pulse" />
+        <div className="h-8 w-48 bg-muted rounded animate-shimmer" />
+        <div className="h-5 w-64 bg-muted rounded animate-shimmer" />
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-32 bg-muted/50 rounded-xl border border-border animate-pulse" />
+            <div key={i} className="h-32 bg-muted/50 rounded-xl border border-border animate-shimmer" />
           ))}
         </div>
-        <div className="h-80 bg-muted/30 rounded-xl border border-border animate-pulse" />
+        <div className="h-80 bg-muted/30 rounded-xl border border-border animate-shimmer" />
       </div>
     );
   }
@@ -130,31 +130,39 @@ export function HeuteView({ onNavigate }: HeuteViewProps) {
         />
       </div>
 
-      {/* Metrics — only show trend if real data */}
+      {/* Metrics — with stagger entrance animations */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="animate-fade-in-up stagger-1">
         <MetricCard
           label={t('today_new_orders')}
           value={summary?.ordersNew.toString() || "0"}
           icon={<MessageSquare className="w-5 h-5" />}
           variant="primary"
         />
+        </div>
+        <div className="animate-fade-in-up stagger-2">
         <MetricCard
           label={t('today_in_progress')}
           value={summary?.ordersInProgress.toString() || "0"}
           icon={<CheckCircle2 className="w-5 h-5" />}
           variant="success"
         />
+        </div>
+        <div className="animate-fade-in-up stagger-3">
         <MetricCard
           label={t('today_draft_invoices')}
           value={summary?.invoicesDraft?.toString() || "0"}
           icon={<Clock className="w-5 h-5" />}
         />
+        </div>
+        <div className="animate-fade-in-up stagger-4">
         <MetricCard
           label={t('today_revenue')}
           value={`€${(summary?.revenueToday ?? 0).toLocaleString('de-DE', { minimumFractionDigits: 2 })}`}
           icon={<TrendingUp className="w-5 h-5" />}
           variant="success"
         />
+        </div>
       </div>
 
       {/* Revenue Chart — full width */}

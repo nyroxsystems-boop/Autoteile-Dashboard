@@ -172,7 +172,7 @@ export default function App() {
   }
 
   const BotLayout = ({ children }: { children: React.ReactNode }) => (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background page-gradient">
       <DashboardSidebar
         activeView={activeView}
         onNavigate={handleNavigate}
@@ -197,7 +197,7 @@ export default function App() {
         onMobileMenuToggle={() => setMobileSidebarOpen(true)}
       />
       <main className="ml-0 md:ml-20 mt-16">
-        <div className="max-w-[1440px] mx-auto px-4 md:px-12 py-6 md:py-12">
+        <div className="max-w-[1440px] mx-auto px-4 md:px-12 py-6 md:py-12 animate-fade-in">
           {children}
         </div>
       </main>
@@ -216,7 +216,7 @@ export default function App() {
   );
 
   const WawiLayout = ({ children }: { children: React.ReactNode }) => (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground page-gradient">
       <DashboardSidebar
         activeView={activeView}
         onNavigate={handleNavigate}
@@ -242,7 +242,7 @@ export default function App() {
         onMobileMenuToggle={() => setMobileSidebarOpen(true)}
       />
       <main className="ml-0 md:ml-20 mt-16">
-        <div className="max-w-[1440px] mx-auto px-4 md:px-12 py-6 md:py-12">
+        <div className="max-w-[1440px] mx-auto px-4 md:px-12 py-6 md:py-12 animate-fade-in">
           <div className="mb-8">
             <h2 className="text-sm font-medium text-primary mb-1 uppercase tracking-wider">WAWI Workspace</h2>
             <div className="h-1 w-12 bg-primary rounded-full" />

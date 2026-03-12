@@ -65,7 +65,7 @@ export function StatusChip({ status, label, size = 'md', withDot = true }: Statu
       ${sizes[size]}
     `}>
       {withDot && (
-        <span className={`w-1.5 h-1.5 rounded-full ${dotColors[actualVariant]}`} />
+        <span className={`w-1.5 h-1.5 rounded-full ${dotColors[actualVariant]} ${actualVariant === 'processing' ? 'animate-dot-pulse' : ''}`} />
       )}
       {actualLabel}
     </span>

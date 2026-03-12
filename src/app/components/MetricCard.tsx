@@ -55,8 +55,7 @@ export function MetricCard({
   return (
     <div
       className={`
-        relative rounded-xl border transition-all duration-200 overflow-hidden
-        hover:shadow-md hover:-translate-y-px
+        relative rounded-xl border transition-all duration-200 overflow-hidden hover-lift
         ${variantStyles[variant]}
         ${sizeStyles[size].padding}
       `}

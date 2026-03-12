@@ -103,11 +103,18 @@ export function DashboardHeader({
               className="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary hover:bg-primary/20 transition-all rounded-xl font-bold text-sm group"
             >
               <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" strokeWidth={2.5} />
-              {t('header_back_to_dashboard')}
+              <span className="hidden sm:inline">{t('header_back_to_dashboard')}</span>
             </button>
           )}
 
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          {/* Company name on mobile */}
+          {!isWawi && (
+            <span className="font-semibold text-foreground text-sm md:hidden truncate max-w-[120px]">
+              {_companyName || 'PartsUnion'}
+            </span>
+          )}
+
+          <div className="hidden md:flex items-center gap-2 text-xs text-muted-foreground">
             <kbd className="px-2 py-1 bg-muted border border-border rounded font-mono">⌘K</kbd>
             <span>{t('header_search_hint')}</span>
             <span className="mx-2">·</span>

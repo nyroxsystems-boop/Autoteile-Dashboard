@@ -150,7 +150,7 @@ export function NewInquiryModal({ open, onOpenChange, onSuccess }: NewInquiryMod
                         <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                             {t('cancel')}
                         </Button>
-                        <Button type="submit" disabled={loading}>
+                        <Button type="submit" disabled={loading} className="hover-glow" style={{ background: loading ? undefined : 'var(--gradient-primary)' }}>
                             {loading ? (
                                 <>
                                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
