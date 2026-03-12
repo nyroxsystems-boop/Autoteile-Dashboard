@@ -156,6 +156,9 @@ export default function App() {
     return () => window.removeEventListener('show-shortcuts', handleShowShortcuts);
   }, []);
 
+  // Mobile sidebar state
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
   const { tenants, currentTenant, switchTenant, loading: tenantsLoading } = useTenants();
   const { me } = useMe();
 
@@ -174,8 +177,8 @@ export default function App() {
         activeView={activeView}
         onNavigate={handleNavigate}
         isOwner={me?.user?.is_owner}
-        botStatus="online"
-        environment={currentTenant ? 'live' : 'demo'}
+        mobileOpen={mobileSidebarOpen}
+        onMobileClose={() => setMobileSidebarOpen(false)}
       />
       <DashboardHeader
         theme={theme}
@@ -191,9 +194,10 @@ export default function App() {
         currentTenant={currentTenant}
         onSwitchTenant={switchTenant}
         onLogout={logout}
+        onMobileMenuToggle={() => setMobileSidebarOpen(true)}
       />
-      <main className="ml-20 mt-16">
-        <div className="max-w-[1440px] mx-auto px-12 py-12">
+      <main className="ml-0 md:ml-20 mt-16">
+        <div className="max-w-[1440px] mx-auto px-4 md:px-12 py-6 md:py-12">
           {children}
         </div>
       </main>
@@ -217,8 +221,8 @@ export default function App() {
         activeView={activeView}
         onNavigate={handleNavigate}
         isOwner={me?.user?.is_owner}
-        botStatus="online"
-        environment={currentTenant ? 'live' : 'demo'}
+        mobileOpen={mobileSidebarOpen}
+        onMobileClose={() => setMobileSidebarOpen(false)}
       />
       <DashboardHeader
         theme={theme}
@@ -235,9 +239,10 @@ export default function App() {
         onSwitchTenant={switchTenant}
         isWawi={true}
         onLogout={logout}
+        onMobileMenuToggle={() => setMobileSidebarOpen(true)}
       />
-      <main className="ml-20 mt-16">
-        <div className="max-w-[1440px] mx-auto px-12 py-12">
+      <main className="ml-0 md:ml-20 mt-16">
+        <div className="max-w-[1440px] mx-auto px-4 md:px-12 py-6 md:py-12">
           <div className="mb-8">
             <h2 className="text-sm font-medium text-primary mb-1 uppercase tracking-wider">WAWI Workspace</h2>
             <div className="h-1 w-12 bg-primary rounded-full" />

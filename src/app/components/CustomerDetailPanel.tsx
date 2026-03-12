@@ -68,7 +68,7 @@ export function CustomerDetailPanel({ customer, onClose, onCreateQuote, onCustom
   };
 
   return (
-    <div className="fixed right-0 top-0 h-screen w-[480px] bg-card border-l border-border shadow-2xl flex flex-col z-40">
+    <div className="fixed right-0 top-0 h-screen w-full sm:w-[480px] bg-card border-l border-border shadow-2xl flex flex-col z-40">
       {/* Header */}
       <div className="flex items-start justify-between p-6 border-b border-border">
         <div className="flex-1">

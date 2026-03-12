@@ -117,9 +117,9 @@ export function AuftraegeView() {
   ];
 
   return (
-    <div className="grid grid-cols-12 gap-6 h-[calc(100vh-8rem)]">
+    <div className="flex flex-col lg:grid lg:grid-cols-12 gap-6 lg:h-[calc(100vh-8rem)]">
       {/* Order List - Left Side */}
-      <div className="col-span-5 space-y-6 overflow-y-auto pr-2">
+      <div className="lg:col-span-5 space-y-6 lg:overflow-y-auto lg:pr-2">
         <div>
           <h1>{t('orders_title')}</h1>
           <p className="text-muted-foreground mt-2 leading-relaxed">
@@ -191,7 +191,7 @@ export function AuftraegeView() {
       </div>
 
       {/* Order Details - Right Side */}
-      <div className="col-span-7 bg-card border border-border rounded-xl p-8 overflow-y-auto shadow-sm">
+      <div className="lg:col-span-7 bg-card border border-border rounded-xl p-4 md:p-8 overflow-y-auto shadow-sm">
         {selectedOrder ? (
           <div className="space-y-10">
             <div>

@@ -30,6 +30,7 @@ interface DashboardHeaderProps {
   onSwitchTenant?: (id: number) => void;
   isWawi?: boolean;
   onLogout?: () => void;
+  onMobileMenuToggle?: () => void;
 }
 
 export function DashboardHeader({
@@ -48,6 +49,7 @@ export function DashboardHeader({
   onSwitchTenant,
   isWawi,
   onLogout,
+  onMobileMenuToggle,
 }: DashboardHeaderProps) {
   const { t } = useI18n();
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -80,9 +82,21 @@ export function DashboardHeader({
 
   return (
     <>
-      <header className="fixed top-0 right-0 left-20 h-16 bg-card/80 backdrop-blur-md border-b border-border/60 z-30 flex items-center justify-between px-12">
-        {/* Left: Keyboard Shortcut Hint & Back Button */}
-        <div className="flex items-center gap-6">
+      <header className="fixed top-0 right-0 left-0 md:left-20 h-16 bg-card/80 backdrop-blur-md border-b border-border/60 z-30 flex items-center justify-between px-4 md:px-12">
+        {/* Left: Hamburger + Keyboard Shortcut Hint & Back Button */}
+        <div className="flex items-center gap-3 md:gap-6">
+          {/* Mobile hamburger */}
+          <button
+            onClick={onMobileMenuToggle}
+            className="w-10 h-10 rounded-lg hover:bg-accent flex items-center justify-center md:hidden"
+            aria-label="Menu"
+          >
+            <svg viewBox="0 0 24 24" className="w-5 h-5 text-foreground" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+          </button>
           {isWawi && (
             <button
               onClick={() => onNavigate?.('bot_heute')}

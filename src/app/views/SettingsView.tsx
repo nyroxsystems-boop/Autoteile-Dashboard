@@ -66,9 +66,32 @@ export function SettingsView() {
         <p className="text-muted-foreground">{t('settings_subtitle')}</p>
       </div>
 
-      <div className="flex gap-6">
-        {/* Compact Sidebar */}
-        <div className="w-20 flex-shrink-0">
+      <div className="flex flex-col md:flex-row gap-6">
+        {/* Mobile: Horizontal scrollable tabs */}
+        <div className="md:hidden overflow-x-auto -mx-4 px-4">
+          <div className="flex gap-2 pb-2">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg whitespace-nowrap text-sm font-medium transition-all shrink-0 ${isActive
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-muted-foreground hover:bg-accent'
+                    }`}
+                >
+                  <Icon className="w-4 h-4" strokeWidth={isActive ? 2 : 1.5} />
+                  {tab.shortLabel}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Desktop: Compact Sidebar */}
+        <div className="hidden md:block w-20 flex-shrink-0">
           <div className="bg-card border border-border rounded-xl p-2 sticky top-24">
             <nav className="flex flex-col gap-1">
               {tabs.map((tab) => {
@@ -102,7 +125,7 @@ export function SettingsView() {
         </div>
 
         {/* Content */}
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <ActiveComponent />
         </div>
       </div>

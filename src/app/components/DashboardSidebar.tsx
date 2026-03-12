@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, Package, FileText, Receipt, Store,
   Activity, MessageSquare, Warehouse, Shield, Settings,
-  DollarSign, Truck, RotateCcw, Star, Brain
+  DollarSign, Truck, RotateCcw, Star, Brain, X
 } from 'lucide-react';
 import { useI18n } from '../../i18n';
 
@@ -16,12 +16,16 @@ interface DashboardSidebarProps {
   activeView: string;
   onNavigate: (view: string) => void;
   isOwner?: boolean;
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
 }
 
 export function DashboardSidebar({
   activeView,
   onNavigate,
-  isOwner = false
+  isOwner = false,
+  mobileOpen = false,
+  onMobileClose,
 }: DashboardSidebarProps) {
   const isWawi = window.location.pathname.startsWith('/wawi');
   const { t } = useI18n();
@@ -59,53 +63,82 @@ export function DashboardSidebar({
     allNavItems.push({ id: 'admin', label: 'Admin', icon: Shield, group: 'system' });
   }
 
+  const handleNavClick = (id: string) => {
+    onNavigate(id);
+    onMobileClose?.();
+  };
+
   return (
-    <div
-      className="fixed left-0 top-0 h-screen w-20 bg-sidebar/95 backdrop-blur-md border-r border-sidebar-border/60 flex flex-col items-center py-8 z-50"
-    >
-      {/* Logo */}
+    <>
+      {/* Mobile overlay backdrop */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 md:hidden"
+          onClick={onMobileClose}
+        />
+      )}
+
       <div
-        className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center mb-10 cursor-pointer"
+        className={`
+          fixed left-0 top-0 h-screen w-20 bg-sidebar/95 backdrop-blur-md border-r border-sidebar-border/60 flex flex-col items-center py-8 z-50
+          transition-transform duration-200 ease-out
+          ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
+          md:translate-x-0
+        `}
       >
-        <span className="text-primary-foreground font-semibold text-base">PU</span>
-      </div>
+        {/* Logo + Mobile Close */}
+        <div className="relative w-full flex justify-center mb-10">
+          <div
+            className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center cursor-pointer"
+          >
+            <span className="text-primary-foreground font-semibold text-base">PU</span>
+          </div>
+          {/* Mobile close button */}
+          <button
+            onClick={onMobileClose}
+            className="absolute right-2 top-0 w-8 h-8 rounded-lg hover:bg-accent flex items-center justify-center md:hidden"
+          >
+            <X className="w-4 h-4 text-muted-foreground" />
+          </button>
+        </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 flex flex-col gap-0.5 w-full px-3">
-        {allNavItems.map((item, index) => {
-          const Icon = item.icon;
-          const isActive = activeView === item.id;
-          const prevItem = index > 0 ? allNavItems[index - 1] : null;
-          const showDivider = prevItem && prevItem.group !== item.group;
+        {/* Navigation */}
+        <nav className="flex-1 flex flex-col gap-0.5 w-full px-3 overflow-y-auto">
+          {allNavItems.map((item, index) => {
+            const Icon = item.icon;
+            const isActive = activeView === item.id;
+            const prevItem = index > 0 ? allNavItems[index - 1] : null;
+            const showDivider = prevItem && prevItem.group !== item.group;
 
-          return (
-            <div key={item.id}>
-              {showDivider && (
-                <div className="h-px bg-border my-1.5" />
-              )}
-              <button
-                onClick={() => onNavigate(item.id)}
-                className={`
-                  relative flex flex-col items-center gap-1 py-2.5 rounded-lg transition-colors duration-150 w-full
-                  ${isActive
-                    ? 'bg-primary/5 text-primary'
-                    : 'text-muted-foreground hover:bg-accent hover:text-foreground'
-                  }
-                `}
-                title={item.label}
-              >
-                <Icon className="w-5 h-5" />
-                <span className={`text-[0.6rem] font-medium leading-tight ${isActive ? 'text-primary' : ''}`}>
-                  {item.label}
-                </span>
-                {isActive && (
-                  <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-0.5 h-7 bg-primary rounded-r-full" />
+            return (
+              <div key={item.id}>
+                {showDivider && (
+                  <div className="h-px bg-border my-1.5" />
                 )}
-              </button>
-            </div>
-          );
-        })}
-      </nav>
-    </div>
+                <button
+                  onClick={() => handleNavClick(item.id)}
+                  className={`
+                    relative flex flex-col items-center gap-1 py-2.5 rounded-lg transition-colors duration-150 w-full
+                    ${isActive
+                      ? 'bg-primary/5 text-primary'
+                      : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+                    }
+                  `}
+                  title={item.label}
+                >
+                  <Icon className="w-5 h-5" />
+                  <span className={`text-[0.6rem] font-medium leading-tight ${isActive ? 'text-primary' : ''}`}>
+                    {item.label}
+                  </span>
+                  {isActive && (
+                    <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-0.5 h-7 bg-primary rounded-r-full" />
+                  )}
+                </button>
+              </div>
+            );
+          })}
+        </nav>
+      </div>
+    </>
   );
 }
