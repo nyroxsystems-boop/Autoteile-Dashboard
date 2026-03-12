@@ -34,7 +34,6 @@ export function DocumentStatusCard({
   date,
   onClick,
 }: DocumentStatusCardProps) {
-  const StatusIcon = statusConfig[status].icon;
 
   return (
     <button

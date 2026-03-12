@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Plus, Trash2, Package, AlertTriangle } from 'lucide-react';
 import { Button } from './ui/button';
-import { wawiService, Part, BOMComponent } from '../services/wawiService';
+import { type Part, type BOMComponent } from '../services/wawiService';
 
 interface BOMManagerProps {
     components: BOMComponent[];
@@ -22,7 +22,7 @@ export function BOMManager({ components, onChange, availableArticles = [] }: BOM
 
         const bomComponent: BOMComponent = {
             id: Date.now(),
-            part_id: selectedArticle.id,
+            part_id: Number(selectedArticle.id),
             part_name: selectedArticle.name,
             part_ipn: selectedArticle.IPN,
             quantity: newComponent.quantity,

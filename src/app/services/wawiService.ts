@@ -205,6 +205,15 @@ export interface PriceRule {
     discount_percent: number;
 }
 
+export interface BOMComponent {
+    id: number;
+    part_id: number;
+    part_name: string;
+    part_ipn: string;
+    quantity: number;
+    available_stock?: number;
+}
+
 export const wawiService = {
     // ── Products ──────────────────────────────────────────────
     getArticles: async () => {
