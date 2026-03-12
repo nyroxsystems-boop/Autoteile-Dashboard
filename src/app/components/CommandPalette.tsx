@@ -4,6 +4,7 @@ import {
   Package, Truck, BarChart, Plus, Settings,
   MessageSquare, Clock, CheckCircle, AlertCircle
 } from 'lucide-react';
+import { useI18n } from '../../i18n';
 
 interface CommandPaletteProps {
   open: boolean;
@@ -22,7 +23,8 @@ interface CommandItem {
   keywords?: string[];
 }
 
-export function CommandPalette({ open, onOpenChange, onNavigate, theme }: CommandPaletteProps) {
+export function CommandPalette({ open, onOpenChange, onNavigate }: CommandPaletteProps) {
+  const { t } = useI18n();
   const [search, setSearch] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -75,10 +77,10 @@ export function CommandPalette({ open, onOpenChange, onNavigate, theme }: Comman
     {
       id: 'heute',
       icon: <Home className="w-4 h-4" strokeWidth={1.5} />,
-      label: 'Heute',
+      label: t('nav_today'),
       shortcut: '1',
-      category: 'Navigation',
-      keywords: ['home', 'dashboard', 'übersicht'],
+      category: t('cmd_nav'),
+      keywords: ['home', 'dashboard', 'übersicht', 'heute', 'today'],
       onSelect: () => {
         onNavigate('heute');
         onOpenChange(false);
@@ -87,10 +89,10 @@ export function CommandPalette({ open, onOpenChange, onNavigate, theme }: Comman
     {
       id: 'kunden',
       icon: <Users className="w-4 h-4" strokeWidth={1.5} />,
-      label: 'Kunden & Anfragen',
+      label: t('customers_title'),
       shortcut: '2',
-      category: 'Navigation',
-      keywords: ['customers', 'inquiries', 'anfragen'],
+      category: t('cmd_nav'),
+      keywords: ['customers', 'inquiries', 'anfragen', 'kunden'],
       onSelect: () => {
         onNavigate('kunden');
         onOpenChange(false);
@@ -99,10 +101,10 @@ export function CommandPalette({ open, onOpenChange, onNavigate, theme }: Comman
     {
       id: 'angebote',
       icon: <FileText className="w-4 h-4" strokeWidth={1.5} />,
-      label: 'Angebote',
+      label: t('nav_offers'),
       shortcut: '3',
-      category: 'Navigation',
-      keywords: ['quotes', 'offers'],
+      category: t('cmd_nav'),
+      keywords: ['quotes', 'offers', 'angebote'],
       onSelect: () => {
         onNavigate('angebote');
         onOpenChange(false);
@@ -111,10 +113,10 @@ export function CommandPalette({ open, onOpenChange, onNavigate, theme }: Comman
     {
       id: 'auftraege',
       icon: <ShoppingCart className="w-4 h-4" strokeWidth={1.5} />,
-      label: 'Aufträge',
+      label: t('nav_orders'),
       shortcut: '4',
-      category: 'Navigation',
-      keywords: ['orders', 'bestellungen'],
+      category: t('cmd_nav'),
+      keywords: ['orders', 'bestellungen', 'aufträge'],
       onSelect: () => {
         onNavigate('auftraege');
         onOpenChange(false);
@@ -123,10 +125,10 @@ export function CommandPalette({ open, onOpenChange, onNavigate, theme }: Comman
     {
       id: 'preise',
       icon: <DollarSign className="w-4 h-4" strokeWidth={1.5} />,
-      label: 'Preisprofile',
+      label: t('nav_prices'),
       shortcut: '5',
-      category: 'Navigation',
-      keywords: ['prices', 'pricing'],
+      category: t('cmd_nav'),
+      keywords: ['prices', 'pricing', 'preise'],
       onSelect: () => {
         onNavigate('preise');
         onOpenChange(false);
@@ -135,10 +137,10 @@ export function CommandPalette({ open, onOpenChange, onNavigate, theme }: Comman
     {
       id: 'belege',
       icon: <Package className="w-4 h-4" strokeWidth={1.5} />,
-      label: 'Belege & Rechnungen',
+      label: t('nav_documents'),
       shortcut: '6',
-      category: 'Navigation',
-      keywords: ['documents', 'invoices', 'rechnungen'],
+      category: t('cmd_nav'),
+      keywords: ['documents', 'invoices', 'rechnungen', 'belege'],
       onSelect: () => {
         onNavigate('belege');
         onOpenChange(false);
@@ -147,10 +149,10 @@ export function CommandPalette({ open, onOpenChange, onNavigate, theme }: Comman
     {
       id: 'lieferanten',
       icon: <Truck className="w-4 h-4" strokeWidth={1.5} />,
-      label: 'Lieferanten',
+      label: t('nav_suppliers'),
       shortcut: '7',
-      category: 'Navigation',
-      keywords: ['suppliers', 'vendors'],
+      category: t('cmd_nav'),
+      keywords: ['suppliers', 'vendors', 'lieferanten'],
       onSelect: () => {
         onNavigate('lieferanten');
         onOpenChange(false);
@@ -159,10 +161,10 @@ export function CommandPalette({ open, onOpenChange, onNavigate, theme }: Comman
     {
       id: 'status',
       icon: <BarChart className="w-4 h-4" strokeWidth={1.5} />,
-      label: 'Status & Analytics',
+      label: t('nav_status'),
       shortcut: '8',
-      category: 'Navigation',
-      keywords: ['stats', 'analytics', 'dashboard'],
+      category: t('cmd_nav'),
+      keywords: ['stats', 'analytics', 'dashboard', 'status'],
       onSelect: () => {
         onNavigate('status');
         onOpenChange(false);
@@ -172,9 +174,9 @@ export function CommandPalette({ open, onOpenChange, onNavigate, theme }: Comman
     {
       id: 'create-customer',
       icon: <Plus className="w-4 h-4" strokeWidth={1.5} />,
-      label: 'Neuen Kunden anlegen',
+      label: t('cmd_new_customer'),
       shortcut: 'C',
-      category: 'Schnellaktionen',
+      category: t('cmd_quick_actions'),
       keywords: ['new', 'customer', 'add', 'kunde'],
       onSelect: () => {
         onNavigate('kunden');
@@ -187,9 +189,9 @@ export function CommandPalette({ open, onOpenChange, onNavigate, theme }: Comman
     {
       id: 'create-quote',
       icon: <FileText className="w-4 h-4" strokeWidth={1.5} />,
-      label: 'Neues Angebot erstellen',
+      label: t('cmd_new_quote'),
       shortcut: 'A',
-      category: 'Schnellaktionen',
+      category: t('cmd_quick_actions'),
       keywords: ['new', 'quote', 'offer', 'angebot'],
       onSelect: () => {
         onNavigate('angebote');
@@ -202,8 +204,8 @@ export function CommandPalette({ open, onOpenChange, onNavigate, theme }: Comman
     {
       id: 'create-order',
       icon: <ShoppingCart className="w-4 h-4" strokeWidth={1.5} />,
-      label: 'Neuen Auftrag anlegen',
-      category: 'Schnellaktionen',
+      label: t('cmd_new_order'),
+      category: t('cmd_quick_actions'),
       keywords: ['new', 'order', 'auftrag'],
       onSelect: () => {
         onNavigate('auftraege');
@@ -214,8 +216,8 @@ export function CommandPalette({ open, onOpenChange, onNavigate, theme }: Comman
     {
       id: 'filter-oem',
       icon: <AlertCircle className="w-4 h-4 text-red-500" strokeWidth={1.5} />,
-      label: 'OEM Pending anzeigen',
-      category: 'Filter & Views',
+      label: t('cmd_oem_pending'),
+      category: t('cmd_filters'),
       keywords: ['oem', 'pending', 'waiting'],
       onSelect: () => {
         onNavigate('kunden');
@@ -228,8 +230,8 @@ export function CommandPalette({ open, onOpenChange, onNavigate, theme }: Comman
     {
       id: 'filter-waiting',
       icon: <Clock className="w-4 h-4 text-yellow-500" strokeWidth={1.5} />,
-      label: 'Wartende Anfragen',
-      category: 'Filter & Views',
+      label: t('cmd_waiting'),
+      category: t('cmd_filters'),
       keywords: ['waiting', 'pending', 'wartend'],
       onSelect: () => {
         onNavigate('kunden');
@@ -242,8 +244,8 @@ export function CommandPalette({ open, onOpenChange, onNavigate, theme }: Comman
     {
       id: 'filter-today',
       icon: <CheckCircle className="w-4 h-4 text-green-500" strokeWidth={1.5} />,
-      label: 'Heute abgeschlossen',
-      category: 'Filter & Views',
+      label: t('cmd_today_done'),
+      category: t('cmd_filters'),
       keywords: ['today', 'completed', 'done', 'heute'],
       onSelect: () => {
         onNavigate('heute');
@@ -253,8 +255,8 @@ export function CommandPalette({ open, onOpenChange, onNavigate, theme }: Comman
     {
       id: 'filter-whatsapp',
       icon: <MessageSquare className="w-4 h-4 text-[#25D366]" strokeWidth={1.5} />,
-      label: 'WhatsApp-Anfragen heute',
-      category: 'Filter & Views',
+      label: t('cmd_whatsapp_today'),
+      category: t('cmd_filters'),
       keywords: ['whatsapp', 'messages', 'chat'],
       onSelect: () => {
         onNavigate('kunden');
@@ -265,9 +267,9 @@ export function CommandPalette({ open, onOpenChange, onNavigate, theme }: Comman
     {
       id: 'settings',
       icon: <Settings className="w-4 h-4" strokeWidth={1.5} />,
-      label: 'Einstellungen öffnen',
+      label: t('cmd_open_settings'),
       shortcut: '⌘,',
-      category: 'System',
+      category: t('cmd_system'),
       keywords: ['settings', 'preferences', 'einstellungen'],
       onSelect: () => {
         onOpenChange(false);
@@ -340,7 +342,7 @@ export function CommandPalette({ open, onOpenChange, onNavigate, theme }: Comman
           <input
             ref={inputRef}
             type="text"
-            placeholder="Suche nach Views, Aktionen, Kunden..."
+            placeholder={t('cmd_search_placeholder')}
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
@@ -357,7 +359,7 @@ export function CommandPalette({ open, onOpenChange, onNavigate, theme }: Comman
         <div className="max-h-[400px] overflow-y-auto p-2">
           {filteredCommands.length === 0 ? (
             <div className="py-12 text-center text-sm text-muted-foreground">
-              Keine Ergebnisse gefunden.
+              {t('cmd_no_results')}
             </div>
           ) : (
             Object.entries(groupedCommands).map(([category, commands]) => (
@@ -401,16 +403,16 @@ export function CommandPalette({ open, onOpenChange, onNavigate, theme }: Comman
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-1.5">
                 <kbd className="px-1.5 py-0.5 bg-background border border-border rounded font-mono">↑↓</kbd>
-                <span>Navigation</span>
+                <span>{t('cmd_navigate')}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <kbd className="px-1.5 py-0.5 bg-background border border-border rounded font-mono">↵</kbd>
-                <span>Auswählen</span>
+                <span>{t('cmd_select')}</span>
               </div>
             </div>
             <div className="flex items-center gap-1.5">
               <kbd className="px-1.5 py-0.5 bg-background border border-border rounded font-mono">⌘K</kbd>
-              <span>Schließen</span>
+              <span>{t('cmd_close')}</span>
             </div>
           </div>
         </div>

@@ -5,6 +5,7 @@ import { Input } from './ui/input';
 import { Loader2, MessageSquare, Car, Package } from 'lucide-react';
 import { toast } from 'sonner';
 import { VehicleSelect } from './VehicleSelect';
+import { useI18n } from '../../i18n';
 
 interface NewInquiryModalProps {
     open: boolean;
@@ -13,6 +14,7 @@ interface NewInquiryModalProps {
 }
 
 export function NewInquiryModal({ open, onOpenChange, onSuccess }: NewInquiryModalProps) {
+    const { t } = useI18n();
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         customerName: '',
@@ -28,13 +30,12 @@ export function NewInquiryModal({ open, onOpenChange, onSuccess }: NewInquiryMod
         e.preventDefault();
 
         if (!formData.customerName || !formData.partDescription) {
-            toast.error('Bitte Kundenname und Teilebeschreibung ausfüllen');
+            toast.error(t('inquiry_validation'));
             return;
         }
 
         setLoading(true);
         try {
-            // Create order via API
             const { apiFetch } = await import('../api/client');
             await apiFetch('/api/orders/', {
                 method: 'POST',
@@ -54,11 +55,10 @@ export function NewInquiryModal({ open, onOpenChange, onSuccess }: NewInquiryMod
                 }),
             });
 
-            toast.success('Anfrage erfolgreich erstellt');
+            toast.success(t('inquiry_success'));
             onOpenChange(false);
             onSuccess?.();
 
-            // Reset form
             setFormData({
                 customerName: '',
                 whatsappNumber: '',
@@ -69,7 +69,7 @@ export function NewInquiryModal({ open, onOpenChange, onSuccess }: NewInquiryMod
                 oemNumber: '',
             });
         } catch (err: unknown) {
-            toast.error(err instanceof Error ? err.message : 'Fehler beim Erstellen der Anfrage');
+            toast.error(err instanceof Error ? err.message : t('inquiry_error'));
         } finally {
             setLoading(false);
         }
@@ -81,20 +81,20 @@ export function NewInquiryModal({ open, onOpenChange, onSuccess }: NewInquiryMod
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <MessageSquare className="w-5 h-5 text-primary" />
-                        Neue Anfrage erstellen
+                        {t('inquiry_title')}
                     </DialogTitle>
                     <DialogDescription>
-                        Manuelle Anfrage für einen Kunden erstellen
+                        {t('inquiry_desc')}
                     </DialogDescription>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {/* Customer Info */}
                     <div className="space-y-3">
-                        <h4 className="text-sm font-medium text-foreground">Kundeninformationen</h4>
+                        <h4 className="text-sm font-medium text-foreground">{t('inquiry_customer_info')}</h4>
                         <div className="grid grid-cols-2 gap-3">
                             <div>
-                                <label className="text-xs text-muted-foreground mb-1 block">Kundenname *</label>
+                                <label className="text-xs text-muted-foreground mb-1 block">{t('inquiry_customer_name')}</label>
                                 <Input
                                     value={formData.customerName}
                                     onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
@@ -102,7 +102,7 @@ export function NewInquiryModal({ open, onOpenChange, onSuccess }: NewInquiryMod
                                 />
                             </div>
                             <div>
-                                <label className="text-xs text-muted-foreground mb-1 block">WhatsApp-Nummer</label>
+                                <label className="text-xs text-muted-foreground mb-1 block">{t('inquiry_whatsapp')}</label>
                                 <Input
                                     value={formData.whatsappNumber}
                                     onChange={(e) => setFormData({ ...formData, whatsappNumber: e.target.value })}
@@ -116,7 +116,7 @@ export function NewInquiryModal({ open, onOpenChange, onSuccess }: NewInquiryMod
                     <div className="space-y-3">
                         <h4 className="text-sm font-medium text-foreground flex items-center gap-2">
                             <Car className="w-4 h-4" />
-                            Fahrzeug
+                            {t('inquiry_vehicle')}
                         </h4>
                         <VehicleSelect
                             make={formData.vehicleMake}
@@ -132,32 +132,32 @@ export function NewInquiryModal({ open, onOpenChange, onSuccess }: NewInquiryMod
                     <div className="space-y-3">
                         <h4 className="text-sm font-medium text-foreground flex items-center gap-2">
                             <Package className="w-4 h-4" />
-                            Gesuchtes Teil
+                            {t('inquiry_part')}
                         </h4>
                         <Input
                             value={formData.partDescription}
                             onChange={(e) => setFormData({ ...formData, partDescription: e.target.value })}
-                            placeholder="z.B. Bremssattel vorne links *"
+                            placeholder={t('inquiry_part_placeholder')}
                         />
                         <Input
                             value={formData.oemNumber}
                             onChange={(e) => setFormData({ ...formData, oemNumber: e.target.value })}
-                            placeholder="OEM-Nummer (falls bekannt)"
+                            placeholder={t('inquiry_oem_placeholder')}
                         />
                     </div>
 
                     <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                            Abbrechen
+                            {t('cancel')}
                         </Button>
                         <Button type="submit" disabled={loading}>
                             {loading ? (
                                 <>
                                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                    Erstellen...
+                                    {t('inquiry_creating')}
                                 </>
                             ) : (
-                                'Anfrage erstellen'
+                                t('inquiry_create')
                             )}
                         </Button>
                     </DialogFooter>

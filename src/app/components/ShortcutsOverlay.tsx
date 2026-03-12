@@ -1,4 +1,5 @@
 import { X } from 'lucide-react';
+import { useI18n } from '../../i18n';
 
 interface ShortcutsOverlayProps {
   open: boolean;
@@ -6,37 +7,39 @@ interface ShortcutsOverlayProps {
 }
 
 export function ShortcutsOverlay({ open, onClose }: ShortcutsOverlayProps) {
+  const { t } = useI18n();
+
   if (!open) return null;
 
   const shortcuts = [
     {
-      category: 'Navigation',
+      category: t('cmd_nav'),
       items: [
-        { key: '1', description: 'Heute' },
-        { key: '2', description: 'Kunden & Anfragen' },
-        { key: '3', description: 'Angebote' },
-        { key: '4', description: 'Aufträge' },
-        { key: '5', description: 'Preisprofile' },
-        { key: '6', description: 'Belege & Rechnungen' },
-        { key: '7', description: 'Lieferanten' },
-        { key: '8', description: 'Status & Analytics' },
-        { key: '9', description: 'Warenwirtschaft' },
+        { key: '1', description: t('nav_today') },
+        { key: '2', description: t('customers_title') },
+        { key: '3', description: t('nav_offers') },
+        { key: '4', description: t('nav_orders') },
+        { key: '5', description: t('nav_prices') },
+        { key: '6', description: t('nav_documents') },
+        { key: '7', description: t('nav_suppliers') },
+        { key: '8', description: t('nav_status') },
+        { key: '9', description: t('nav_warehouse') },
       ],
     },
     {
-      category: 'Schnellaktionen',
+      category: t('cmd_quick_actions'),
       items: [
-        { key: 'C', description: 'Neuen Kunden anlegen' },
-        { key: 'A', description: 'Neues Angebot erstellen' },
-        { key: '⌘K', description: 'Command Palette öffnen' },
-        { key: '⌘,', description: 'Einstellungen öffnen' },
+        { key: 'C', description: t('cmd_new_customer') },
+        { key: 'A', description: t('cmd_new_quote') },
+        { key: '⌘K', description: 'Command Palette' },
+        { key: '⌘,', description: t('cmd_open_settings') },
       ],
     },
     {
-      category: 'Allgemein',
+      category: t('shortcuts_general'),
       items: [
-        { key: 'ESC', description: 'Panel/Dialog schließen' },
-        { key: '?', description: 'Diese Übersicht anzeigen' },
+        { key: 'ESC', description: t('shortcuts_close_panel') },
+        { key: '?', description: t('shortcuts_show_overlay') },
       ],
     },
   ];
@@ -51,9 +54,9 @@ export function ShortcutsOverlay({ open, onClose }: ShortcutsOverlayProps) {
         {/* Header */}
         <div className="p-6 border-b border-border flex items-center justify-between">
           <div>
-            <h2 className="font-semibold text-foreground text-xl">Keyboard Shortcuts</h2>
+            <h2 className="font-semibold text-foreground text-xl">{t('shortcuts_title')}</h2>
             <p className="text-sm text-muted-foreground mt-1">
-              Nutze diese Shortcuts für maximale Effizienz
+              {t('shortcuts_desc')}
             </p>
           </div>
           <button
@@ -89,7 +92,7 @@ export function ShortcutsOverlay({ open, onClose }: ShortcutsOverlayProps) {
             onClick={onClose}
             className="w-full px-4 py-2.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium"
           >
-            Verstanden
+            {t('shortcuts_understood')}
           </button>
         </div>
       </div>

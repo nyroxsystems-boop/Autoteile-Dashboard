@@ -2,6 +2,7 @@ import { X, Phone, MapPin, Building2, FileText, MessageSquare, User } from 'luci
 import { StatusChip } from './StatusChip';
 import { toast } from 'sonner';
 import { apiFetch } from '../api/client';
+import { useI18n } from '../../i18n';
 
 interface Message {
   id: string;
@@ -45,16 +46,24 @@ interface CustomerDetailPanelProps {
 }
 
 export function CustomerDetailPanel({ customer, onClose, onCreateQuote, onCustomerUpdated }: CustomerDetailPanelProps) {
+  const { t } = useI18n();
+
+  const customerTypeLabels: Record<string, string> = {
+    werkstatt: `🔧 ${t('customer_workshop')}`,
+    partner: `🤝 ${t('customer_partner')}`,
+    endkunde: `👤 ${t('customer_end_user')}`,
+  };
+
   const handleSetCustomerType = async (type: 'werkstatt' | 'partner' | 'endkunde') => {
     try {
       await apiFetch(`/api/conversations/${customer.id}/customer-type`, {
         method: 'PATCH',
         body: JSON.stringify({ customer_type: type }),
       });
-      toast.success(`Kundentyp "${type === 'werkstatt' ? 'Werkstatt' : type === 'partner' ? 'Partner' : 'Endkunde'}" gespeichert`);
+      toast.success(t('customer_type_saved'));
       onCustomerUpdated?.();
     } catch {
-      toast.error('Fehler beim Speichern des Kundentyps');
+      toast.error(t('customer_type_error'));
     }
   };
 
@@ -86,7 +95,7 @@ export function CustomerDetailPanel({ customer, onClose, onCreateQuote, onCustom
         <div className="p-6 border-b border-border space-y-4">
           <div className="flex items-center gap-2 text-sm font-medium text-foreground">
             <User className="w-4 h-4 text-primary" strokeWidth={2} />
-            Kundenprofil
+            {t('customer_profile')}
           </div>
 
           <div className="space-y-3">
@@ -96,7 +105,7 @@ export function CustomerDetailPanel({ customer, onClose, onCreateQuote, onCustom
                   <Building2 className="w-4 h-4 text-primary" strokeWidth={1.5} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-xs text-muted-foreground mb-1.5">Kundentyp</div>
+                  <div className="text-xs text-muted-foreground mb-1.5">{t('customer_type_label')}</div>
                   <div className="flex gap-2">
                     {(['werkstatt', 'partner', 'endkunde'] as const).map((type) => (
                       <button
@@ -107,12 +116,12 @@ export function CustomerDetailPanel({ customer, onClose, onCreateQuote, onCustom
                           : 'border-border bg-card text-muted-foreground hover:border-primary/50 hover:text-foreground'
                           }`}
                       >
-                        {type === 'werkstatt' ? '🔧 Werkstatt' : type === 'partner' ? '🤝 Partner' : '👤 Endkunde'}
+                        {customerTypeLabels[type]}
                       </button>
                     ))}
                   </div>
                   <div className="text-xs text-muted-foreground mt-1.5">
-                    Bestimmt Preisgruppe und Konditionen
+                    {t('customer_type_hint')}
                   </div>
                 </div>
               </div>
@@ -123,18 +132,18 @@ export function CustomerDetailPanel({ customer, onClose, onCreateQuote, onCustom
                 <div className="flex items-start gap-2">
                   <span className="text-amber-600">⚠️</span>
                   <div className="flex-1">
-                    <div className="text-sm font-medium text-amber-900 mb-1">Kundentyp nicht gesetzt</div>
-                    <div className="text-xs text-amber-700 mb-3">
-                      Für korrekte Preise bitte Kundentyp auswählen
+                    <div className="text-sm font-medium text-amber-900 dark:text-amber-400 mb-1">{t('customer_type_not_set')}</div>
+                    <div className="text-xs text-amber-700 dark:text-amber-500 mb-3">
+                      {t('customer_type_set_hint')}
                     </div>
                     <div className="flex gap-2">
                       {(['werkstatt', 'partner', 'endkunde'] as const).map((type) => (
                         <button
                           key={type}
                           onClick={() => handleSetCustomerType(type)}
-                          className="flex-1 px-3 py-2 rounded-lg border-2 border-amber-500/30 bg-white text-sm font-medium text-foreground hover:border-amber-500 hover:bg-amber-500/5 transition-all"
+                          className="flex-1 px-3 py-2 rounded-lg border-2 border-amber-500/30 bg-card text-sm font-medium text-foreground hover:border-amber-500 hover:bg-amber-500/5 transition-all"
                         >
-                          {type === 'werkstatt' ? '🔧 Werkstatt' : type === 'partner' ? '🤝 Partner' : '👤 Endkunde'}
+                          {customerTypeLabels[type]}
                         </button>
                       ))}
                     </div>
@@ -149,7 +158,7 @@ export function CustomerDetailPanel({ customer, onClose, onCreateQuote, onCustom
                   <User className="w-4 h-4 text-primary" strokeWidth={1.5} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-xs text-muted-foreground mb-0.5">Ansprechpartner</div>
+                  <div className="text-xs text-muted-foreground mb-0.5">{t('customer_contact')}</div>
                   <div className="text-sm text-foreground">{customer.contactPerson}</div>
                 </div>
               </div>
@@ -161,7 +170,7 @@ export function CustomerDetailPanel({ customer, onClose, onCreateQuote, onCustom
                   <Phone className="w-4 h-4 text-primary" strokeWidth={1.5} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-xs text-muted-foreground mb-0.5">Telefon</div>
+                  <div className="text-xs text-muted-foreground mb-0.5">{t('customer_phone')}</div>
                   <div className="text-sm text-foreground">{customer.phone}</div>
                 </div>
               </div>
@@ -186,7 +195,7 @@ export function CustomerDetailPanel({ customer, onClose, onCreateQuote, onCustom
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-xs text-muted-foreground mb-0.5">
-                    {customer.deliveryMethod === 'abholung' ? 'Adresse (Abholung)' : 'Lieferadresse'}
+                    {customer.deliveryMethod === 'abholung' ? t('customer_pickup') : t('customer_shipping')}
                   </div>
                   <div className="text-sm text-foreground">
                     {customer.shippingAddress.street}<br />
@@ -194,7 +203,7 @@ export function CustomerDetailPanel({ customer, onClose, onCreateQuote, onCustom
                   </div>
                   {customer.deliveryMethod === 'abholung' && (
                     <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-500/10 text-amber-600 border border-amber-500/20 mt-1.5">
-                      🚶 Abholung
+                      🚶 {t('customer_pickup_badge')}
                     </span>
                   )}
                 </div>
@@ -207,7 +216,7 @@ export function CustomerDetailPanel({ customer, onClose, onCreateQuote, onCustom
                   <FileText className="w-4 h-4 text-primary" strokeWidth={1.5} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-xs text-muted-foreground mb-0.5">Rechnungsadresse</div>
+                  <div className="text-xs text-muted-foreground mb-0.5">{t('customer_billing')}</div>
                   <div className="text-sm text-foreground">
                     {customer.billingAddress.street}<br />
                     {customer.billingAddress.zip} {customer.billingAddress.city}
@@ -222,7 +231,7 @@ export function CustomerDetailPanel({ customer, onClose, onCreateQuote, onCustom
                   <Building2 className="w-4 h-4 text-primary" strokeWidth={1.5} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-xs text-muted-foreground mb-0.5">USt-IdNr.</div>
+                  <div className="text-xs text-muted-foreground mb-0.5">{t('customer_vat')}</div>
                   <div className="text-sm text-foreground font-mono">{customer.vatId}</div>
                 </div>
               </div>
@@ -234,7 +243,7 @@ export function CustomerDetailPanel({ customer, onClose, onCreateQuote, onCustom
                   <FileText className="w-4 h-4 text-primary" strokeWidth={1.5} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-xs text-muted-foreground mb-0.5">PO-Referenz</div>
+                  <div className="text-xs text-muted-foreground mb-0.5">{t('customer_po_ref')}</div>
                   <div className="text-sm text-foreground font-mono">{customer.poReference}</div>
                 </div>
               </div>
@@ -244,11 +253,11 @@ export function CustomerDetailPanel({ customer, onClose, onCreateQuote, onCustom
           {/* Stats */}
           <div className="grid grid-cols-2 gap-3 pt-4 border-t border-border">
             <div className="p-3 rounded-lg bg-muted/50">
-              <div className="text-xs text-muted-foreground mb-1">Aufträge gesamt</div>
+              <div className="text-xs text-muted-foreground mb-1">{t('customer_total_orders')}</div>
               <div className="font-semibold text-foreground tabular-nums">{customer.totalOrders}</div>
             </div>
             <div className="p-3 rounded-lg bg-muted/50">
-              <div className="text-xs text-muted-foreground mb-1">Umsatz</div>
+              <div className="text-xs text-muted-foreground mb-1">{t('customer_revenue')}</div>
               <div className="font-semibold text-foreground tabular-nums">{customer.totalRevenue}</div>
             </div>
           </div>
@@ -259,7 +268,7 @@ export function CustomerDetailPanel({ customer, onClose, onCreateQuote, onCustom
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-sm font-medium text-foreground">
               <MessageSquare className="w-4 h-4 text-primary" strokeWidth={2} />
-              WhatsApp-Verlauf
+              {t('customer_chat_history')}
             </div>
             <button
               onClick={() => {
@@ -269,7 +278,7 @@ export function CustomerDetailPanel({ customer, onClose, onCreateQuote, onCustom
               className="text-xs text-[#25D366] hover:text-[#1fb855] font-medium flex items-center gap-1 transition-colors"
             >
               <MessageSquare className="w-3 h-3" strokeWidth={2} />
-              Chat öffnen
+              {t('customer_open_chat')}
             </button>
           </div>
 
@@ -315,28 +324,25 @@ export function CustomerDetailPanel({ customer, onClose, onCreateQuote, onCustom
             <div className="flex items-start gap-2">
               <span className="text-red-600 text-lg">⚠️</span>
               <div className="flex-1">
-                <div className="text-sm font-medium text-red-900 mb-1">OEM-Nummer prüfen erforderlich</div>
-                <div className="text-xs text-red-700">
-                  Der Kunde hat ein Foto gesendet oder die OEM-Nummer konnte nicht automatisch erkannt werden. Bitte prüfen Sie das Teil und erstellen Sie manuell ein Angebot.
+                <div className="text-sm font-medium text-red-900 dark:text-red-400 mb-1">{t('customer_oem_check')}</div>
+                <div className="text-xs text-red-700 dark:text-red-500">
+                  {t('customer_oem_desc')}
                 </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* WhatsApp Button - especially important for oem_pending */}
+        {/* WhatsApp Button */}
         <button
           onClick={() => {
             const phoneNumber = customer.whatsappNumber.replace(/\s/g, '').replace(/\+/g, '');
-            const message = customer.status === 'oem_pending'
-              ? 'Hallo! Ich schaue mir gerade deine Anfrage an. Kannst du mir bitte die OEM-Nummer vom Teil nochmal schicken? Das geht am schnellsten.'
-              : 'Hallo! Ich habe eine Frage zu deiner Anfrage.';
-            window.open(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`, '_blank');
+            window.open(`https://wa.me/${phoneNumber}`, '_blank');
           }}
           className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-[#25D366] text-white hover:bg-[#1fb855] transition-colors font-medium"
         >
           <MessageSquare className="w-4 h-4" strokeWidth={2} />
-          {customer.status === 'oem_pending' ? 'WhatsApp: OEM nachfragen' : 'WhatsApp öffnen'}
+          {customer.status === 'oem_pending' ? t('customer_wa_oem') : t('customer_wa_open')}
         </button>
 
         <button
@@ -347,7 +353,7 @@ export function CustomerDetailPanel({ customer, onClose, onCreateQuote, onCustom
             }`}
         >
           <FileText className="w-4 h-4" strokeWidth={2} />
-          {customer.status === 'oem_pending' ? 'OEM prüfen & Angebot erstellen' : 'Angebot erstellen'}
+          {customer.status === 'oem_pending' ? t('customer_oem_create') : t('customer_create_quote')}
         </button>
       </div>
     </div>

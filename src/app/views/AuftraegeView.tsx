@@ -131,8 +131,8 @@ export function AuftraegeView() {
           {orders.map((order) => {
             // Helper accessor for legacy/mixed types
             const vehicle = order.vehicle || order.vehicle_json;
-            const make = vehicle?.make;
-            const model = vehicle?.model;
+            const make = (vehicle?.make || '') as string;
+            const model = (vehicle?.model || '') as string;
             const partText = order.part?.partText || order.part_json?.rawText;
             const oem = order.oem_number || order.oem;
 
@@ -181,7 +181,7 @@ export function AuftraegeView() {
                     {oem || t('orders_no_oem')}
                   </code>
                   <span className="text-muted-foreground text-sm truncate">
-                    {partText || t('orders_part_unknown')}
+                    {String(partText || t('orders_part_unknown'))}
                   </span>
                 </div>
               </button>
@@ -224,7 +224,7 @@ export function AuftraegeView() {
                   <div>
                     <div className="text-muted-foreground text-sm mb-1">{t('orders_vehicle')}</div>
                     <div className="font-medium">
-                      {(selectedOrder.vehicle || selectedOrder.vehicle_json)?.make} {(selectedOrder.vehicle || selectedOrder.vehicle_json)?.model} ({(selectedOrder.vehicle || selectedOrder.vehicle_json)?.year})
+                      {String((selectedOrder.vehicle || selectedOrder.vehicle_json)?.make || '')} {String((selectedOrder.vehicle || selectedOrder.vehicle_json)?.model || '')} ({String((selectedOrder.vehicle || selectedOrder.vehicle_json)?.year || '')})
                     </div>
                   </div>
                 </div>
@@ -247,7 +247,7 @@ export function AuftraegeView() {
                     </div>
                   )}
                 </div>
-                <div className="mt-4 font-medium">{selectedOrder.part?.partText || selectedOrder.part_json?.rawText}</div>
+                <div className="mt-4 font-medium">{String(selectedOrder.part?.partText || selectedOrder.part_json?.rawText || '')}</div>
               </div>
             </div>
 

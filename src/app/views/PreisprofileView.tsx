@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../components/ui/dialog';
 import { StatusChip } from '../components/StatusChip';
 import { Percent, DollarSign, TrendingUp, Edit2, Trash2, Plus, Loader2 } from 'lucide-react';
 import { useMerchantSettings } from '../hooks/useMerchantSettings';
@@ -26,6 +27,7 @@ export function PreisprofileView() {
   const [editingProfile, setEditingProfile] = useState<typeof profiles[0] | null>(null);
   const [calcBase, setCalcBase] = useState(100);
   const [calcMargin, setCalcMargin] = useState(25);
+  const [deleteProfileId, setDeleteProfileId] = useState<string | number | null>(null);
   const calcCustomerPrice = calcBase * (1 + calcMargin / 100);
 
   useEffect(() => {
@@ -154,13 +156,7 @@ export function PreisprofileView() {
                         {t('prices_edit')}
                       </Button>
                       {!profile.isDefault && (
-                        <Button size="sm" variant="outline" onClick={async () => {
-                          if (!confirm(t('prices_delete_confirm'))) return;
-                          const updated = profiles.filter(p => p.id !== profile.id);
-                          setProfiles(updated);
-                          await _update({ priceProfiles: updated });
-                          toast.success(t('prices_deleted'));
-                        }}>
+                        <Button size="sm" variant="outline" onClick={() => setDeleteProfileId(profile.id)}>
                           <Trash2 className="w-3.5 h-3.5 text-destructive" />
                         </Button>
                       )}
@@ -258,6 +254,27 @@ export function PreisprofileView() {
           {t('prices_priority_desc')}
         </p>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteProfileId !== null} onOpenChange={(open) => { if (!open) setDeleteProfileId(null); }}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>{t('confirm_title')}</DialogTitle>
+            <DialogDescription>{t('confirm_delete_price')}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteProfileId(null)}>{t('cancel')}</Button>
+            <Button variant="destructive" onClick={async () => {
+              if (deleteProfileId === null) return;
+              const updated = profiles.filter(p => p.id !== deleteProfileId);
+              setProfiles(updated);
+              await _update({ priceProfiles: updated });
+              toast.success(t('prices_deleted'));
+              setDeleteProfileId(null);
+            }}>{t('prices_delete')}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

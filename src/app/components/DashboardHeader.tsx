@@ -89,7 +89,7 @@ export function DashboardHeader({
               className="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary hover:bg-primary/20 transition-all rounded-xl font-bold text-sm group"
             >
               <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" strokeWidth={2.5} />
-              Zurück zum Dashboard
+              {t('header_back_to_dashboard')}
             </button>
           )}
 
@@ -175,30 +175,24 @@ export function DashboardHeader({
                   onClick={() => setShowLangMenu(false)}
                 ></div>
                 <div className="absolute top-full right-0 mt-2 w-48 bg-card border border-border rounded-lg shadow-lg py-2 z-50">
-                  <button
-                    onClick={() => {
-                      onLanguageChange('de');
-                      setShowLangMenu(false);
-                    }}
-                    className={`w-full px-4 py-2 text-left text-sm hover:bg-accent transition-colors flex items-center gap-3 ${language === 'de' ? 'text-primary font-medium' : 'text-foreground'
-                      }`}
-                  >
-                    <span className="text-lg">🇩🇪</span>
-                    <span>Deutsch</span>
-                    {language === 'de' && <span className="ml-auto text-primary">✓</span>}
-                  </button>
-                  <button
-                    onClick={() => {
-                      onLanguageChange('en');
-                      setShowLangMenu(false);
-                    }}
-                    className={`w-full px-4 py-2 text-left text-sm hover:bg-accent transition-colors flex items-center gap-3 ${language === 'en' ? 'text-primary font-medium' : 'text-foreground'
-                      }`}
-                  >
-                    <span className="text-lg">🇬🇧</span>
-                    <span>English</span>
-                    {language === 'en' && <span className="ml-auto text-primary">✓</span>}
-                  </button>
+                  {[
+                    { code: 'de' as const, flag: '🇩🇪', name: 'Deutsch' },
+                    { code: 'en' as const, flag: '🇬🇧', name: 'English' },
+                  ].map((lang) => (
+                    <button
+                      key={lang.code}
+                      onClick={() => {
+                        onLanguageChange(lang.code);
+                        setShowLangMenu(false);
+                      }}
+                      className={`w-full px-4 py-2 text-left text-sm hover:bg-accent transition-colors flex items-center gap-3 ${language === lang.code ? 'text-primary font-medium' : 'text-foreground'
+                        }`}
+                    >
+                      <span className="text-lg">{lang.flag}</span>
+                      <span>{lang.name}</span>
+                      {language === lang.code && <span className="ml-auto text-primary">✓</span>}
+                    </button>
+                  ))}
                 </div>
               </>
             )}
@@ -208,7 +202,7 @@ export function DashboardHeader({
           <button
             onClick={() => onThemeChange(theme === 'light' ? 'dark' : 'light')}
             className="w-10 h-10 rounded-lg hover:bg-accent flex items-center justify-center transition-colors group"
-            title={theme === 'light' ? 'Dark Mode' : 'Light Mode'}
+            title={theme === 'light' ? t('header_dark_mode') : t('header_light_mode')}
           >
             {theme === 'light' ? (
               <Moon className="w-5 h-5 text-muted-foreground group-hover:text-foreground" strokeWidth={1.5} />

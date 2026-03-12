@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Loader2, Percent, DollarSign } from 'lucide-react';
 import { toast } from 'sonner';
 import { useMerchantSettings } from '../hooks/useMerchantSettings';
+import { useI18n } from '../../i18n';
 
 interface PriceProfile {
     id: string | number;
@@ -24,18 +25,19 @@ interface PriceGroupModalProps {
 }
 
 export function PriceGroupModal({ open, onOpenChange, onSuccess, editProfile }: PriceGroupModalProps) {
+    const { t } = useI18n();
     const isEditing = !!editProfile;
     const { settings, update: updateMerchantSettings } = useMerchantSettings();
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
-        name: editProfile?.name || '',
-        type: (editProfile?.type || 'percentage') as 'percentage' | 'fixed',
-        value: editProfile?.value?.toString() || '',
-        appliesTo: editProfile?.appliesTo || 'all',
+        name: '',
+        type: 'percentage' as 'percentage' | 'fixed',
+        value: '',
+        appliesTo: 'all',
     });
 
     // Update form when editProfile changes
-    useState(() => {
+    useEffect(() => {
         if (editProfile) {
             setFormData({
                 name: editProfile.name,
@@ -43,24 +45,29 @@ export function PriceGroupModal({ open, onOpenChange, onSuccess, editProfile }: 
                 value: editProfile.value.toString(),
                 appliesTo: editProfile.appliesTo || 'all',
             });
+        } else {
+            setFormData({
+                name: '',
+                type: 'percentage',
+                value: '',
+                appliesTo: 'all',
+            });
         }
-    });
+    }, [editProfile]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (!formData.name || !formData.value) {
-            toast.error('Bitte Name und Wert ausfüllen');
+            toast.error(t('price_modal_validation'));
             return;
         }
 
         setLoading(true);
         try {
-            // Save price group to merchant settings
             const existingProfiles = settings?.priceProfiles || [];
             if (isEditing && editProfile) {
-                // Update existing profile
-                const updatedProfiles = existingProfiles.map(p =>
+                const updatedProfiles = existingProfiles.map((p: { id: string | number; name: string; type: string; value: number; isDefault?: boolean; appliesTo?: string; lastModified?: string }) =>
                     p.id === editProfile.id ? {
                         ...p,
                         name: formData.name,
@@ -72,7 +79,6 @@ export function PriceGroupModal({ open, onOpenChange, onSuccess, editProfile }: 
                 );
                 await updateMerchantSettings({ priceProfiles: updatedProfiles });
             } else {
-                // Create new profile
                 const newProfile = {
                     id: `pg_${Date.now()}`,
                     name: formData.name,
@@ -87,7 +93,7 @@ export function PriceGroupModal({ open, onOpenChange, onSuccess, editProfile }: 
                 });
             }
 
-            toast.success(isEditing ? 'Preisgruppe aktualisiert' : `Preisgruppe "${formData.name}" erstellt`);
+            toast.success(isEditing ? t('price_modal_updated') : t('price_modal_created'));
             onOpenChange(false);
             onSuccess?.();
 
@@ -98,7 +104,7 @@ export function PriceGroupModal({ open, onOpenChange, onSuccess, editProfile }: 
                 appliesTo: 'all',
             });
         } catch (err: unknown) {
-            toast.error(err instanceof Error ? err.message : 'Fehler beim Erstellen');
+            toast.error(err instanceof Error ? err.message : t('price_modal_error'));
         } finally {
             setLoading(false);
         }
@@ -110,25 +116,25 @@ export function PriceGroupModal({ open, onOpenChange, onSuccess, editProfile }: 
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <Percent className="w-5 h-5 text-primary" />
-                        {isEditing ? 'Preisgruppe bearbeiten' : 'Neue Preisgruppe anlegen'}
+                        {isEditing ? t('price_modal_edit') : t('price_modal_create')}
                     </DialogTitle>
                     <DialogDescription>
-                        Definiere Margen und Preisaufschläge für WhatsApp-Angebote
+                        {t('price_modal_desc')}
                     </DialogDescription>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="text-sm font-medium text-foreground mb-2 block">Profilname *</label>
+                        <label className="text-sm font-medium text-foreground mb-2 block">{t('price_modal_name')}</label>
                         <Input
                             value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            placeholder="z.B. Premium-Kunden Rabatt"
+                            placeholder={t('price_modal_name_placeholder')}
                         />
                     </div>
 
                     <div>
-                        <label className="text-sm font-medium text-foreground mb-2 block">Typ</label>
+                        <label className="text-sm font-medium text-foreground mb-2 block">{t('price_modal_type')}</label>
                         <div className="flex gap-2">
                             <button
                                 type="button"
@@ -139,7 +145,7 @@ export function PriceGroupModal({ open, onOpenChange, onSuccess, editProfile }: 
                                     }`}
                             >
                                 <Percent className="w-4 h-4" />
-                                Prozentual
+                                {t('price_modal_percentage')}
                             </button>
                             <button
                                 type="button"
@@ -150,14 +156,14 @@ export function PriceGroupModal({ open, onOpenChange, onSuccess, editProfile }: 
                                     }`}
                             >
                                 <DollarSign className="w-4 h-4" />
-                                Festpreis
+                                {t('price_modal_fixed')}
                             </button>
                         </div>
                     </div>
 
                     <div>
                         <label className="text-sm font-medium text-foreground mb-2 block">
-                            Wert {formData.type === 'percentage' ? '(%)' : '(€)'} *
+                            {t('price_modal_value')} {formData.type === 'percentage' ? '(%)' : '(€)'} *
                         </label>
                         <div className="relative">
                             <Input
@@ -174,31 +180,31 @@ export function PriceGroupModal({ open, onOpenChange, onSuccess, editProfile }: 
                     </div>
 
                     <div>
-                        <label className="text-sm font-medium text-foreground mb-2 block">Anwendung</label>
+                        <label className="text-sm font-medium text-foreground mb-2 block">{t('price_modal_application')}</label>
                         <select
                             value={formData.appliesTo}
                             onChange={(e) => setFormData({ ...formData, appliesTo: e.target.value })}
                             className="w-full h-10 px-3 rounded-lg border border-border bg-background text-foreground"
                         >
-                            <option value="all">Alle Produkte</option>
-                            <option value="oem_verified">Nur OEM-verifizierte</option>
-                            <option value="high_value">Hochpreisige Teile (&gt; €100)</option>
-                            <option value="low_value">Niedrigpreisige Teile (&lt; €50)</option>
+                            <option value="all">{t('price_modal_all')}</option>
+                            <option value="oem_verified">{t('price_modal_oem_only')}</option>
+                            <option value="high_value">{t('price_modal_high_value')}</option>
+                            <option value="low_value">{t('price_modal_low_value')}</option>
                         </select>
                     </div>
 
                     <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                            Abbrechen
+                            {t('cancel')}
                         </Button>
                         <Button type="submit" disabled={loading}>
                             {loading ? (
                                 <>
                                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                    Erstellen...
+                                    {t('price_modal_creating')}
                                 </>
                             ) : (
-                                'Preisgruppe speichern'
+                                t('price_modal_save')
                             )}
                         </Button>
                     </DialogFooter>
