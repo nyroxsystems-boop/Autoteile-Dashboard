@@ -347,7 +347,6 @@ export function DocumentsInvoicesView() {
           {[
             { id: 'all', label: t('all'), icon: FileText },
             { id: 'outgoing', label: t('docs_outgoing'), icon: FileText },
-            { id: 'incoming', label: t('docs_incoming'), icon: Upload },
             { id: 'tax-office', label: t('docs_tax'), icon: Building2 },
           ].map(tab => {
             const Icon = tab.icon;

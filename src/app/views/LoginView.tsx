@@ -190,7 +190,7 @@ export function LoginView({ onLoginSuccess }: LoginViewProps) {
                                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                                 <Input
                                     type="text"
-                                    placeholder="admin"
+                                    placeholder="name@company.com"
                                     className={`pl-10 ${fieldError?.field === 'identifier' ? 'border-red-500 ring-1 ring-red-500/30' : ''}`}
                                     value={identifier}
                                     onChange={(e) => { setIdentifier(e.target.value); setFieldError(null); }}
@@ -230,7 +230,7 @@ export function LoginView({ onLoginSuccess }: LoginViewProps) {
                                 <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                                 <Input
                                     type="text"
-                                    placeholder="demo"
+                                    placeholder="company-name"
                                     className="pl-10"
                                     value={tenant}
                                     onChange={(e) => setTenant(e.target.value)}

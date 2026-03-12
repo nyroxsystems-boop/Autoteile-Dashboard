@@ -67,7 +67,7 @@ export function DashboardSidebar({
       <div
         className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center mb-10 cursor-pointer"
       >
-        <span className="text-primary-foreground font-semibold text-base">AT</span>
+        <span className="text-primary-foreground font-semibold text-base">PU</span>
       </div>
 
       {/* Navigation */}

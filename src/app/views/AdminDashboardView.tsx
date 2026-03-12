@@ -1,18 +1,35 @@
 import { useState, useEffect } from 'react';
 import {
     Users, Shield, Smartphone, Activity, Server,
-    Globe, LogOut, Plus,
+    Globe, LogOut, Plus, X,
     Settings, RefreshCcw
 } from 'lucide-react';
 import { getAdminStats, listActiveDevices, removeActiveDevice, updateTenantLimits, createTenantUser, AdminStats, ActiveDevice } from '../api/wws';
 import { toast } from 'sonner';
+import { useI18n } from '../../i18n';
+
+interface TenantInfo {
+    id: number;
+    name: string;
+    slug: string;
+    user_count: number;
+    max_users: number;
+    device_count: number;
+    max_devices: number;
+    is_active: boolean;
+}
 
 export function AdminDashboardView() {
+    const { t } = useI18n();
     const [stats, setStats] = useState<AdminStats | null>(null);
     const [loading, setLoading] = useState(true);
-    const [selectedTenant, setSelectedTenant] = useState<any | null>(null);
+    const [selectedTenant, setSelectedTenant] = useState<TenantInfo | null>(null);
     const [activeDevices, setActiveDevices] = useState<ActiveDevice[]>([]);
     const [showUserModal, setShowUserModal] = useState(false);
+    const [showLimitsModal, setShowLimitsModal] = useState(false);
+    const [limitsTenant, setLimitsTenant] = useState<TenantInfo | null>(null);
+    const [limitsMaxUsers, setLimitsMaxUsers] = useState(0);
+    const [limitsMaxDevices, setLimitsMaxDevices] = useState(0);
     const [newUserEmail, setNewUserEmail] = useState('');
     const [newUsername, setNewUsername] = useState('');
     const [newUserPassword, setNewUserPassword] = useState('');
@@ -22,8 +39,8 @@ export function AdminDashboardView() {
             setLoading(true);
             const data = await getAdminStats();
             setStats(data);
-        } catch (err: unknown) {
-            toast.error('Fehler beim Laden der Admin-Statistiken');
+        } catch (_err: unknown) {
+            toast.error(t('admin_error_loading'));
         } finally {
             setLoading(false);
         }
@@ -33,29 +50,31 @@ export function AdminDashboardView() {
         try {
             const data = await listActiveDevices(tenantId);
             setActiveDevices(data);
-        } catch (err) {
-            toast.error('Geräte konnten nicht geladen werden');
+        } catch (_err) {
+            toast.error(t('admin_error_devices'));
         }
     };
 
     const handleRemoveDevice = async (tenantId: number, deviceId: string) => {
         try {
             await removeActiveDevice(tenantId, deviceId);
-            toast.success('Gerät erfolgreich abgemeldet');
+            toast.success(t('admin_device_removed'));
             loadDevices(tenantId);
             loadStats();
-        } catch (err) {
-            toast.error('Fehler beim Abmelden des Geräts');
+        } catch (_err) {
+            toast.error(t('admin_error_remove_device'));
         }
     };
 
-    const handleUpdateLimits = async (tenantId: number, maxUsers: number, maxDevices: number) => {
+    const handleUpdateLimits = async () => {
+        if (!limitsTenant) return;
         try {
-            await updateTenantLimits(tenantId, { max_users: maxUsers, max_devices: maxDevices });
-            toast.success('Limits aktualisiert');
+            await updateTenantLimits(limitsTenant.id, { max_users: limitsMaxUsers, max_devices: limitsMaxDevices });
+            toast.success(t('admin_limits_updated'));
+            setShowLimitsModal(false);
             loadStats();
-        } catch (err) {
-            toast.error('Fehler beim Aktualisieren der Limits');
+        } catch (_err) {
+            toast.error(t('admin_error_update_limits'));
         }
     };
 
@@ -68,11 +87,14 @@ export function AdminDashboardView() {
                 password: newUserPassword,
                 role: 'TENANT_ADMIN'
             });
-            toast.success('Benutzer erfolgreich angelegt');
+            toast.success(t('admin_user_created'));
             setShowUserModal(false);
+            setNewUserEmail('');
+            setNewUsername('');
+            setNewUserPassword('');
             loadStats();
         } catch (err: unknown) {
-            toast.error(err instanceof Error ? err.message : 'Fehler beim Anlegen des Benutzers');
+            toast.error(err instanceof Error ? err.message : t('admin_error_create_user'));
         }
     };
 
@@ -94,9 +116,9 @@ export function AdminDashboardView() {
             <div>
                 <h1 className="text-3xl font-bold text-foreground mb-2 flex items-center gap-3">
                     <Shield className="w-8 h-8 text-primary" />
-                    Admin Dashboard
+                    {t('admin_title')}
                 </h1>
-                <p className="text-muted-foreground">Zentrale Verwaltung aller Tenants, Benutzer und Gerätezugriffe.</p>
+                <p className="text-muted-foreground">{t('admin_subtitle')}</p>
             </div>
 
             {/* Global Stats */}
@@ -107,7 +129,7 @@ export function AdminDashboardView() {
                             <Globe className="w-6 h-6 text-primary" />
                         </div>
                         <div>
-                            <p className="text-sm font-medium text-muted-foreground">Aktive Tenants</p>
+                            <p className="text-sm font-medium text-muted-foreground">{t('admin_active_tenants')}</p>
                             <h3 className="text-2xl font-bold text-foreground">{stats?.total_tenants}</h3>
                         </div>
                     </div>
@@ -122,7 +144,7 @@ export function AdminDashboardView() {
                             <Users className="w-6 h-6 text-blue-500" />
                         </div>
                         <div>
-                            <p className="text-sm font-medium text-muted-foreground">Gesamt-Benutzer</p>
+                            <p className="text-sm font-medium text-muted-foreground">{t('admin_total_users')}</p>
                             <h3 className="text-2xl font-bold text-foreground">{stats?.total_users}</h3>
                         </div>
                     </div>
@@ -134,7 +156,7 @@ export function AdminDashboardView() {
                             <Smartphone className="w-6 h-6 text-purple-500" />
                         </div>
                         <div>
-                            <p className="text-sm font-medium text-muted-foreground">Aktive Geräte</p>
+                            <p className="text-sm font-medium text-muted-foreground">{t('admin_active_devices')}</p>
                             <h3 className="text-2xl font-bold text-foreground">{stats?.total_devices}</h3>
                         </div>
                     </div>
@@ -144,7 +166,7 @@ export function AdminDashboardView() {
             {/* Tenant Table */}
             <div className="bg-card border border-border rounded-2xl overflow-hidden">
                 <div className="p-6 border-b border-border flex justify-between items-center bg-muted/30">
-                    <h3 className="font-bold text-lg">Tenant Übersicht</h3>
+                    <h3 className="font-bold text-lg">{t('admin_tenant_overview')}</h3>
                     <button onClick={loadStats} className="p-2 hover:bg-muted rounded-lg transition-colors">
                         <RefreshCcw className="w-4 h-4" />
                     </button>
@@ -153,11 +175,11 @@ export function AdminDashboardView() {
                     <table className="w-full text-left">
                         <thead className="bg-muted/50 text-muted-foreground text-xs uppercase tracking-wider">
                             <tr>
-                                <th className="px-6 py-4">Tenant / Shop</th>
-                                <th className="px-6 py-4">Benutzer</th>
-                                <th className="px-6 py-4">Geräte</th>
-                                <th className="px-6 py-4">Status</th>
-                                <th className="px-6 py-4 text-right">Aktionen</th>
+                                <th className="px-6 py-4">{t('admin_tenant_shop')}</th>
+                                <th className="px-6 py-4">{t('admin_users')}</th>
+                                <th className="px-6 py-4">{t('admin_devices')}</th>
+                                <th className="px-6 py-4">{t('orders_status')}</th>
+                                <th className="px-6 py-4 text-right">{t('prices_actions')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border">
@@ -185,43 +207,43 @@ export function AdminDashboardView() {
                                     </td>
                                     <td className="px-6 py-4">
                                         {tenant.is_active ? (
-                                            <span className="px-2 py-1 rounded-full bg-green-500/10 text-green-500 text-[10px] font-bold uppercase tracking-wider border border-green-500/20">Aktiv</span>
+                                            <span className="px-2 py-1 rounded-full bg-green-500/10 text-green-500 text-[10px] font-bold uppercase tracking-wider border border-green-500/20">{t('admin_status_active')}</span>
                                         ) : (
-                                            <span className="px-2 py-1 rounded-full bg-red-500/10 text-red-500 text-[10px] font-bold uppercase tracking-wider border border-red-500/20">Inaktiv</span>
+                                            <span className="px-2 py-1 rounded-full bg-red-500/10 text-red-500 text-[10px] font-bold uppercase tracking-wider border border-red-500/20">{t('admin_status_inactive')}</span>
                                         )}
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                             <button
                                                 onClick={() => {
-                                                    setSelectedTenant(tenant);
+                                                    setSelectedTenant(tenant as TenantInfo);
                                                     loadDevices(tenant.id);
                                                 }}
                                                 className="p-2 hover:bg-primary/10 hover:text-primary rounded-lg transition-colors border border-transparent hover:border-primary/20"
-                                                title="Geräte verwalten"
+                                                title={t('admin_manage_devices')}
                                             >
                                                 <Smartphone className="w-4 h-4" />
                                             </button>
                                             <button
                                                 onClick={() => {
-                                                    setSelectedTenant(tenant);
+                                                    setSelectedTenant(tenant as TenantInfo);
                                                     setShowUserModal(true);
                                                 }}
                                                 className="p-2 hover:bg-primary/10 hover:text-primary rounded-lg transition-colors border border-transparent hover:border-primary/20"
-                                                title="Benutzer anlegen"
+                                                title={t('admin_create_user')}
                                             >
                                                 <Plus className="w-4 h-4" />
                                             </button>
                                             <button
                                                 onClick={() => {
-                                                    const maxU = prompt('Maximale Anzahl an Benutzern:', String(tenant.max_users));
-                                                    const maxD = prompt('Maximale Anzahl an Geräten:', String(tenant.max_devices));
-                                                    if (maxU && maxD) {
-                                                        handleUpdateLimits(tenant.id, parseInt(maxU), parseInt(maxD));
-                                                    }
+                                                    const t = tenant as TenantInfo;
+                                                    setLimitsTenant(t);
+                                                    setLimitsMaxUsers(t.max_users);
+                                                    setLimitsMaxDevices(t.max_devices);
+                                                    setShowLimitsModal(true);
                                                 }}
                                                 className="p-2 hover:bg-primary/10 hover:text-primary rounded-lg transition-colors border border-transparent hover:border-primary/20"
-                                                title="Limits anpassen"
+                                                title={t('admin_adjust_limits')}
                                             >
                                                 <Settings className="w-4 h-4" />
                                             </button>
@@ -234,12 +256,12 @@ export function AdminDashboardView() {
                 </div>
             </div>
 
-            {/* Device Management Drawer/Modal */}
+            {/* Device Management Section */}
             {selectedTenant && !showUserModal && (
                 <div className="animate-in fade-in zoom-in duration-300 space-y-6">
                     <div className="flex items-center justify-between">
-                        <h3 className="text-xl font-bold">Aktive Geräte für: {selectedTenant.name}</h3>
-                        <button onClick={() => setSelectedTenant(null)} className="text-sm text-muted-foreground hover:text-foreground">Schließen</button>
+                        <h3 className="text-xl font-bold">{t('admin_active_devices_for')}: {selectedTenant.name}</h3>
+                        <button onClick={() => setSelectedTenant(null)} className="text-sm text-muted-foreground hover:text-foreground">{t('admin_close')}</button>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {activeDevices.map(device => (
@@ -262,7 +284,7 @@ export function AdminDashboardView() {
                                 <div className="space-y-1 text-xs text-muted-foreground">
                                     <div className="flex items-center gap-2">
                                         <Activity className="w-3 h-3" />
-                                        <span>Zuletzt gesehen: {new Date(device.last_seen).toLocaleString()}</span>
+                                        <span>{t('admin_last_seen')}: {new Date(device.last_seen).toLocaleString()}</span>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <Server className="w-3 h-3" />
@@ -273,9 +295,63 @@ export function AdminDashboardView() {
                         ))}
                         {activeDevices.length === 0 && (
                             <div className="col-span-full py-12 text-center text-muted-foreground border border-dashed rounded-xl">
-                                Keine aktiven Geräte gefunden.
+                                {t('admin_no_devices')}
                             </div>
                         )}
+                    </div>
+                </div>
+            )}
+
+            {/* Limits Modal — replaces window.prompt() */}
+            {showLimitsModal && limitsTenant && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                    <div className="bg-card border border-border rounded-2xl p-8 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-300">
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="text-2xl font-bold">{t('admin_adjust_limits')}</h3>
+                            <button onClick={() => setShowLimitsModal(false)} className="p-2 hover:bg-muted rounded-lg transition-colors">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Tenant</label>
+                                <input disabled value={limitsTenant.name} className="w-full px-4 py-2 bg-muted border border-border rounded-xl" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">{t('admin_max_users')}</label>
+                                <input
+                                    type="number"
+                                    value={limitsMaxUsers}
+                                    onChange={e => setLimitsMaxUsers(Number(e.target.value))}
+                                    className="w-full px-4 py-2 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                                    min={1}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">{t('admin_max_devices')}</label>
+                                <input
+                                    type="number"
+                                    value={limitsMaxDevices}
+                                    onChange={e => setLimitsMaxDevices(Number(e.target.value))}
+                                    className="w-full px-4 py-2 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                                    min={1}
+                                />
+                            </div>
+                        </div>
+                        <div className="mt-8 flex gap-3">
+                            <button
+                                onClick={() => setShowLimitsModal(false)}
+                                className="flex-1 px-4 py-2 bg-muted hover:bg-muted/80 rounded-xl transition-colors"
+                            >
+                                {t('cancel')}
+                            </button>
+                            <button
+                                onClick={handleUpdateLimits}
+                                className="flex-1 px-4 py-2 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all active:scale-95"
+                            >
+                                {t('admin_save_limits')}
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
@@ -285,34 +361,36 @@ export function AdminDashboardView() {
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
                     <div className="bg-card border border-border rounded-2xl p-8 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-300">
                         <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-2xl font-bold">Neuer Benutzer</h3>
-                            <button onClick={() => setShowUserModal(false)} className="text-muted-foreground hover:text-foreground">X</button>
+                            <h3 className="text-2xl font-bold">{t('admin_new_user')}</h3>
+                            <button onClick={() => setShowUserModal(false)} className="p-2 hover:bg-muted rounded-lg transition-colors">
+                                <X className="w-5 h-5" />
+                            </button>
                         </div>
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium mb-1">Tenant</label>
-                                <input disabled value={selectedTenant.name} className="w-full px-4 py-2 bg-muted border border-border rounded-xl" />
+                                <input disabled value={selectedTenant?.name || ''} className="w-full px-4 py-2 bg-muted border border-border rounded-xl" />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-1">E-Mail</label>
+                                <label className="block text-sm font-medium mb-1">{t('admin_email')}</label>
                                 <input
                                     value={newUserEmail}
                                     onChange={e => setNewUserEmail(e.target.value)}
                                     className="w-full px-4 py-2 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
-                                    placeholder="email@beispiel.de"
+                                    placeholder="email@example.com"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-1">Benutzername</label>
+                                <label className="block text-sm font-medium mb-1">{t('admin_username')}</label>
                                 <input
                                     value={newUsername}
                                     onChange={e => setNewUsername(e.target.value)}
                                     className="w-full px-4 py-2 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
-                                    placeholder="v.nachname"
+                                    placeholder="v.lastname"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-1">Passwort</label>
+                                <label className="block text-sm font-medium mb-1">{t('login_password')}</label>
                                 <input
                                     type="password"
                                     value={newUserPassword}
@@ -324,15 +402,15 @@ export function AdminDashboardView() {
                         <div className="mt-8 flex gap-3">
                             <button
                                 onClick={() => setShowUserModal(false)}
-                                className="flex-1 px-4 py-2 bg-muted hover:bg-muted-hover rounded-xl transition-colors"
+                                className="flex-1 px-4 py-2 bg-muted hover:bg-muted/80 rounded-xl transition-colors"
                             >
-                                Abbrechen
+                                {t('cancel')}
                             </button>
                             <button
                                 onClick={handleCreateUser}
-                                className="flex-1 px-4 py-2 bg-primary text-white font-bold rounded-xl hover:bg-primary-hover shadow-lg shadow-primary/20 transition-all active:scale-95"
+                                className="flex-1 px-4 py-2 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all active:scale-95"
                             >
-                                Benutzer anlegen
+                                {t('admin_create_user')}
                             </button>
                         </div>
                     </div>

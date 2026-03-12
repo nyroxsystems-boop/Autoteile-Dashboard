@@ -23,6 +23,7 @@ export function PreisprofileView() {
     lastModified?: string;
   }[]>([]);
   const [showPriceGroupModal, setShowPriceGroupModal] = useState(false);
+  const [editingProfile, setEditingProfile] = useState<typeof profiles[0] | null>(null);
   const [calcBase, setCalcBase] = useState(100);
   const [calcMargin, setCalcMargin] = useState(25);
   const calcCustomerPrice = calcBase * (1 + calcMargin / 100);
@@ -47,7 +48,7 @@ export function PreisprofileView() {
               {t('prices_subtitle')}
             </p>
           </div>
-          <Button onClick={() => setShowPriceGroupModal(true)}>
+          <Button onClick={() => { setEditingProfile(null); setShowPriceGroupModal(true); }}>
             <Plus className="w-4 h-4 mr-2" />
             {t('prices_create')}
           </Button>
@@ -56,7 +57,8 @@ export function PreisprofileView() {
 
       <PriceGroupModal
         open={showPriceGroupModal}
-        onOpenChange={setShowPriceGroupModal}
+        onOpenChange={(open) => { setShowPriceGroupModal(open); if (!open) setEditingProfile(null); }}
+        editProfile={editingProfile}
       />
 
       {/* Info Box */}
@@ -144,6 +146,7 @@ export function PreisprofileView() {
                   <td className="px-6 py-4">
                     <div className="flex items-center justify-end gap-2">
                       <Button size="sm" variant="outline" onClick={() => {
+                        setEditingProfile(profile);
                         setShowPriceGroupModal(true);
                       }}
                       >

@@ -23,7 +23,7 @@ interface HeuteViewProps {
 export function HeuteView({ onNavigate }: HeuteViewProps) {
   const { summary, loading: summaryLoading } = useDashboardSummary();
   const { orders, loading: ordersLoading } = useOrders();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d' | '1y'>('30d');
 
   const chartData = summary?.revenueHistory || [];
@@ -181,7 +181,7 @@ export function HeuteView({ onNavigate }: HeuteViewProps) {
                       : 'text-muted-foreground hover:text-foreground'
                       }`}
                   >
-                    {range === '7d' ? '7T' : range === '30d' ? '30T' : range === '90d' ? '90T' : t('time_year_short')}
+                    {range === '7d' ? (lang === 'en' ? '7D' : '7T') : range === '30d' ? (lang === 'en' ? '30D' : '30T') : range === '90d' ? (lang === 'en' ? '90D' : '90T') : t('time_year_short')}
                   </button>
                 ))}
               </div>

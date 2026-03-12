@@ -6,20 +6,44 @@ import { Loader2, Percent, DollarSign } from 'lucide-react';
 import { toast } from 'sonner';
 import { useMerchantSettings } from '../hooks/useMerchantSettings';
 
+interface PriceProfile {
+    id: string | number;
+    name: string;
+    type: 'percentage' | 'fixed';
+    value: number;
+    isDefault?: boolean;
+    appliesTo?: string;
+    lastModified?: string;
+}
+
 interface PriceGroupModalProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onSuccess?: () => void;
+    editProfile?: PriceProfile | null;
 }
 
-export function PriceGroupModal({ open, onOpenChange, onSuccess }: PriceGroupModalProps) {
+export function PriceGroupModal({ open, onOpenChange, onSuccess, editProfile }: PriceGroupModalProps) {
+    const isEditing = !!editProfile;
     const { settings, update: updateMerchantSettings } = useMerchantSettings();
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
-        name: '',
-        type: 'percentage' as 'percentage' | 'fixed',
-        value: '',
-        appliesTo: 'all',
+        name: editProfile?.name || '',
+        type: (editProfile?.type || 'percentage') as 'percentage' | 'fixed',
+        value: editProfile?.value?.toString() || '',
+        appliesTo: editProfile?.appliesTo || 'all',
+    });
+
+    // Update form when editProfile changes
+    useState(() => {
+        if (editProfile) {
+            setFormData({
+                name: editProfile.name,
+                type: editProfile.type,
+                value: editProfile.value.toString(),
+                appliesTo: editProfile.appliesTo || 'all',
+            });
+        }
     });
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -34,20 +58,36 @@ export function PriceGroupModal({ open, onOpenChange, onSuccess }: PriceGroupMod
         try {
             // Save price group to merchant settings
             const existingProfiles = settings?.priceProfiles || [];
-            const newProfile = {
-                id: `pg_${Date.now()}`,
-                name: formData.name,
-                type: formData.type,
-                value: parseFloat(formData.value),
-                appliesTo: formData.appliesTo,
-                isDefault: existingProfiles.length === 0,
-                lastModified: new Date().toLocaleDateString('de-DE'),
-            };
-            await updateMerchantSettings({
-                priceProfiles: [...existingProfiles, newProfile],
-            });
+            if (isEditing && editProfile) {
+                // Update existing profile
+                const updatedProfiles = existingProfiles.map(p =>
+                    p.id === editProfile.id ? {
+                        ...p,
+                        name: formData.name,
+                        type: formData.type,
+                        value: parseFloat(formData.value),
+                        appliesTo: formData.appliesTo,
+                        lastModified: new Date().toLocaleDateString('de-DE'),
+                    } : p
+                );
+                await updateMerchantSettings({ priceProfiles: updatedProfiles });
+            } else {
+                // Create new profile
+                const newProfile = {
+                    id: `pg_${Date.now()}`,
+                    name: formData.name,
+                    type: formData.type,
+                    value: parseFloat(formData.value),
+                    appliesTo: formData.appliesTo,
+                    isDefault: existingProfiles.length === 0,
+                    lastModified: new Date().toLocaleDateString('de-DE'),
+                };
+                await updateMerchantSettings({
+                    priceProfiles: [...existingProfiles, newProfile],
+                });
+            }
 
-            toast.success(`Preisgruppe "${formData.name}" erstellt`);
+            toast.success(isEditing ? 'Preisgruppe aktualisiert' : `Preisgruppe "${formData.name}" erstellt`);
             onOpenChange(false);
             onSuccess?.();
 
@@ -70,7 +110,7 @@ export function PriceGroupModal({ open, onOpenChange, onSuccess }: PriceGroupMod
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <Percent className="w-5 h-5 text-primary" />
-                        Neue Preisgruppe anlegen
+                        {isEditing ? 'Preisgruppe bearbeiten' : 'Neue Preisgruppe anlegen'}
                     </DialogTitle>
                     <DialogDescription>
                         Definiere Margen und Preisaufschläge für WhatsApp-Angebote
@@ -158,7 +198,7 @@ export function PriceGroupModal({ open, onOpenChange, onSuccess }: PriceGroupMod
                                     Erstellen...
                                 </>
                             ) : (
-                                'Preisgruppe anlegen'
+                                'Preisgruppe speichern'
                             )}
                         </Button>
                     </DialogFooter>

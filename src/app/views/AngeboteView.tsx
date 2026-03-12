@@ -8,7 +8,7 @@ import { useI18n } from '../../i18n';
 import { useMerchantSettings } from '../hooks/useMerchantSettings';
 
 export function AngeboteView() {
-  const { orders, loading, refresh } = useOrders();
+  const { orders, loading } = useOrders();
   const { t } = useI18n();
   const { settings: merchantSettings } = useMerchantSettings();
   const hasWholesaler = (merchantSettings?.wholesalers?.length || 0) > 0;
@@ -110,7 +110,7 @@ export function AngeboteView() {
       </div>
 
       {/* KPI Cards */}
-      < div className="grid grid-cols-4 gap-6" >
+      <div className="grid grid-cols-4 gap-6">
         <div
           onClick={() => setActiveFilter(activeFilter === 'offers_ready' ? null : 'offers_ready')}
           className={`group p-4 rounded-xl border transition-all cursor-pointer ${activeFilter === 'offers_ready' ? 'border-amber-500 bg-amber-500/10' : 'border-border bg-card'}`}
@@ -165,10 +165,10 @@ export function AngeboteView() {
           <div className="text-xs font-semibold text-muted-foreground uppercase">{t('offers_empty')}</div>
           <div className="text-3xl font-bold text-slate-600">{stats.rejected}</div>
         </div>
-      </div >
+      </div>
 
       {/* Toolbar */}
-      < div className="flex items-center gap-3" >
+      <div className="flex items-center gap-3">
         <div className="flex-1 relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
@@ -179,7 +179,7 @@ export function AngeboteView() {
             className="w-full h-10 pl-10 pr-4 rounded-lg border border-border bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
           />
         </div>
-      </div >
+      </div>
 
       {/* List */}
       <div className="space-y-6">
@@ -272,6 +272,6 @@ export function AngeboteView() {
           </div>
         ))}
       </div>
-    </div >
+    </div>
   );
 }

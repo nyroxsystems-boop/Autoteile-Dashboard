@@ -164,7 +164,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setUser(null);
             setToken(null);
             setTenant(null);
-            navigate('/auth');
+            navigate('/');
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [API_BASE, clearAllAuth, navigate, saveSession]);
@@ -276,7 +276,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         saveSession(session);
         scheduleRefresh(expiresAt, session.refreshToken);
 
-        navigate('/overview');
+        navigate('/bot/heute');
     }, [navigate, saveSession, scheduleRefresh]);
 
     const logout = useCallback(() => {
@@ -284,7 +284,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(null);
         setTenant(null);
         clearAllAuth();
-        navigate('/auth');
+        navigate('/');
     }, [clearAllAuth, navigate]);
 
     const isAuthenticated = !!user && !!token;
@@ -317,7 +317,7 @@ export function RequireAuth({ children }: { children: JSX.Element }) {
     if (loading) return <div>Loading...</div>;
 
     if (!isAuthenticated) {
-        return <Navigate to="/auth" state={{ from: location }} replace />;
+        return <Navigate to="/" state={{ from: location }} replace />;
     }
 
     return children;

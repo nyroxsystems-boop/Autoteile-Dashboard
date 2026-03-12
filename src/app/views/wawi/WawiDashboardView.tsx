@@ -136,7 +136,7 @@ export function WawiDashboardView() {
                                 <div>
                                     <div className="font-semibold text-sm">{mv.part_name || `#${mv.part_id}`}</div>
                                     <div className="text-xs text-muted-foreground">
-                                        {mv.type === 'IN' ? '📥 Zugang' : mv.type === 'OUT' ? '📤 Abgang' : mv.type === 'TRANSFER' ? '🔄 Transfer' : '✏️ Korrektur'}
+                                        {mv.type === 'IN' ? `📥 ${t('wawi_movement_in')}` : mv.type === 'OUT' ? `📤 ${t('wawi_movement_out')}` : mv.type === 'TRANSFER' ? `🔄 ${t('wawi_movement_transfer')}` : `✏️ ${t('wawi_movement_correction')}`}
                                         {mv.reference && ` · ${mv.reference}`}
                                     </div>
                                 </div>
