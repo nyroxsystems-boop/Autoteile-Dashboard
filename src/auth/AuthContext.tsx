@@ -93,8 +93,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (session.tenant?.id) {
             localStorage.setItem(TENANT_KEY, session.tenant.id.toString());
         }
-        // Legacy key for backwards compat with older API clients
-        localStorage.setItem('token', session.token);
     }, []);
 
     const scheduleRefresh = useCallback((expiresAt: number, refreshTokenValue: string | null) => {

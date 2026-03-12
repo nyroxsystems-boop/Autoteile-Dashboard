@@ -4,8 +4,12 @@ import { BrowserRouter } from 'react-router-dom'
 import { AuthProvider } from './auth/AuthContext'
 import { I18nProvider } from './i18n'
 import { ErrorBoundary } from './app/components/ErrorBoundary'
+import { errorTracker } from './app/services/errorTracker'
 import App from './app/App'
 import './styles/index.css'
+
+// Initialize error tracking before rendering
+errorTracker.init();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>

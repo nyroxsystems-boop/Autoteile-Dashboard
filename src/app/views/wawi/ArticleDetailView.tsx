@@ -56,6 +56,20 @@ export function ArticleDetailView() {
         }
     };
 
+    const handleDelete = async () => {
+        if (!article || !id) return;
+        const confirmed = window.confirm(`Artikel "${article.name}" wirklich löschen? Dies kann nicht rückgängig gemacht werden.`);
+        if (!confirmed) return;
+        try {
+            await wawiService.deleteArticle(Number(id));
+            toast.success(`Artikel "${article.name}" wurde gelöscht.`);
+            navigate(-1);
+        } catch (err) {
+            console.error('Failed to delete article', err);
+            toast.error('Fehler beim Löschen des Artikels.');
+        }
+    };
+
     if (loading) return <div className="p-20 text-center animate-pulse">{t('wawi_loading')}</div>;
     if (!article) return <div className="p-20 text-center">Artikel nicht gefunden.</div>;
 
@@ -90,7 +104,7 @@ export function ArticleDetailView() {
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
-                    <Button variant="outline" size="sm" className="rounded-xl">
+                    <Button variant="outline" size="sm" className="rounded-xl" onClick={() => toast.info('Inline-Bearbeitung kommt bald. Nutze InvenTree für vollständige Bearbeitung.')}>
                         <Edit className="w-4 h-4 mr-2" /> Bearbeiten
                     </Button>
                     <Button size="sm" className="bg-primary hover:bg-primary/90 text-white rounded-xl">
@@ -365,7 +379,7 @@ export function ArticleDetailView() {
                             <Button variant="outline" className="justify-start rounded-xl h-11">
                                 <ExternalLink className="w-4 h-4 mr-2" /> InvenTree öffnen
                             </Button>
-                            <Button variant="outline" className="justify-start rounded-xl h-11 text-red-500 hover:text-red-600 hover:bg-red-50 border-dashed">
+                            <Button variant="outline" className="justify-start rounded-xl h-11 text-red-500 hover:text-red-600 hover:bg-red-50 border-dashed" onClick={handleDelete}>
                                 <Trash2 className="w-4 h-4 mr-2" /> Artikel löschen
                             </Button>
                         </div>
