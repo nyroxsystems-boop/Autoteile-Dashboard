@@ -186,22 +186,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const session = loadSession();
 
             if (!session) {
-                // Check for legacy token migration
-                const legacyToken = localStorage.getItem('authToken')
-                    || localStorage.getItem('token')
-                    || localStorage.getItem(TOKEN_KEY);
+                // Check for existing token (single source of truth)
+                const existingToken = localStorage.getItem(TOKEN_KEY);
 
-                if (legacyToken) {
+                if (existingToken) {
                     // Migrate: verify with backend and create proper session
                     try {
                         const res = await fetch(`${API_BASE}/api/auth/me/`, {
-                            headers: { Authorization: `Token ${legacyToken}` },
+                            headers: { Authorization: `Token ${existingToken}` },
                         });
                         if (res.ok) {
                             const userData = await res.json();
                             const expiresAt = Date.now() + (DEFAULT_EXPIRY_HOURS * 3600 * 1000);
                             const newSession: AuthSession = {
-                                token: legacyToken,
+                                token: existingToken,
                                 refreshToken: localStorage.getItem('auth_refresh_token'),
                                 user: {
                                     id: userData.user?.id || '',
@@ -214,7 +212,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                                 expiresAt,
                             };
                             saveSession(newSession);
-                            setToken(legacyToken);
+                            setToken(existingToken);
                             setUser(newSession.user);
                             setTenant(newSession.tenant);
                             scheduleRefresh(expiresAt, newSession.refreshToken);
