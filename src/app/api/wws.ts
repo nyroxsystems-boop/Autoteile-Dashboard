@@ -259,13 +259,18 @@ export async function getSuppliers(): Promise<Supplier[]> {
 
 // ── Auth (Bot-Service) ────────────────────────────────────────────────────────
 
-export async function login(credentials: { email?: string, username?: string, password?: string, tenant?: string }): Promise<any> {
+export async function login(credentials: { email?: string, username?: string, password?: string, tenant?: string }): Promise<{
+    access: string;
+    refresh?: string;
+    user?: { id: string; email: string; username: string; role: string };
+    tenant?: { id: number; name: string; slug: string } | null;
+    expires_in?: number;
+}> {
     const device_id = getDeviceId();
-    const data = await apiFetch<any>('/api/auth/login', {
+    return apiFetch('/api/auth/login', {
         method: 'POST',
         body: JSON.stringify({ ...credentials, device_id }),
     });
-    return data;
 }
 
 export async function getMeTenants(): Promise<Array<{ id: number; tenant: number; tenant_name: string; role: string }>> {
@@ -338,12 +343,14 @@ export async function getBotHealth(): Promise<{ status: string }> {
 }
 
 export async function getMerchantSettings(): Promise<MerchantSettings> {
-    const tenantId = getTenantId() || '1';
+    const tenantId = getTenantId();
+    if (!tenantId) throw new Error('No tenant selected');
     return apiFetch<MerchantSettings>(`/api/dashboard/merchant/settings/${tenantId}`);
 }
 
 export async function updateMerchantSettings(settings: Partial<MerchantSettings>): Promise<{ ok: boolean }> {
-    const tenantId = getTenantId() || '1';
+    const tenantId = getTenantId();
+    if (!tenantId) throw new Error('No tenant selected');
     return apiFetch<{ ok: boolean }>(`/api/dashboard/merchant/settings/${tenantId}`, {
         method: 'POST',
         body: JSON.stringify(settings),
@@ -440,8 +447,8 @@ export async function updateBillingSettings(settings: Partial<BillingSettings>):
 
 // ── Order-to-Invoice ──────────────────────────────────────────────────────────
 
-export async function createInvoiceFromOrder(orderId: string): Promise<any> {
-    return apiFetch(`/api/invoices/from-order/${orderId}`, {
+export async function createInvoiceFromOrder(orderId: string): Promise<Invoice> {
+    return apiFetch<Invoice>(`/api/invoices/from-order/${orderId}`, {
         method: 'POST',
     });
 }

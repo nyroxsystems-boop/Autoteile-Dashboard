@@ -1,0 +1,3 @@
+# PartsUnion Dashboard - Private SaaS Application
+User-agent: *
+Disallow: /

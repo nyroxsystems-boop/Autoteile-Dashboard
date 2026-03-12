@@ -1,10 +1,10 @@
 /// <reference types="vite/client" />
 
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://autoteile-bot-service-production.up.railway.app';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 /** Centralized token access — single point for all auth token reads */
 export function getAuthToken(): string | null {
-    return localStorage.getItem('token') || localStorage.getItem('auth_access_token');
+    return localStorage.getItem('auth_access_token');
 }
 
 /** Centralized tenant ID access — single point for all tenant ID reads */
@@ -65,13 +65,13 @@ export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): 
             credentials: 'include',  // Send httpOnly cookies with every request
         });
 
-        // Retry on 429 Too Many Requests with exponential backoff
-        if (response.status === 429) {
+        // Retry on 429 Too Many Requests or 5xx Server Errors with exponential backoff
+        if (response.status === 429 || (response.status >= 500 && response.status < 600)) {
             const retryAfter = response.headers.get('Retry-After');
             const waitMs = retryAfter
                 ? parseInt(retryAfter, 10) * 1000
                 : Math.pow(2, attempt) * 1000; // 1s, 2s, 4s
-            // debug(`[API] 429 on ${endpoint}, retry ${attempt + 1}/${MAX_RETRIES} in ${waitMs}ms`);
+            lastError = new ApiError(`Server error ${response.status} on ${endpoint}`, response.status);
             await new Promise(resolve => setTimeout(resolve, waitMs));
             continue;
         }

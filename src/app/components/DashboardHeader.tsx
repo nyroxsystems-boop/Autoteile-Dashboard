@@ -5,13 +5,7 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import { useI18n } from '../../i18n';
-
-interface TenantMembership {
-  id: number;
-  tenant: number;
-  tenant_name: string;
-  role: 'owner' | 'admin' | 'member';
-}
+import type { TenantMembership } from '../hooks/useTenants';
 
 interface DashboardHeaderProps {
   theme: 'light' | 'dark';
