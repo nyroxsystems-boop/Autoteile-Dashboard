@@ -28,7 +28,7 @@ export function SupplierRatingView() {
             ]);
             setRatings(r);
             setSuppliers(s);
-        } catch { console.error('Failed to load'); }
+        } catch { console.error('Failed to load'); toast.error('Laden fehlgeschlagen'); }
         finally { setLoading(false); }
     };
 

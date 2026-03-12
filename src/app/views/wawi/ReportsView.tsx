@@ -29,13 +29,12 @@ export function ReportsView() {
         setLoading(true);
         try {
             const articles = await wawiService.getArticles();
-            const stats = await wawiService.getStats();
 
             // Calculate real inventory value using purchase_price or sale_price from actual article data
             const totalValue = articles.reduce((sum, a) => {
                 const unitPrice = a.purchase_price || a.sale_price || 0;
                 return sum + (a.total_in_stock * unitPrice);
-            }, []);
+            }, 0);
 
             // Identify critical stock
             const critical = articles.filter(a => a.total_in_stock < a.minimum_stock);
@@ -77,7 +76,7 @@ export function ReportsView() {
             const annualizedTurnover = turnoverInPeriod * (365 / lookbackDays);
 
             setReportData({
-                totalInventoryValue: typeof totalValue === 'number' ? totalValue : stats.totalValue || 0,
+                totalInventoryValue: totalValue,
                 totalArticles: articles.length,
                 lowStockArticles: critical.length,
                 averageTurnover: annualizedTurnover,
@@ -86,7 +85,7 @@ export function ReportsView() {
             });
         } catch (err) {
             console.error('Failed to load report data', err);
-            toast.error(t('error'));
+            toast.error('Fehler beim Laden der Berichtsdaten');
         } finally {
             setLoading(false);
         }
@@ -123,7 +122,7 @@ export function ReportsView() {
             }
         } catch (err) {
             console.error('Export failed', err);
-            toast.error(t('error'));
+            toast.error('Export fehlgeschlagen');
         } finally {
             setExporting(false);
         }

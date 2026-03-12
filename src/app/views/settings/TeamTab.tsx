@@ -62,6 +62,7 @@ export function TeamTab() {
                 setTeamMembers([]);
             } else {
                 console.error('Failed to load team:', err);
+                toast.error('Fehler beim Laden des Teams');
             }
         }
     };

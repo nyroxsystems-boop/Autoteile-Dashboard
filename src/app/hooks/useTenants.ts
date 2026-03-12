@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { getMeTenants } from '../api/wws';
 import { getAuthToken, getTenantId } from '../api/client';
+import { toast } from 'sonner';
 
 export interface TenantMembership {
     id: number;
@@ -48,6 +49,7 @@ export function useTenants() {
                 }
             } catch (err) {
                 console.error('Failed to load tenants', err);
+                toast.error('Fehler beim Laden der Teams');
                 // If API fails, keep empty state - don't fall back to mock data
             } finally {
                 setLoading(false);
