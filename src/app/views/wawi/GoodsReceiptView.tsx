@@ -29,8 +29,8 @@ export function GoodsReceiptView() {
             const orders = await wawiService.getPurchaseOrders();
             // Filter for confirmed/sent orders only
             setPurchaseOrders(orders.filter(o => ['sent', 'confirmed'].includes(o.status)));
-        } catch (err) {
-            console.error('Failed to load orders', err);
+        } catch {
+            // load error handled silently
         } finally {
             setLoading(false);
         }
@@ -70,18 +70,17 @@ export function GoodsReceiptView() {
                         quantity: item.received_quantity,
                         reference: `PO-${selectedPO.order_number}`,
                         to_location: item.location_id,
-                        notes: `Wareneingang von ${selectedPO.supplier_name}`,
+                        notes: `${t('wawi_goods_receipt')} ${selectedPO.supplier_name}`,
                     });
                 }
             }
 
-            toast.success('Wareneingang erfolgreich gebucht!');
+            toast.success(t('wawi_receipt_success'));
             setSelectedPO(null);
             setReceiptItems([]);
             loadOrders();
         } catch (err) {
-            toast.error('Fehler beim Buchen');
-            console.error(err);
+            toast.error(t('error'));
         }
     };
 
@@ -93,7 +92,7 @@ export function GoodsReceiptView() {
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">{t('wawi_goods_receipt')}</h1>
                     <p className="text-muted-foreground mt-1">
-                        Empfange Bestellungen und aktualisiere den Lagerbestand.
+                        {t('wawi_receipt_sub')}
                     </p>
                 </div>
                 {selectedPO && (
@@ -103,7 +102,7 @@ export function GoodsReceiptView() {
                         className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold"
                     >
                         <CheckCircle2 className="w-4 h-4 mr-2" />
-                        Wareneingang buchen ({totalReceived} Artikel)
+                        {t('wawi_book_receipt')} ({totalReceived} {t('wawi_article_col')})
                     </Button>
                 )}
             </div>
@@ -112,21 +111,21 @@ export function GoodsReceiptView() {
                 <>
                     <div className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
                         <div className="p-4 border-b border-border bg-muted/20">
-                            <h3 className="font-bold">Offene Bestellungen</h3>
+                            <h3 className="font-bold">{t('wawi_open_orders')}</h3>
                             <p className="text-sm text-muted-foreground mt-1">
-                                Wähle eine Bestellung zum Empfang aus
+                                {t('wawi_select_order')}
                             </p>
                         </div>
 
                         <div className="divide-y divide-border">
                             {loading ? (
                                 <div className="p-12 text-center text-muted-foreground animate-pulse">
-                                    Lade Bestellungen...
+                                    {t('wawi_loading')}...
                                 </div>
                             ) : purchaseOrders.length === 0 ? (
                                 <div className="p-12 text-center text-muted-foreground">
                                     <TruckIcon className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                                    <p className="text-sm italic">Keine offenen Bestellungen</p>
+                                    <p className="text-sm italic">{t('wawi_no_open_orders')}</p>
                                 </div>
                             ) : (
                                 purchaseOrders.map(po => (
@@ -143,21 +142,21 @@ export function GoodsReceiptView() {
                                                         ? 'bg-emerald-500/10 text-emerald-600'
                                                         : 'bg-blue-500/10 text-blue-600'
                                                         }`}>
-                                                        {po.status === 'confirmed' ? 'Bestätigt' : 'Gesendet'}
+                                                        {po.status === 'confirmed' ? t('wawi_confirmed') : t('wawi_sent')}
                                                     </span>
                                                 </div>
                                                 <div className="text-sm text-muted-foreground mb-1">
-                                                    Lieferant: <span className="font-medium">{po.supplier_name}</span>
+                                                    {t('suppliers_name')}: <span className="font-medium">{po.supplier_name}</span>
                                                 </div>
                                                 <div className="flex items-center gap-4 text-xs text-muted-foreground">
                                                     <div className="flex items-center gap-1">
                                                         <Calendar className="w-3 h-3" />
-                                                        Bestellt: {new Date(po.order_date).toLocaleDateString('de-DE')}
+                                                        {t('wawi_ordered')}: {new Date(po.order_date).toLocaleDateString('de-DE')}
                                                     </div>
                                                     {po.expected_delivery && (
                                                         <div className="flex items-center gap-1">
                                                             <TruckIcon className="w-3 h-3" />
-                                                            Erwartet: {new Date(po.expected_delivery).toLocaleDateString('de-DE')}
+                                                            {t('wawi_expected')}: {new Date(po.expected_delivery).toLocaleDateString('de-DE')}
                                                         </div>
                                                     )}
                                                 </div>
@@ -179,7 +178,7 @@ export function GoodsReceiptView() {
                         <div className="flex items-start justify-between">
                             <div>
                                 <h3 className="font-bold text-xl text-primary mb-1">{selectedPO.order_number}</h3>
-                                <p className="text-sm text-primary/70">von {selectedPO.supplier_name}</p>
+                                <p className="text-sm text-primary/70">{t('wawi_from')} {selectedPO.supplier_name}</p>
                             </div>
                             <Button
                                 variant="outline"
@@ -189,7 +188,7 @@ export function GoodsReceiptView() {
                                 }}
                                 className="rounded-xl"
                             >
-                                Abbrechen
+                                {t('wawi_cancel')}
                             </Button>
                         </div>
                     </div>
@@ -199,11 +198,11 @@ export function GoodsReceiptView() {
                             <table className="w-full">
                                 <thead>
                                     <tr className="text-left text-xs uppercase tracking-wider text-muted-foreground font-semibold bg-muted/30">
-                                        <th className="px-6 py-4">Artikel</th>
-                                        <th className="px-6 py-4">Bestellt</th>
-                                        <th className="px-6 py-4">Empfangen</th>
-                                        <th className="px-6 py-4">Lagerort</th>
-                                        <th className="px-6 py-4">Preis</th>
+                                        <th className="px-6 py-4">{t('wawi_article_col')}</th>
+                                        <th className="px-6 py-4">{t('wawi_ordered')}</th>
+                                        <th className="px-6 py-4">{t('wawi_received')}</th>
+                                        <th className="px-6 py-4">{t('wawi_location')}</th>
+                                        <th className="px-6 py-4">{t('orders_price')}</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border">
@@ -272,13 +271,13 @@ export function GoodsReceiptView() {
                             <div className="flex items-center gap-3">
                                 <Printer className="w-8 h-8 text-muted-foreground/50" />
                                 <div>
-                                    <h4 className="font-bold text-sm">Labels drucken (Optional)</h4>
-                                    <p className="text-xs text-muted-foreground">Lager-Etiketten für empfangene Artikel</p>
+                                    <h4 className="font-bold text-sm">{t('wawi_print_labels')}</h4>
+                                    <p className="text-xs text-muted-foreground">{t('wawi_print_labels_desc')}</p>
                                 </div>
                             </div>
                             <Button variant="outline" className="rounded-xl" disabled>
                                 <Printer className="w-4 h-4 mr-2" />
-                                Etiketten drucken
+                                {t('wawi_print_labels')}
                             </Button>
                         </div>
                     </div>

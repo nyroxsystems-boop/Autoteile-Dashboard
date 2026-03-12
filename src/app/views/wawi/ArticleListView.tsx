@@ -6,6 +6,7 @@ import { StatusChip } from '../../components/StatusChip';
 import { wawiService, Part } from '../../services/wawiService';
 import { ArticleFormModal, type ArticleFormData } from '../../components/ArticleFormModal';
 import { useI18n } from '../../../i18n';
+import { toast } from 'sonner';
 
 export function ArticleListView() {
     const [articles, setArticles] = useState<Part[]>([]);
@@ -34,10 +35,14 @@ export function ArticleListView() {
         .filter(a => searchTerm ? (a.name.toLowerCase().includes(searchTerm.toLowerCase()) || a.IPN.toLowerCase().includes(searchTerm.toLowerCase())) : true)
         .sort((a, b) => a.name.localeCompare(b.name));
 
-    const handleCreateArticle = (_articleData: ArticleFormData) => {
-        // Creating article with provided data
-        // In a real app, this would trigger an API call
-        loadArticles();
+    const handleCreateArticle = async (articleData: ArticleFormData) => {
+        try {
+            await wawiService.createArticle(articleData as unknown as Partial<Part>);
+            toast.success(t('wawi_article_created'));
+            loadArticles();
+        } catch {
+            toast.error(t('error'));
+        }
     };
 
     return (
@@ -52,11 +57,11 @@ export function ArticleListView() {
                 <div className="flex items-center gap-3">
                     <Button variant="outline" className="rounded-xl font-medium">
                         <Download className="w-4 h-4 mr-2" />
-                        Export
+                        {t('wawi_export')}
                     </Button>
                     <Button className="bg-primary text-white rounded-xl font-bold" onClick={() => setIsCreateModalOpen(true)}>
                         <Plus className="w-4 h-4 mr-2" />
-                        Neuer Artikel
+                        {t('wawi_new_article')}
                     </Button>
                 </div>
             </div>

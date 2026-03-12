@@ -5,12 +5,12 @@ import { Button } from '../../components/ui/button';
 import { wawiService, type ReturnItem } from '../../services/wawiService';
 import { useI18n } from '../../../i18n';
 
-const STATUS_MAP: Record<string, { label: string; color: string; icon: LucideIcon }> = {
-    requested: { label: 'Angefragt', color: 'bg-yellow-100 text-yellow-800 border-yellow-200', icon: RotateCcw },
-    approved: { label: 'Genehmigt', color: 'bg-blue-100 text-blue-800 border-blue-200', icon: CheckCircle2 },
-    received: { label: 'Empfangen', color: 'bg-emerald-100 text-emerald-800 border-emerald-200', icon: PackageCheck },
-    refunded: { label: 'Erstattet', color: 'bg-purple-100 text-purple-800 border-purple-200', icon: CreditCard },
-    rejected: { label: 'Abgelehnt', color: 'bg-red-100 text-red-800 border-red-200', icon: XCircle },
+const STATUS_KEYS: Record<string, { key: string; color: string; icon: LucideIcon }> = {
+    requested: { key: 'wawi_ret_requested', color: 'bg-yellow-100 text-yellow-800 border-yellow-200', icon: RotateCcw },
+    approved: { key: 'wawi_ret_approved', color: 'bg-blue-100 text-blue-800 border-blue-200', icon: CheckCircle2 },
+    received: { key: 'wawi_ret_received', color: 'bg-emerald-100 text-emerald-800 border-emerald-200', icon: PackageCheck },
+    refunded: { key: 'wawi_ret_refunded', color: 'bg-purple-100 text-purple-800 border-purple-200', icon: CreditCard },
+    rejected: { key: 'wawi_ret_rejected', color: 'bg-red-100 text-red-800 border-red-200', icon: XCircle },
 };
 
 export function ReturnsView() {
@@ -28,7 +28,7 @@ export function ReturnsView() {
         try {
             const data = await wawiService.getReturns(filter || undefined);
             setReturns(data);
-        } catch { console.error('Failed to load returns'); }
+        } catch { /* handled silently */ }
         finally { setLoading(false); }
     };
 
@@ -38,9 +38,9 @@ export function ReturnsView() {
             if (action === 'receive') await wawiService.receiveReturn(id, true);
             if (action === 'refund') await wawiService.refundReturn(id, undefined, true);
             if (action === 'reject') await wawiService.rejectReturn(id);
-            toast.success(`Retoure ${action === 'approve' ? 'genehmigt' : action === 'receive' ? 'empfangen' : action === 'refund' ? 'erstattet' : 'abgelehnt'}`);
+            toast.success(t(action === 'approve' ? 'wawi_ret_approved' : action === 'receive' ? 'wawi_ret_received' : action === 'refund' ? 'wawi_ret_refunded' : 'wawi_ret_rejected'));
             loadReturns();
-        } catch { toast.error('Aktion fehlgeschlagen'); }
+        } catch { toast.error(t('error')); }
     };
 
     return (
@@ -48,10 +48,10 @@ export function ReturnsView() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">{t('wawi_returns_title')}</h1>
-                    <p className="text-muted-foreground mt-2">Retourenmanagement mit Workflow und Gutschriften.</p>
+                    <p className="text-muted-foreground mt-2">{t('wawi_returns_sub')}</p>
                 </div>
                 <Button className="rounded-xl" onClick={() => setShowCreate(!showCreate)}>
-                    <Plus className="w-4 h-4 mr-2" /> Neue Retoure
+                    <Plus className="w-4 h-4 mr-2" /> {t('wawi_new_return')}
                 </Button>
             </div>
 
@@ -65,7 +65,7 @@ export function ReturnsView() {
                         className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all border ${filter === f ? 'bg-primary text-primary-foreground border-primary' : 'bg-card border-border text-muted-foreground hover:bg-muted'
                             }`}
                     >
-                        {f === '' ? 'Alle' : STATUS_MAP[f]?.label || f}
+                        {f === '' ? t('wawi_all') : t(STATUS_KEYS[f]?.key || f)}
                     </button>
                 ))}
             </div>
@@ -73,19 +73,19 @@ export function ReturnsView() {
             {/* Create Form */}
             {showCreate && (
                 <div className="bg-card border border-border rounded-3xl p-6 shadow-sm space-y-4">
-                    <h3 className="font-bold">Neue Retoure anlegen</h3>
+                    <h3 className="font-bold">{t('wawi_create_return')}</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                        <input className="px-4 py-3 rounded-xl border border-border bg-background text-sm" placeholder="Produkt-ID" value={form.product} onChange={e => setForm({ ...form, product: e.target.value })} />
-                        <input type="number" className="px-4 py-3 rounded-xl border border-border bg-background text-sm" placeholder="Menge" value={form.quantity} onChange={e => setForm({ ...form, quantity: Number(e.target.value) })} />
-                        <input className="px-4 py-3 rounded-xl border border-border bg-background text-sm" placeholder="Grund *" value={form.reason} onChange={e => setForm({ ...form, reason: e.target.value })} />
+                        <input className="px-4 py-3 rounded-xl border border-border bg-background text-sm" placeholder={t('wawi_product_id')} value={form.product} onChange={e => setForm({ ...form, product: e.target.value })} />
+                        <input type="number" className="px-4 py-3 rounded-xl border border-border bg-background text-sm" placeholder={t('wawi_quantity')} value={form.quantity} onChange={e => setForm({ ...form, quantity: Number(e.target.value) })} />
+                        <input className="px-4 py-3 rounded-xl border border-border bg-background text-sm" placeholder={`${t('wawi_reason')} *`} value={form.reason} onChange={e => setForm({ ...form, reason: e.target.value })} />
                         <Button className="rounded-xl" onClick={async () => {
-                            if (!form.reason) { toast.error('Grund erforderlich'); return; }
+                            if (!form.reason) { toast.error(t('wawi_reason_required')); return; }
                             try {
                                 await wawiService.createReturn({ product: Number(form.product) || undefined, quantity: form.quantity, reason: form.reason, notes: form.notes });
-                                toast.success('Retoure angelegt');
+                                toast.success(t('wawi_return_created'));
                                 setShowCreate(false);
                                 loadReturns();
-                            } catch { toast.error('Fehler'); }
+                            } catch { toast.error(t('error')); }
                         }}>{t('wawi_new_return')}</Button>
                     </div>
                 </div>
@@ -94,13 +94,13 @@ export function ReturnsView() {
             {/* Returns List */}
             <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-sm">
                 {loading ? (
-                    <div className="p-12 text-center text-muted-foreground animate-pulse">Lade Retouren...</div>
+                    <div className="p-12 text-center text-muted-foreground animate-pulse">{t('wawi_loading')}...</div>
                 ) : returns.length === 0 ? (
-                    <div className="p-12 text-center text-muted-foreground italic">Keine Retouren gefunden.</div>
+                    <div className="p-12 text-center text-muted-foreground italic">{t('wawi_no_returns')}</div>
                 ) : (
                     <div className="divide-y divide-border">
                         {returns.map((ret) => {
-                            const st = STATUS_MAP[ret.status] || STATUS_MAP.requested;
+                            const st = STATUS_KEYS[ret.status] || STATUS_KEYS.requested;
                             const StIcon = st.icon;
                             return (
                                 <div key={ret.id} className="p-5 hover:bg-muted/20 transition-colors">
@@ -111,7 +111,7 @@ export function ReturnsView() {
                                             </div>
                                             <div>
                                                 <div className="font-semibold text-sm">
-                                                    Retoure #{ret.id} — {ret.product_name || ret.product_ipn || 'Unbekannt'}
+                                                    Retoure #{ret.id} — {ret.product_name || ret.product_ipn || t('wawi_unknown')}
                                                 </div>
                                                 <div className="text-xs text-muted-foreground mt-0.5">
                                                     {ret.quantity}x · {ret.reason} {ret.contact_name && `· ${ret.contact_name}`}
@@ -119,18 +119,18 @@ export function ReturnsView() {
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${st.color}`}>{st.label}</span>
+                                            <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${st.color}`}>{t(st.key)}</span>
                                             {ret.status === 'requested' && (
                                                 <>
-                                                    <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={() => handleAction(ret.id, 'approve')}>Genehmigen</Button>
-                                                    <Button size="sm" variant="outline" className="rounded-xl text-xs text-red-500 border-red-200 hover:bg-red-50" onClick={() => handleAction(ret.id, 'reject')}>Ablehnen</Button>
+                                                    <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={() => handleAction(ret.id, 'approve')}>{t('wawi_approve')}</Button>
+                                                    <Button size="sm" variant="outline" className="rounded-xl text-xs text-red-500 border-red-200 hover:bg-red-50" onClick={() => handleAction(ret.id, 'reject')}>{t('wawi_reject')}</Button>
                                                 </>
                                             )}
                                             {ret.status === 'approved' && (
-                                                <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={() => handleAction(ret.id, 'receive')}>Empfangen + Einlagern</Button>
+                                                <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={() => handleAction(ret.id, 'receive')}>{t('wawi_receive_stock')}</Button>
                                             )}
                                             {ret.status === 'received' && (
-                                                <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={() => handleAction(ret.id, 'refund')}>Erstatten + Gutschrift</Button>
+                                                <Button size="sm" variant="outline" className="rounded-xl text-xs" onClick={() => handleAction(ret.id, 'refund')}>{t('wawi_refund_credit')}</Button>
                                             )}
                                         </div>
                                     </div>

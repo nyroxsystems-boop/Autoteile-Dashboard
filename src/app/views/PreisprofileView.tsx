@@ -29,7 +29,8 @@ export function PreisprofileView() {
 
   useEffect(() => {
     if (settings) {
-      setProfiles(settings.priceProfiles || []);
+      const fromSettings = (settings.priceProfiles || []) as typeof profiles;
+      setProfiles(fromSettings);
     }
   }, [settings]);
 
@@ -117,7 +118,7 @@ export function PreisprofileView() {
                         {profile.isDefault && (
                           <StatusChip
                             status="success"
-                            label="Standard"
+                            label={t('prices_default')}
                             size="sm"
                           />
                         )}
@@ -142,15 +143,20 @@ export function PreisprofileView() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center justify-end gap-2">
-                      <Button size="sm" variant="outline" onClick={() => toast.info(`Bearbeitung von "${profile.name}" wird bald verfügbar`)}
+                      <Button size="sm" variant="outline" onClick={() => {
+                        setShowPriceGroupModal(true);
+                      }}
                       >
                         <Edit2 className="w-3.5 h-3.5 mr-1.5" />
-                        Bearbeiten
+                        {t('prices_edit')}
                       </Button>
                       {!profile.isDefault && (
-                        <Button size="sm" variant="outline" onClick={() => {
-                          setProfiles(profiles.filter(p => p.id !== profile.id));
-                          toast.success(`"${profile.name}" entfernt`);
+                        <Button size="sm" variant="outline" onClick={async () => {
+                          if (!confirm(t('prices_delete_confirm'))) return;
+                          const updated = profiles.filter(p => p.id !== profile.id);
+                          setProfiles(updated);
+                          await _update({ priceProfiles: updated });
+                          toast.success(t('prices_deleted'));
                         }}>
                           <Trash2 className="w-3.5 h-3.5 text-destructive" />
                         </Button>
@@ -246,7 +252,7 @@ export function PreisprofileView() {
       {/* Info Box */}
       <div className="p-5 bg-primary/5 border border-primary/20 rounded-xl">
         <p className="text-muted-foreground leading-relaxed">
-          Preisprofile werden in der Reihenfolge ihrer Spezifität angewendet. Spezifischere Profile (z.B. "OEM &gt; €200") haben Vorrang vor allgemeinen Profilen.
+          {t('prices_priority_desc')}
         </p>
       </div>
     </div>

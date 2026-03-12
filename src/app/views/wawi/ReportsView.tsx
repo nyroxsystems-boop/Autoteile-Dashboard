@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown, DollarSign, Package, AlertTriangle, Download } from 'lucide-react';
 import { Button } from '../../components/ui/button';
-import { wawiService, Part } from '../../services/wawiService';
+import { wawiService, Part, StockMovement } from '../../services/wawiService';
 import { useI18n } from '../../../i18n';
+import { toast } from 'sonner';
 
 interface ReportData {
     totalInventoryValue: number;
@@ -18,6 +19,7 @@ export function ReportsView() {
     const { t } = useI18n();
     const [loading, setLoading] = useState(true);
     const [dateRange, setDateRange] = useState('30d');
+    const [exporting, setExporting] = useState(false);
 
     useEffect(() => {
         loadReportData();
@@ -27,35 +29,104 @@ export function ReportsView() {
         setLoading(true);
         try {
             const articles = await wawiService.getArticles();
-            await wawiService.getStats(); // Keep stats updated
+            const stats = await wawiService.getStats();
 
-            // Calculate inventory value (placeholder - needs backend support for purchase prices)
-            const totalValue = articles.reduce((sum, a) => sum + (a.total_in_stock * 10), 0); // Mock price
+            // Calculate real inventory value using purchase_price or sale_price from actual article data
+            const totalValue = articles.reduce((sum, a) => {
+                const unitPrice = a.purchase_price || a.sale_price || 0;
+                return sum + (a.total_in_stock * unitPrice);
+            }, []);
 
             // Identify critical stock
             const critical = articles.filter(a => a.total_in_stock < a.minimum_stock);
 
-            // Mock top movers
-            const topMovers = articles.slice(0, 5);
+            // Calculate days for date range
+            const daysMap: Record<string, number> = { '7d': 7, '30d': 30, '90d': 90, 'year': 365 };
+            const lookbackDays = daysMap[dateRange] || 30;
+
+            // Get real movement data to determine top movers
+            let movements: StockMovement[] = [];
+            try {
+                movements = await wawiService.getRecentMovements(200);
+            } catch { /* graceful fallback */ }
+
+            // Filter movements by date range
+            const cutoffDate = new Date();
+            cutoffDate.setDate(cutoffDate.getDate() - lookbackDays);
+            const filteredMovements = movements.filter(m =>
+                new Date(m.created_at) >= cutoffDate && m.type === 'OUT'
+            );
+
+            // Count outgoing quantities per part to find top movers
+            const partMovementCounts = new Map<number | string, number>();
+            filteredMovements.forEach(m => {
+                const current = partMovementCounts.get(m.part_id) || 0;
+                partMovementCounts.set(m.part_id, current + m.quantity);
+            });
+
+            // Sort articles by movement count to get real top movers
+            const topMovers = articles
+                .map(a => ({ ...a, movementCount: partMovementCounts.get(Number(a.id)) || 0 }))
+                .sort((a, b) => b.movementCount - a.movementCount)
+                .slice(0, 5);
+
+            // Calculate average turnover rate: total outgoing / avg stock (annualized)
+            const totalOutgoing = filteredMovements.reduce((sum, m) => sum + m.quantity, 0);
+            const avgStock = articles.reduce((sum, a) => sum + a.total_in_stock, 0) / Math.max(articles.length, 1);
+            const turnoverInPeriod = avgStock > 0 ? totalOutgoing / avgStock : 0;
+            const annualizedTurnover = turnoverInPeriod * (365 / lookbackDays);
 
             setReportData({
-                totalInventoryValue: totalValue,
+                totalInventoryValue: typeof totalValue === 'number' ? totalValue : stats.totalValue || 0,
                 totalArticles: articles.length,
                 lowStockArticles: critical.length,
-                averageTurnover: 2.5, // Mock
+                averageTurnover: annualizedTurnover,
                 topMovers,
                 criticalStock: critical,
             });
         } catch (err) {
             console.error('Failed to load report data', err);
+            toast.error(t('error'));
         } finally {
             setLoading(false);
         }
     };
 
-    const handleExport = (format: 'csv' | 'excel') => {
-        // Exporting report
-        // Placeholder for export functionality
+    const handleExport = async (format: 'csv' | 'datev') => {
+        setExporting(true);
+        try {
+            if (format === 'datev') {
+                // Use the existing DATEV export from wawiService
+                const daysMap: Record<string, number> = { '7d': 7, '30d': 30, '90d': 90, 'year': 365 };
+                const lookbackDays = daysMap[dateRange] || 30;
+                const from = new Date();
+                from.setDate(from.getDate() - lookbackDays);
+                await wawiService.exportDATEV(from.toISOString().split('T')[0], new Date().toISOString().split('T')[0]);
+                toast.success(t('wawi_export_success'));
+            } else {
+                // CSV export: generate from current report data
+                if (!reportData) return;
+                const csvRows = [
+                    ['Artikel', 'IPN', 'Bestand', 'Mindestbestand', 'Status'].join(';'),
+                    ...reportData.criticalStock.map(a =>
+                        [a.name, a.IPN, a.total_in_stock, a.minimum_stock, 'Kritisch'].join(';')
+                    ),
+                ];
+                const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `lager-bericht_${dateRange}.csv`;
+                a.click();
+                URL.revokeObjectURL(url);
+                toast.success(t('wawi_export_success'));
+            }
+        } catch (err) {
+            console.error('Export failed', err);
+            toast.error(t('error'));
+        } finally {
+            setExporting(false);
+        }
     };
 
     return (
@@ -64,7 +135,7 @@ export function ReportsView() {
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">{t('wawi_reports_title')}</h1>
                     <p className="text-muted-foreground mt-1">
-                        Lagerwert, Umschlag und kritische Bestände im Überblick.
+                        {t('wawi_reports_subtitle')}
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
@@ -80,18 +151,28 @@ export function ReportsView() {
                     </select>
                     <Button
                         variant="outline"
-                        onClick={() => handleExport('excel')}
+                        onClick={() => handleExport('csv')}
                         className="rounded-xl"
+                        disabled={exporting || !reportData}
                     >
                         <Download className="w-4 h-4 mr-2" />
-                        Exportieren
+                        {exporting ? t('wawi_exporting') : 'CSV'}
+                    </Button>
+                    <Button
+                        variant="outline"
+                        onClick={() => handleExport('datev')}
+                        className="rounded-xl"
+                        disabled={exporting}
+                    >
+                        <Download className="w-4 h-4 mr-2" />
+                        DATEV
                     </Button>
                 </div>
             </div>
 
             {loading ? (
                 <div className="p-20 text-center text-muted-foreground animate-pulse">
-                    Erstelle Berichte...
+                    {t('wawi_loading')}
                 </div>
             ) : reportData && (
                 <>
@@ -107,7 +188,7 @@ export function ReportsView() {
                             <div className="text-3xl font-bold text-foreground mb-1">
                                 {reportData.totalInventoryValue.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' })}
                             </div>
-                            <div className="text-sm text-muted-foreground">Lagerwert (Gesamt)</div>
+                            <div className="text-sm text-muted-foreground">{t('wawi_stock_value')}</div>
                         </div>
 
                         <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
@@ -119,7 +200,7 @@ export function ReportsView() {
                             <div className="text-3xl font-bold text-foreground mb-1">
                                 {reportData.totalArticles}
                             </div>
-                            <div className="text-sm text-muted-foreground">Artikel im Sortiment</div>
+                            <div className="text-sm text-muted-foreground">{t('wawi_articles')}</div>
                         </div>
 
                         <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
@@ -127,12 +208,12 @@ export function ReportsView() {
                                 <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center">
                                     <AlertTriangle className="w-6 h-6 text-amber-600" />
                                 </div>
-                                <TrendingDown className="w-5 h-5 text-red-500" />
+                                {reportData.lowStockArticles > 0 && <TrendingDown className="w-5 h-5 text-red-500" />}
                             </div>
                             <div className="text-3xl font-bold text-foreground mb-1">
                                 {reportData.lowStockArticles}
                             </div>
-                            <div className="text-sm text-muted-foreground">Kritische Bestände</div>
+                            <div className="text-sm text-muted-foreground">{t('wawi_critical_stock')}</div>
                         </div>
 
                         <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
@@ -144,7 +225,7 @@ export function ReportsView() {
                             <div className="text-3xl font-bold text-foreground mb-1">
                                 {reportData.averageTurnover.toFixed(1)}x
                             </div>
-                            <div className="text-sm text-muted-foreground">Ø Lagerumschlag</div>
+                            <div className="text-sm text-muted-foreground">{t('wawi_turnover_rate')}</div>
                         </div>
                     </div>
 
@@ -154,9 +235,9 @@ export function ReportsView() {
                             <div className="flex items-center gap-3">
                                 <AlertTriangle className="w-6 h-6 text-amber-600" />
                                 <div>
-                                    <h3 className="font-bold text-lg">Kritische Bestände</h3>
+                                    <h3 className="font-bold text-lg">{t('wawi_critical_stocks')}</h3>
                                     <p className="text-sm text-muted-foreground mt-0.5">
-                                        Artikel unterhalb des Mindestbestands
+                                        {t('wawi_critical_stocks_desc')}
                                     </p>
                                 </div>
                             </div>
@@ -166,18 +247,18 @@ export function ReportsView() {
                             <table className="w-full">
                                 <thead>
                                     <tr className="text-left text-xs uppercase tracking-wider text-muted-foreground font-semibold bg-muted/30">
-                                        <th className="px-6 py-4">Artikel</th>
-                                        <th className="px-6 py-4">Aktuell</th>
-                                        <th className="px-6 py-4">Mindest</th>
-                                        <th className="px-6 py-4">Differenz</th>
-                                        <th className="px-6 py-4 text-right">Aktion</th>
+                                        <th className="px-6 py-4">{t('wawi_article_col')}</th>
+                                        <th className="px-6 py-4">{t('wawi_current_stock')}</th>
+                                        <th className="px-6 py-4">{t('wawi_min_stock')}</th>
+                                        <th className="px-6 py-4">{t('wawi_difference')}</th>
+                                        <th className="px-6 py-4 text-right">{t('wawi_action')}</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border">
                                     {reportData.criticalStock.length === 0 ? (
                                         <tr>
                                             <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">
-                                                Keine kritischen Bestände
+                                                {t('wawi_no_action_needed')}
                                             </td>
                                         </tr>
                                     ) : (
@@ -208,7 +289,7 @@ export function ReportsView() {
                                                         className="rounded-lg text-primary"
                                                         onClick={() => window.location.href = '/wawi/nachbestellung'}
                                                     >
-                                                        Nachbestellen
+                                                        {t('wawi_reorder')}
                                                     </Button>
                                                 </td>
                                             </tr>
@@ -225,9 +306,9 @@ export function ReportsView() {
                             <div className="flex items-center gap-3">
                                 <TrendingUp className="w-6 h-6 text-emerald-600" />
                                 <div>
-                                    <h3 className="font-bold text-lg">Top Artikel (Umsatz)</h3>
+                                    <h3 className="font-bold text-lg">{t('wawi_top_movers')}</h3>
                                     <p className="text-sm text-muted-foreground mt-0.5">
-                                        Meistverkaufte Artikel im gewählten Zeitraum
+                                        {t('wawi_top_movers_desc')}
                                     </p>
                                 </div>
                             </div>
@@ -247,8 +328,8 @@ export function ReportsView() {
                                         <div className="text-xs text-muted-foreground">{article.IPN}</div>
                                     </div>
                                     <div className="text-right">
-                                        <div className="font-bold text-sm">{article.total_in_stock} Stk.</div>
-                                        <div className="text-xs text-muted-foreground">auf Lager</div>
+                                        <div className="font-bold text-sm">{article.total_in_stock} {t('wawi_pieces')}</div>
+                                        <div className="text-xs text-muted-foreground">{t('wawi_in_stock')}</div>
                                     </div>
                                 </div>
                             ))}

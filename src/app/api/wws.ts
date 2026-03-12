@@ -379,8 +379,28 @@ export async function createTenantUser(tenantId: number, userData: { username: s
     });
 }
 
-export async function getTeam(): Promise<Array<{ id: number; username: string; email: string; role: string; joined: string }>> {
-    return apiFetchList<{ id: number; username: string; email: string; role: string; joined: string }>('/api/auth/team/');
+export async function getTeam(): Promise<Array<{ id: number; username: string; email: string; role: string; joined: string; first_name?: string; last_name?: string; is_active?: boolean }>> {
+    return apiFetchList<{ id: number; username: string; email: string; role: string; joined: string; first_name?: string; last_name?: string; is_active?: boolean }>('/api/auth/team/');
+}
+
+export async function inviteTeamMember(data: { email: string; role: string }): Promise<void> {
+    await apiFetch('/api/auth/team/invite', {
+        method: 'POST',
+        body: JSON.stringify(data),
+    });
+}
+
+export async function updateTeamMember(memberId: number | string, data: { role?: string }): Promise<void> {
+    await apiFetch(`/api/auth/team/${memberId}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+    });
+}
+
+export async function removeTeamMember(memberId: number | string): Promise<void> {
+    await apiFetch(`/api/auth/team/${memberId}`, {
+        method: 'DELETE',
+    });
 }
 
 // ── Billing Settings ──────────────────────────────────────────────────────────

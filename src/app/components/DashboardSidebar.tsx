@@ -40,17 +40,16 @@ export function DashboardSidebar({
   ];
 
   const wawiNavItems: NavItem[] = [
-    { id: 'warenwirtschaft', label: 'Dashboard', icon: LayoutDashboard, group: 'main' },
-    { id: 'artikel', label: 'Artikel', icon: Package, group: 'main' },
-    { id: 'lager', label: 'Lager', icon: Warehouse, group: 'main' },
-    { id: 'lieferanten', label: 'Lieferanten', icon: Store, group: 'main' },
-    { id: 'nachbestellung', label: 'Nachbestellung', icon: Receipt, group: 'main' },
-    { id: 'wareneingang', label: 'Wareneingang', icon: Truck, group: 'main' },
-    { id: 'retouren', label: 'Retouren', icon: RotateCcw, group: 'features' },
-    { id: 'bewertungen', label: 'Bewertung', icon: Star, group: 'features' },
-    { id: 'ki-insights', label: 'KI', icon: Brain, group: 'features' },
-    { id: 'berichte', label: 'Berichte', icon: Activity, group: 'system' },
-    { id: 'settings', label: 'Setup', icon: Settings, group: 'system' },
+    { id: 'warenwirtschaft', label: t('nav_wawi_dashboard'), icon: LayoutDashboard, group: 'main' },
+    { id: 'artikel', label: t('nav_wawi_articles'), icon: Package, group: 'main' },
+    { id: 'lieferanten', label: t('nav_wawi_suppliers'), icon: Store, group: 'main' },
+    { id: 'nachbestellung', label: t('nav_wawi_reorder'), icon: Receipt, group: 'main' },
+    { id: 'wareneingang', label: t('nav_wawi_receipt'), icon: Truck, group: 'main' },
+    { id: 'retouren', label: t('nav_wawi_returns'), icon: RotateCcw, group: 'features' },
+    { id: 'bewertungen', label: t('nav_wawi_ratings'), icon: Star, group: 'features' },
+    { id: 'ki-insights', label: t('nav_wawi_ai'), icon: Brain, group: 'features' },
+    { id: 'berichte', label: t('nav_wawi_reports'), icon: Activity, group: 'system' },
+    { id: 'settings', label: t('nav_wawi_settings'), icon: Settings, group: 'system' },
   ];
 
   const navItems = isWawi ? wawiNavItems : botNavItems;

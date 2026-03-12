@@ -155,10 +155,24 @@ export function InvoiceTab() {
                 <div className="bg-card border border-border rounded-xl p-6 sticky top-24">
                     <div className="flex items-center justify-between mb-6">
                         <h3 className="text-foreground font-medium">Live-Vorschau</h3>
-                        <button className="text-sm text-primary hover:underline">Als PDF exportieren</button>
+                        <button
+                            className="text-sm text-primary hover:underline"
+                            onClick={() => {
+                                // Print/export the preview as PDF using browser print
+                                const printWindow = window.open('', '_blank');
+                                if (!printWindow) { toast.info('Pop-up blocked — bitte erlauben Sie Pop-ups'); return; }
+                                const previewEl = document.getElementById('invoice-preview');
+                                if (!previewEl) return;
+                                printWindow.document.write(`<html><head><title>Rechnungsvorschau</title><style>body{margin:2rem;font-family:${fontFamily}}</style></head><body>${previewEl.innerHTML}</body></html>`);
+                                printWindow.document.close();
+                                printWindow.focus();
+                                printWindow.print();
+                                printWindow.close();
+                            }}
+                        >Als PDF exportieren</button>
                     </div>
 
-                    <div className={`bg-white rounded-lg p-8 shadow-sm relative overflow-hidden ${invoiceTemplate === 'classic' ? 'border-2 border-gray-800' : invoiceTemplate === 'modern' ? 'border-0 shadow-lg' : 'border border-border'}`}
+                    <div id="invoice-preview" className={`bg-white rounded-lg p-8 shadow-sm relative overflow-hidden ${invoiceTemplate === 'classic' ? 'border-2 border-gray-800' : invoiceTemplate === 'modern' ? 'border-0 shadow-lg' : 'border border-border'}`}
                         style={{ fontFamily }}>
                         {invoiceTemplate === 'modern' && <div className="absolute top-0 left-0 right-0 h-2" style={{ backgroundColor: invoiceColor }} />}
 

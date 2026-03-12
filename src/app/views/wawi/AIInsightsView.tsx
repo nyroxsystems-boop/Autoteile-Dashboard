@@ -6,6 +6,7 @@ import {
 import { Button } from '../../components/ui/button';
 import { wawiService } from '../../services/wawiService';
 import { useI18n } from '../../../i18n';
+import { toast } from 'sonner';
 
 interface BriefingProduct { name: string; sold: number }
 interface Briefing {
@@ -77,7 +78,10 @@ export function AIInsightsView() {
         try {
             const data = await wawiService.getBriefing();
             setBriefing(data);
-        } catch {  }
+        } catch (err) {
+            console.error('Briefing load failed:', err);
+            toast.error(t('error'));
+        }
         finally { setLoading(l => ({ ...l, briefing: false })); }
     };
 
@@ -86,7 +90,10 @@ export function AIInsightsView() {
         try {
             const data = await wawiService.getSmartReorder(90, 30);
             setReorder(data);
-        } catch {  }
+        } catch (err) {
+            console.error('Reorder load failed:', err);
+            toast.error(t('error'));
+        }
         finally { setLoading(l => ({ ...l, reorder: false })); }
     };
 
@@ -95,7 +102,10 @@ export function AIInsightsView() {
         try {
             const data = await wawiService.getPriceOptimization() as PriceOptItem[];
             setPriceOpt(data);
-        } catch {  }
+        } catch (err) {
+            console.error('Price opt load failed:', err);
+            toast.error(t('error'));
+        }
         finally { setLoading(l => ({ ...l, priceOpt: false })); }
     };
 
@@ -104,7 +114,10 @@ export function AIInsightsView() {
         try {
             const data = await wawiService.getAnomalies(7, 3.0);
             setAnomalies(data);
-        } catch {  }
+        } catch (err) {
+            console.error('Anomaly load failed:', err);
+            toast.error(t('error'));
+        }
         finally { setLoading(l => ({ ...l, anomaly: false })); }
     };
 
@@ -114,7 +127,10 @@ export function AIInsightsView() {
         try {
             const data = await wawiService.fuzzyOemSearch(oemQuery) as OemResult[];
             setOemResults(data);
-        } catch {  }
+        } catch (err) {
+            console.error('OEM search failed:', err);
+            toast.error(t('error'));
+        }
         finally { setLoading(l => ({ ...l, oem: false })); }
     };
 

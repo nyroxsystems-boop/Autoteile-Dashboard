@@ -243,7 +243,7 @@ export function HeuteView({ onNavigate }: HeuteViewProps) {
             ) : (
               <div className="py-12 text-center">
                 <Package className="w-8 h-8 text-muted-foreground/30 mx-auto mb-3" />
-                <p className="text-sm text-muted-foreground">Noch keine Aufträge vorhanden</p>
+                <p className="text-sm text-muted-foreground">{t('orders_none_yet')}</p>
               </div>
             )}
           </div>

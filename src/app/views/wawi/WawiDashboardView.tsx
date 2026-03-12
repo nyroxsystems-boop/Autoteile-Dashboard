@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import { MetricCard } from '../../components/MetricCard';
 import { Button } from '../../components/ui/button';
-import { wawiService, Part } from '../../services/wawiService';
+import { wawiService, Part, StockMovement, PurchaseOrder } from '../../services/wawiService';
 import { useNavigate } from 'react-router-dom';
 import { useI18n } from '../../../i18n';
 
@@ -14,6 +14,8 @@ export function WawiDashboardView() {
     const { t } = useI18n();
     const [stats, setStats] = useState({ totalArticles: 0, lowStockCount: 0, totalValue: 0 });
     const [criticalParts, setCriticalParts] = useState<Part[]>([]);
+    const [recentMovements, setRecentMovements] = useState<StockMovement[]>([]);
+    const [openOrderCount, setOpenOrderCount] = useState(0);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -28,6 +30,18 @@ export function WawiDashboardView() {
 
             setStats(dashboardStats);
             setCriticalParts(articles.filter(p => p.total_in_stock < p.minimum_stock).slice(0, 5));
+
+            // Load real recent movements
+            try {
+                const movements = await wawiService.getRecentMovements(5);
+                setRecentMovements(movements);
+            } catch { /* graceful */ }
+
+            // Load real open order count
+            try {
+                const orders: PurchaseOrder[] = await wawiService.getPurchaseOrders();
+                setOpenOrderCount(orders.filter(o => o.status !== 'received' && o.status !== 'cancelled').length);
+            } catch { /* graceful */ }
         } catch {
             // Error loading dashboard data
         } finally {
@@ -58,7 +72,7 @@ export function WawiDashboardView() {
                 />
                 <MetricCard
                     label={t('wawi_open_orders')}
-                    value="0"
+                    value={openOrderCount}
                     icon={<ShoppingCart className="w-5 h-5" />}
                 />
                 <MetricCard
@@ -110,13 +124,32 @@ export function WawiDashboardView() {
                             {t('wawi_recent_movements')}
                         </h3>
                     </div>
-                    <div className="p-12 flex flex-col items-center justify-center text-center">
-                        <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
-                            <History className="w-8 h-8 text-muted-foreground/30" />
-                        </div>
-                        <p className="text-muted-foreground text-sm max-w-[200px]">
-                            {t('wawi_movements_placeholder')}
-                        </p>
+                    <div className="divide-y divide-border">
+                        {loading ? (
+                            <div className="p-12 text-center text-muted-foreground">{t('wawi_loading')}</div>
+                        ) : recentMovements.length === 0 ? (
+                            <div className="p-12 text-center text-muted-foreground italic">
+                                {t('wawi_no_action_needed')}
+                            </div>
+                        ) : recentMovements.map(mv => (
+                            <div key={mv.id} className="p-4 flex items-center justify-between hover:bg-muted/30 transition-colors">
+                                <div>
+                                    <div className="font-semibold text-sm">{mv.part_name || `#${mv.part_id}`}</div>
+                                    <div className="text-xs text-muted-foreground">
+                                        {mv.type === 'IN' ? '📥 Zugang' : mv.type === 'OUT' ? '📤 Abgang' : mv.type === 'TRANSFER' ? '🔄 Transfer' : '✏️ Korrektur'}
+                                        {mv.reference && ` · ${mv.reference}`}
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <div className={`text-sm font-bold ${mv.type === 'IN' ? 'text-emerald-500' : mv.type === 'OUT' ? 'text-red-500' : 'text-foreground'}`}>
+                                        {mv.type === 'IN' ? '+' : mv.type === 'OUT' ? '-' : ''}{mv.quantity} {t('wawi_pieces')}
+                                    </div>
+                                    <div className="text-[10px] text-muted-foreground">
+                                        {new Date(mv.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </div>

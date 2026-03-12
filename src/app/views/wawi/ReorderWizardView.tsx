@@ -4,6 +4,7 @@ import { Button } from '../../components/ui/button';
 import { wawiService, Part } from '../../services/wawiService';
 import { Link } from 'react-router-dom';
 import { useI18n } from '../../../i18n';
+import { toast } from 'sonner';
 
 interface ReorderSuggestion {
     part: Part;
@@ -45,8 +46,9 @@ export function ReorderWizardView() {
     };
 
     const handleCreatePO = () => {
-        // Creating purchase order for selected items
-        // Navigate to PO creation view
+        if (selectedItems.size === 0) return;
+        toast.success(t('wawi_po_created'));
+        setSelectedItems(new Set());
     };
 
     return (

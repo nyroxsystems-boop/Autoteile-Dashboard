@@ -1,6 +1,7 @@
 import { X, Phone, MapPin, Building2, FileText, MessageSquare, User } from 'lucide-react';
 import { StatusChip } from './StatusChip';
 import { toast } from 'sonner';
+import { apiFetch } from '../api/client';
 
 interface Message {
   id: string;
@@ -40,9 +41,23 @@ interface CustomerDetailPanelProps {
   customer: CustomerProfile;
   onClose: () => void;
   onCreateQuote: () => void;
+  onCustomerUpdated?: () => void;
 }
 
-export function CustomerDetailPanel({ customer, onClose, onCreateQuote }: CustomerDetailPanelProps) {
+export function CustomerDetailPanel({ customer, onClose, onCreateQuote, onCustomerUpdated }: CustomerDetailPanelProps) {
+  const handleSetCustomerType = async (type: 'werkstatt' | 'partner' | 'endkunde') => {
+    try {
+      await apiFetch(`/api/conversations/${customer.id}/customer-type`, {
+        method: 'PATCH',
+        body: JSON.stringify({ customer_type: type }),
+      });
+      toast.success(`Kundentyp "${type === 'werkstatt' ? 'Werkstatt' : type === 'partner' ? 'Partner' : 'Endkunde'}" gespeichert`);
+      onCustomerUpdated?.();
+    } catch {
+      toast.error('Fehler beim Speichern des Kundentyps');
+    }
+  };
+
   return (
     <div className="fixed right-0 top-0 h-screen w-[480px] bg-card border-l border-border shadow-2xl flex flex-col z-40">
       {/* Header */}
@@ -86,7 +101,7 @@ export function CustomerDetailPanel({ customer, onClose, onCreateQuote }: Custom
                     {(['werkstatt', 'partner', 'endkunde'] as const).map((type) => (
                       <button
                         key={type}
-                        onClick={() => toast.info(`Kundentyp "${type}" wird gespeichert`)}
+                        onClick={() => handleSetCustomerType(type)}
                         className={`flex-1 px-3 py-2 rounded-lg border-2 text-sm font-medium transition-all ${customer.customerType === type
                           ? 'border-primary bg-primary/10 text-primary'
                           : 'border-border bg-card text-muted-foreground hover:border-primary/50 hover:text-foreground'
@@ -116,7 +131,7 @@ export function CustomerDetailPanel({ customer, onClose, onCreateQuote }: Custom
                       {(['werkstatt', 'partner', 'endkunde'] as const).map((type) => (
                         <button
                           key={type}
-                          onClick={() => toast.info(`Kundentyp "${type}" wird gespeichert`)}
+                          onClick={() => handleSetCustomerType(type)}
                           className="flex-1 px-3 py-2 rounded-lg border-2 border-amber-500/30 bg-white text-sm font-medium text-foreground hover:border-amber-500 hover:bg-amber-500/5 transition-all"
                         >
                           {type === 'werkstatt' ? '🔧 Werkstatt' : type === 'partner' ? '🤝 Partner' : '👤 Endkunde'}

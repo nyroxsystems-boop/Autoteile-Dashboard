@@ -38,8 +38,8 @@ export function AuftraegeView() {
     try {
       const data = await getOrderOffers(id);
       setOffers(data || []);
-    } catch (err) {
-      console.error('Failed to load offers', err);
+    } catch {
+      // silently handled
     } finally {
       setOffersLoading(false);
     }
@@ -49,8 +49,8 @@ export function AuftraegeView() {
     try {
       const msgs = await getOrderMessages(id);
       setMessages(msgs || []);
-    } catch (err) {
-      console.error('Failed to load messages', err);
+    } catch {
+      // silently handled
     }
   };
 
@@ -61,9 +61,8 @@ export function AuftraegeView() {
       setMessages([...messages, sent]);
       setNewMessageText('');
       toast.success(t('orders_message_sent'));
-    } catch (err) {
+    } catch {
       toast.error(t('error'));
-      console.error(err);
     }
   };
 

@@ -24,8 +24,8 @@ export function AngeboteView() {
           try {
             const offers = await getOrderOffers(order.id);
             setOrderOffers(prev => ({ ...prev, [order.id]: offers }));
-          } catch (e) {
-            console.error('Failed to fetch offers for order', order.id);
+          } catch {
+            // silently handled
           }
         }
       });

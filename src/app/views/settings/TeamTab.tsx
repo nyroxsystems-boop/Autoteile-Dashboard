@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Crown, CheckCircle2, XCircle, Bell, User, Shield, Save } from 'lucide-react';
+import { Plus, Edit2, Trash2, Crown, CheckCircle2, XCircle, Bell, User, Shield, Save, Loader2 } from 'lucide-react';
 import { CustomSelect } from '../../components/CustomSelect';
-import { getTeam } from '../../api/wws';
+import { getTeam, inviteTeamMember, updateTeamMember, removeTeamMember } from '../../api/wws';
 import { useI18n } from '../../../i18n';
+import { toast } from 'sonner';
 
 interface TeamMember {
     id: string;
@@ -29,6 +30,8 @@ export function TeamTab() {
     const [newMemberEmail, setNewMemberEmail] = useState('');
     const [newMemberRole, setNewMemberRole] = useState<'admin' | 'member'>('member');
     const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
+    const [inviting, setInviting] = useState(false);
+    const [savingEdit, setSavingEdit] = useState(false);
 
     const roleLabels: Record<string, string> = {
         owner: t('settings_role_owner'),
@@ -41,29 +44,76 @@ export function TeamTab() {
         inactive: { label: t('suppliers_offline'), color: 'text-slate-600', icon: XCircle },
     };
 
-    useEffect(() => {
-        (async () => {
-            try {
-                const data = await getTeam();
-                setTeamMembers((data || []).map((m: Record<string, string | boolean>) => ({
-                    id: String(m.id),
-                    name: `${m.first_name || ''} ${m.last_name || ''}`.trim() || String(m.username || ''),
-                    email: String(m.email || ''),
-                    role: String(m.role || 'member').toLowerCase() as TeamMember['role'],
-                    status: (m.is_active ? 'active' : 'inactive') as TeamMember['status'],
-                    joinedDate: '-',
-                    lastActive: '-',
-                })));
-            } catch (err: unknown) {
-                const msg = err instanceof Error ? err.message : '';
-                if (msg.includes('404') || msg.includes('not found')) {
-                    setTeamMembers([]);
-                } else {
-                    console.error('Failed to load team:', err);
-                }
+    const loadTeam = async () => {
+        try {
+            const data = await getTeam();
+            setTeamMembers((data || []).map((m: Record<string, string | boolean | number>) => ({
+                id: String(m.id),
+                name: `${m.first_name || ''} ${m.last_name || ''}`.trim() || String(m.username || ''),
+                email: String(m.email || ''),
+                role: String(m.role || 'member').toLowerCase() as TeamMember['role'],
+                status: (m.is_active ? 'active' : 'inactive') as TeamMember['status'],
+                joinedDate: m.joined ? new Date(String(m.joined)).toLocaleDateString('de-DE') : '-',
+                lastActive: '-',
+            })));
+        } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : '';
+            if (msg.includes('404') || msg.includes('not found')) {
+                setTeamMembers([]);
+            } else {
+                console.error('Failed to load team:', err);
             }
-        })();
+        }
+    };
+
+    useEffect(() => {
+        loadTeam();
     }, []);
+
+    const handleInvite = async () => {
+        if (!newMemberEmail) return;
+        setInviting(true);
+        try {
+            await inviteTeamMember({ email: newMemberEmail, role: newMemberRole });
+            toast.success(t('settings_invite_success'));
+            setShowInviteModal(false);
+            setNewMemberEmail('');
+            setNewMemberRole('member');
+            await loadTeam(); // Refresh team list
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : t('settings_invite_error');
+            toast.error(message);
+        } finally {
+            setInviting(false);
+        }
+    };
+
+    const handleUpdateRole = async () => {
+        if (!editingMember) return;
+        setSavingEdit(true);
+        try {
+            await updateTeamMember(editingMember.id, { role: editingMember.role });
+            toast.success(t('settings_member_updated'));
+            setEditingMember(null);
+            await loadTeam();
+        } catch (err: unknown) {
+            toast.error(err instanceof Error ? err.message : t('error'));
+        } finally {
+            setSavingEdit(false);
+        }
+    };
+
+    const handleRemoveMember = async (memberId: string) => {
+        if (!confirm(t('settings_remove_confirm'))) return;
+        try {
+            await removeTeamMember(memberId);
+            toast.success(t('settings_member_removed'));
+            setEditingMember(null);
+            await loadTeam();
+        } catch (err: unknown) {
+            toast.error(err instanceof Error ? err.message : t('error'));
+        }
+    };
 
     return (
         <div className="space-y-6">
@@ -110,7 +160,7 @@ export function TeamTab() {
                                             <span>·</span>
                                             <div className="flex items-center gap-1.5">
                                                 <StatusIcon className={`w-3 h-3 ${statusConfig[member.status].color}`} />
-                                                <span>{member.lastActive}</span>
+                                                <span>{statusConfig[member.status].label}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -119,7 +169,7 @@ export function TeamTab() {
                                             <button onClick={() => setEditingMember(member)} className="w-8 h-8 rounded-lg hover:bg-accent flex items-center justify-center transition-colors group">
                                                 <Edit2 className="w-4 h-4 text-muted-foreground group-hover:text-foreground" />
                                             </button>
-                                            <button className="w-8 h-8 rounded-lg hover:bg-red-500/10 flex items-center justify-center transition-colors group">
+                                            <button onClick={() => handleRemoveMember(member.id)} className="w-8 h-8 rounded-lg hover:bg-red-500/10 flex items-center justify-center transition-colors group">
                                                 <Trash2 className="w-4 h-4 text-muted-foreground group-hover:text-red-600" />
                                             </button>
                                         </div>
@@ -175,7 +225,10 @@ export function TeamTab() {
                         </div>
                         <div className="p-6 border-t border-border flex items-center justify-end gap-3">
                             <button onClick={() => setShowInviteModal(false)} className="px-4 py-2 text-sm text-foreground hover:bg-accent rounded-lg transition-colors">{t('cancel')}</button>
-                            <button onClick={() => setShowInviteModal(false)} className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">{t('confirm')}</button>
+                            <button onClick={handleInvite} disabled={inviting || !newMemberEmail}
+                                className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                                {inviting ? <><Loader2 className="w-4 h-4 animate-spin" /> {t('settings_saving')}</> : t('confirm')}
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -215,18 +268,15 @@ export function TeamTab() {
                         </div>
                         <div className="p-6 border-t border-border bg-muted/30 flex items-center justify-between">
                             <button onClick={() => {
-                                setTeamMembers(teamMembers.filter(m => m.id !== editingMember.id));
-                                setEditingMember(null);
+                                handleRemoveMember(editingMember.id);
                             }} className="px-4 py-2 text-sm text-red-600 hover:bg-red-500/10 rounded-lg transition-colors flex items-center gap-2">
                                 <Trash2 className="w-4 h-4" /> {t('delete')}
                             </button>
                             <div className="flex items-center gap-3">
                                 <button onClick={() => setEditingMember(null)} className="px-4 py-2 text-sm text-foreground hover:bg-accent rounded-lg transition-colors">{t('cancel')}</button>
-                                <button onClick={() => {
-                                    setTeamMembers(teamMembers.map(m => m.id === editingMember.id ? editingMember : m));
-                                    setEditingMember(null);
-                                }} className="px-6 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors flex items-center gap-2">
-                                    <Save className="w-4 h-4" /> {t('settings_save')}
+                                <button onClick={handleUpdateRole} disabled={savingEdit}
+                                    className="px-6 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors flex items-center gap-2 disabled:opacity-50">
+                                    {savingEdit ? <><Loader2 className="w-4 h-4 animate-spin" /> {t('settings_saving')}</> : <><Save className="w-4 h-4" /> {t('settings_save')}</>}
                                 </button>
                             </div>
                         </div>

@@ -2,16 +2,18 @@ import { useState, useEffect } from 'react';
 import { ArrowDownLeft, ArrowUpRight, Repeat, Edit, Save, History } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { toast } from 'sonner';
-import { wawiService, WarehouseLocation } from '../../services/wawiService';
+import { wawiService, WarehouseLocation, Part } from '../../services/wawiService';
 import { useI18n } from '../../../i18n';
 
 export function InventoryMovementView() {
     const [movementType, setMovementType] = useState<'IN' | 'OUT' | 'TRANSFER' | 'CORRECTION'>('IN');
     const { t } = useI18n();
     const [locations, setLocations] = useState<WarehouseLocation[]>([]);
+    const [articles, setArticles] = useState<Part[]>([]);
 
     useEffect(() => {
         wawiService.getLocations().then(setLocations);
+        wawiService.getArticles().then(setArticles);
     }, []);
 
     const handleSave = () => {
@@ -56,9 +58,10 @@ p - 6 rounded - 3xl border - 2 transition - all flex flex - col items - center g
                     <div className="space-y-2">
                         <label className="text-sm font-semibold text-foreground ml-1">{t('wawi_select_article')}</label>
                         <select className="w-full bg-muted/30 border border-border rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary focus:outline-none appearance-none cursor-pointer hover:bg-muted/50 transition-colors">
-                            <option>Bremsscheibe vorne (SKU-123)</option>
-                            <option>Bremsbeläge Satz (SKU-456)</option>
-                            <option>Zündkerze Platin (SKU-789)</option>
+                            <option value="">{t('wawi_select_article')}</option>
+                            {articles.map(a => (
+                                <option key={a.id} value={a.id}>{a.name} ({a.IPN})</option>
+                            ))}
                         </select>
                     </div>
 
