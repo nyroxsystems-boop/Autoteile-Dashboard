@@ -355,7 +355,7 @@ export const wawiService = {
     },
 
     getReorderSuggestions: async () => {
-        return await wawiFetch('/api/products/reorder-suggestions/');
+        return await wawiFetchList<unknown>('/api/products/reorder-suggestions/');
     },
 
     // ── Dashboard Summary (combined stats) ───────────────────
