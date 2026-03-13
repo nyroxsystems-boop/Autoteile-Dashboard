@@ -219,7 +219,9 @@ function AppShell({ isWawi }: { isWawi: boolean }) {
               <div className="h-1 w-12 bg-primary rounded-full" />
             </div>
           )}
-          <Outlet />
+          <Suspense fallback={<PageLoader />}>
+            <Outlet />
+          </Suspense>
         </div>
       </main>
       <CommandPalette
@@ -263,7 +265,6 @@ function CustomersWithNav() {
 
 export default function App() {
   const { isAuthenticated } = useAuth();
-  const { loading: tenantsLoading } = useTenants();
 
   if (!isAuthenticated) {
     return (
@@ -276,11 +277,8 @@ export default function App() {
     );
   }
 
-  if (tenantsLoading) return <div className="p-20 text-center">Lade Accounts...</div>;
-
   return (
     <ErrorBoundary>
-      <Suspense fallback={<PageLoader />}>
         <Routes>
           {/* Bot Workspace — nested under stable layout */}
           <Route element={<BotLayout />}>
@@ -322,7 +320,6 @@ export default function App() {
           <Route path="/" element={<Navigate to="/bot/heute" replace />} />
           <Route path="*" element={<Navigate to="/bot/heute" replace />} />
         </Routes>
-      </Suspense>
     </ErrorBoundary>
   );
 }
