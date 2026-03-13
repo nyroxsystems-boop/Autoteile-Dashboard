@@ -26,8 +26,8 @@ export function SupplierRatingView() {
                 wawiService.getSupplierRatings(),
                 wawiService.getSuppliers(),
             ]);
-            setRatings(r);
-            setSuppliers(s);
+            setRatings(Array.isArray(r) ? r : []);
+            setSuppliers(Array.isArray(s) ? s : []);
         } catch { console.error('Failed to load'); toast.error('Laden fehlgeschlagen'); }
         finally { setLoading(false); }
     };

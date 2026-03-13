@@ -25,22 +25,32 @@ export function WawiDashboardView() {
     const loadDashboardData = async () => {
         setLoading(true);
         try {
-            const dashboardStats = await wawiService.getStats();
-            const articles = await wawiService.getArticles();
+            const [dashboardStats, articlesData] = await Promise.all([
+                wawiService.getStats(),
+                wawiService.getArticles(),
+            ]);
 
-            setStats(dashboardStats);
+            // getStats() returns {} on 404, guard with defaults
+            setStats({
+                totalArticles: dashboardStats?.totalArticles ?? 0,
+                lowStockCount: dashboardStats?.lowStockCount ?? 0,
+                totalValue: dashboardStats?.totalValue ?? 0,
+            });
+
+            const articles = Array.isArray(articlesData) ? articlesData : [];
             setCriticalParts(articles.filter(p => p.total_in_stock < p.minimum_stock).slice(0, 5));
 
             // Load real recent movements
             try {
                 const movements = await wawiService.getRecentMovements(5);
-                setRecentMovements(movements);
+                setRecentMovements(Array.isArray(movements) ? movements : []);
             } catch { /* graceful */ }
 
             // Load real open order count
             try {
                 const orders: PurchaseOrder[] = await wawiService.getPurchaseOrders();
-                setOpenOrderCount(orders.filter(o => o.status !== 'received' && o.status !== 'cancelled').length);
+                const orderList = Array.isArray(orders) ? orders : [];
+                setOpenOrderCount(orderList.filter(o => o.status !== 'received' && o.status !== 'cancelled').length);
             } catch { /* graceful */ }
         } catch {
             // Error loading dashboard data

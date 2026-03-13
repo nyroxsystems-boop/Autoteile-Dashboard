@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation, Navigate } from 'react-router-dom';
+import { clearMeCache } from '../app/hooks/useMe';
+import { clearTenantsCache } from '../app/hooks/useTenants';
 
 /**
  * Unified Auth Context — Single source of truth for authentication.
@@ -67,7 +69,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const navigate = useNavigate();
     const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://autoteile-bot-service-production.up.railway.app';
+    const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
 
     // ── Helpers ──────────────────────────────────────────────────────────
 
@@ -280,6 +282,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(null);
         setTenant(null);
         clearAllAuth();
+        // Clear module-level caches so next login gets fresh data
+        clearMeCache();
+        clearTenantsCache();
         navigate('/');
     }, [clearAllAuth, navigate]);
 
