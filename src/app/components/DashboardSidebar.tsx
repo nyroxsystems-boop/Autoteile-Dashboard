@@ -4,6 +4,7 @@ import {
   DollarSign, Truck, RotateCcw, Star, Brain, X
 } from 'lucide-react';
 import { useI18n } from '../../i18n';
+import { useLocation } from 'react-router-dom';
 
 interface NavItem {
   id: string;
@@ -27,7 +28,8 @@ export function DashboardSidebar({
   mobileOpen = false,
   onMobileClose,
 }: DashboardSidebarProps) {
-  const isWawi = window.location.pathname.startsWith('/wawi');
+  const location = useLocation();
+  const isWawi = location.pathname.startsWith('/wawi');
   const { t } = useI18n();
 
   const botNavItems: NavItem[] = [

@@ -77,7 +77,7 @@ export function WawiDashboardView() {
                 />
                 <MetricCard
                     label={t('wawi_stock_value')}
-                    value={`${stats.totalValue.toLocaleString('de-DE')} €`}
+                    value={`${(stats?.totalValue ?? 0).toLocaleString('de-DE')} €`}
                     icon={<TrendingUp className="w-5 h-5" />}
                 />
             </div>

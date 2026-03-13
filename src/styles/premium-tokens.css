@@ -28,6 +28,29 @@
         --info-foreground: 0 0% 100%;
         --info-muted: 199 89% 95%;
 
+        /* ============================================
+           STATUS COLORS
+        ============================================ */
+        --status-success: hsl(142 76% 36%);
+        --status-success-bg: hsl(142 76% 36% / 0.1);
+        --status-success-fg: hsl(142 76% 36%);
+        --status-success-border: hsl(142 76% 36% / 0.25);
+
+        --status-processing: hsl(221 83% 53%);
+        --status-processing-bg: hsl(221 83% 53% / 0.1);
+        --status-processing-fg: hsl(221 83% 53%);
+        --status-processing-border: hsl(221 83% 53% / 0.25);
+
+        --status-waiting: hsl(38 92% 50%);
+        --status-waiting-bg: hsl(38 92% 50% / 0.1);
+        --status-waiting-fg: hsl(38 92% 50%);
+        --status-waiting-border: hsl(38 92% 50% / 0.25);
+
+        --status-error: hsl(0 84% 60%);
+        --status-error-bg: hsl(0 84% 60% / 0.1);
+        --status-error-fg: hsl(0 84% 60%);
+        --status-error-border: hsl(0 84% 60% / 0.25);
+
         /* Chart Colors */
         --chart-1: 221 83% 53%;
         --chart-2: 142 76% 36%;
@@ -125,5 +148,26 @@
 
         --glass-bg: rgba(30, 30, 45, 0.7);
         --glass-border: rgba(255, 255, 255, 0.08);
+
+        /* Status colors - dark mode */
+        --status-success: hsl(142 76% 46%);
+        --status-success-bg: hsl(142 76% 36% / 0.15);
+        --status-success-fg: hsl(142 76% 56%);
+        --status-success-border: hsl(142 76% 36% / 0.3);
+
+        --status-processing: hsl(221 83% 63%);
+        --status-processing-bg: hsl(221 83% 53% / 0.15);
+        --status-processing-fg: hsl(221 83% 70%);
+        --status-processing-border: hsl(221 83% 53% / 0.3);
+
+        --status-waiting: hsl(38 92% 60%);
+        --status-waiting-bg: hsl(38 92% 50% / 0.15);
+        --status-waiting-fg: hsl(38 92% 65%);
+        --status-waiting-border: hsl(38 92% 50% / 0.3);
+
+        --status-error: hsl(0 84% 65%);
+        --status-error-bg: hsl(0 84% 60% / 0.15);
+        --status-error-fg: hsl(0 84% 70%);
+        --status-error-border: hsl(0 84% 60% / 0.3);
     }
 }

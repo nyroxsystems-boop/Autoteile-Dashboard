@@ -163,7 +163,7 @@ export function GoodsReceiptView() {
                                             </div>
                                             <div className="text-right">
                                                 <div className="text-lg font-bold">{po.items.length} Pos.</div>
-                                                <div className="text-sm text-muted-foreground">{po.total_amount.toFixed(2)} {po.currency}</div>
+                                                <div className="text-sm text-muted-foreground">{(po.total_amount ?? 0).toFixed(2)} {po.currency}</div>
                                             </div>
                                         </div>
                                     </button>
@@ -254,9 +254,9 @@ export function GoodsReceiptView() {
                                                 </select>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <div className="text-sm">{item.unit_price.toFixed(2)} {selectedPO.currency}</div>
+                                                <div className="text-sm">{(item.unit_price ?? 0).toFixed(2)} {selectedPO.currency}</div>
                                                 <div className="text-xs text-muted-foreground">
-                                                    Σ {item.total_price.toFixed(2)} {selectedPO.currency}
+                                                    Σ {(item.total_price ?? 0).toFixed(2)} {selectedPO.currency}
                                                 </div>
                                             </td>
                                         </tr>

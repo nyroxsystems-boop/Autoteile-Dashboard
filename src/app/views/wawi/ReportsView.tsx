@@ -3,6 +3,7 @@ import { TrendingUp, TrendingDown, DollarSign, Package, AlertTriangle, Download 
 import { Button } from '../../components/ui/button';
 import { wawiService, Part, StockMovement } from '../../services/wawiService';
 import { useI18n } from '../../../i18n';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 interface ReportData {
@@ -15,6 +16,7 @@ interface ReportData {
 }
 
 export function ReportsView() {
+    const navigate = useNavigate();
     const [reportData, setReportData] = useState<ReportData | null>(null);
     const { t } = useI18n();
     const [loading, setLoading] = useState(true);
@@ -185,7 +187,7 @@ export function ReportsView() {
                                 <TrendingUp className="w-5 h-5 text-emerald-500" />
                             </div>
                             <div className="text-3xl font-bold text-foreground mb-1">
-                                {reportData.totalInventoryValue.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' })}
+                                {(reportData.totalInventoryValue ?? 0).toLocaleString('de-DE', { style: 'currency', currency: 'EUR' })}
                             </div>
                             <div className="text-sm text-muted-foreground">{t('wawi_stock_value')}</div>
                         </div>
@@ -222,7 +224,7 @@ export function ReportsView() {
                                 </div>
                             </div>
                             <div className="text-3xl font-bold text-foreground mb-1">
-                                {reportData.averageTurnover.toFixed(1)}x
+                                {(reportData.averageTurnover ?? 0).toFixed(1)}x
                             </div>
                             <div className="text-sm text-muted-foreground">{t('wawi_turnover_rate')}</div>
                         </div>
@@ -286,7 +288,7 @@ export function ReportsView() {
                                                         size="sm"
                                                         variant="outline"
                                                         className="rounded-lg text-primary"
-                                                        onClick={() => window.location.href = '/wawi/nachbestellung'}
+                                                        onClick={() => navigate('/wawi/nachbestellung')}
                                                     >
                                                         {t('wawi_reorder')}
                                                     </Button>
