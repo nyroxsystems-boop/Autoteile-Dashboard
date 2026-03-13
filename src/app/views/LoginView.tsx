@@ -182,17 +182,8 @@ export function LoginView({ onLoginSuccess }: LoginViewProps) {
                 <div className="relative z-10 flex flex-col justify-between p-12 text-white w-full">
                     {/* Logo */}
                     <div className="animate-fade-in">
-                        <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center border border-white/20">
-                                <span className="text-white font-bold text-lg">PU</span>
-                            </div>
-                            <div>
-                                <div className="font-bold text-xl tracking-tight">PartsUnion</div>
-                                <div className="text-white/60 text-xs font-medium tracking-wider uppercase">Dashboard</div>
-                            </div>
-                        </div>
+                        <img src="/logo.png" alt="PartsUnion" className="h-10 brightness-0 invert" />
                     </div>
-
                     {/* Main message */}
                     <div className="space-y-8 animate-fade-in-up">
                         <div>
@@ -241,13 +232,8 @@ export function LoginView({ onLoginSuccess }: LoginViewProps) {
             <div className="flex-1 flex items-center justify-center bg-background p-6 md:p-12">
                 <div className="w-full max-w-md space-y-8 animate-fade-in-up">
                     {/* Mobile logo (hidden on lg+) */}
-                    <div className="text-center lg:hidden">
-                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4" style={{
-                            background: 'linear-gradient(135deg, hsl(221 83% 53%), hsl(240 80% 50%))',
-                        }}>
-                            <span className="text-white font-bold text-xl">PU</span>
-                        </div>
-                        <h1 className="text-2xl font-bold tracking-tight text-foreground">PartsUnion</h1>
+                    <div className="text-center lg:hidden mb-4">
+                        <img src="/logo.png" alt="PartsUnion" className="h-10 mx-auto" />
                     </div>
 
                     {/* Desktop title */}
