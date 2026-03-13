@@ -17,7 +17,7 @@ export function ReorderWizardView() {
     const [suggestions, setSuggestions] = useState<ReorderSuggestion[]>([]);
     const { t } = useI18n();
     const [loading, setLoading] = useState(true);
-    const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
+    const [selectedItems, setSelectedItems] = useState<Set<number | string>>(new Set());
 
     useEffect(() => {
         loadSuggestions();
@@ -27,7 +27,7 @@ export function ReorderWizardView() {
         setLoading(true);
         try {
             const data = await wawiService.getReorderSuggestions();
-            setSuggestions(data);
+            setSuggestions(data as ReorderSuggestion[]);
         } catch (err) {
             // Failed to load reorder suggestions
         } finally {
@@ -35,7 +35,7 @@ export function ReorderWizardView() {
         }
     };
 
-    const toggleSelection = (id: number) => {
+    const toggleSelection = (id: number | string) => {
         const newSet = new Set(selectedItems);
         if (newSet.has(id)) {
             newSet.delete(id);

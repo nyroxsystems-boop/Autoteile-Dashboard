@@ -214,7 +214,13 @@ export function ArticleDetailView() {
                     {activeTab === 'bom' && article.article_type === 'set' && (
                         <div className="bg-card border border-border rounded-3xl p-8 shadow-sm">
                             <BOMManager
-                                components={(article as Part & { bom_components?: Array<{id: number; component: number; component_name: string; quantity: number}> }).bom_components || []}
+                                components={((article as Part & { bom_components?: Array<{id: number; component: number; component_name: string; quantity: number}> }).bom_components || []).map(c => ({
+                                    id: c.id,
+                                    part_id: c.component,
+                                    part_name: c.component_name,
+                                    part_ipn: '',
+                                    quantity: c.quantity,
+                                }))}
                                 onChange={(_components) => {
                                     // In a real app, this would trigger an API call
                                     // BOM components updated
