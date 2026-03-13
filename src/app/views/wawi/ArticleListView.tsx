@@ -23,7 +23,7 @@ export function ArticleListView() {
         setLoading(true);
         try {
             const data = await wawiService.getArticles();
-            setArticles(data);
+            setArticles(Array.isArray(data) ? data : []);
         } catch {
             // Failed to load articles
         } finally {

@@ -27,7 +27,7 @@ export function ReorderWizardView() {
         setLoading(true);
         try {
             const data = await wawiService.getReorderSuggestions();
-            setSuggestions(data as ReorderSuggestion[]);
+            setSuggestions(Array.isArray(data) ? data as ReorderSuggestion[] : []);
         } catch (err) {
             // Failed to load reorder suggestions
         } finally {

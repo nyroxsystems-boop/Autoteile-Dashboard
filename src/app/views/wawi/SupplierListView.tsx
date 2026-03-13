@@ -24,7 +24,7 @@ export function SupplierListView() {
         setLoading(true);
         try {
             const data = await wawiService.getSuppliers();
-            setSuppliers(data);
+            setSuppliers(Array.isArray(data) ? data : []);
         } catch (err) {
             console.error('Failed to load suppliers', err);
             toast.error('Fehler beim Laden der Lieferanten');

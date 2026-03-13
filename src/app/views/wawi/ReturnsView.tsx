@@ -27,7 +27,7 @@ export function ReturnsView() {
         setLoading(true);
         try {
             const data = await wawiService.getReturns(filter || undefined);
-            setReturns(data);
+            setReturns(Array.isArray(data) ? data : []);
         } catch { /* handled silently */ }
         finally { setLoading(false); }
     };
