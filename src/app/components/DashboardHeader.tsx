@@ -4,14 +4,13 @@ import {
   Check, Crown,
   ArrowLeft
 } from 'lucide-react';
-import { useI18n } from '../../i18n';
+import { useI18n, languageOptions } from '../../i18n';
 import type { TenantMembership } from '../hooks/useTenants';
 
 interface DashboardHeaderProps {
   theme: 'light' | 'dark';
   onThemeChange: (theme: 'light' | 'dark') => void;
-  language: 'de' | 'en';
-  onLanguageChange: (lang: 'de' | 'en') => void;
+
   userName: string;
   userEmail: string;
   companyName: string;
@@ -30,8 +29,7 @@ interface DashboardHeaderProps {
 export function DashboardHeader({
   theme,
   onThemeChange,
-  language,
-  onLanguageChange,
+
   userName,
   userEmail,
   companyName: _companyName,
@@ -45,7 +43,7 @@ export function DashboardHeader({
   onLogout,
   onMobileMenuToggle,
 }: DashboardHeaderProps) {
-  const { t } = useI18n();
+  const { t, lang: language, setLang } = useI18n();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showLangMenu, setShowLangMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -189,23 +187,19 @@ export function DashboardHeader({
                   className="fixed inset-0 z-40"
                   onClick={() => setShowLangMenu(false)}
                 ></div>
-                <div className="absolute top-full right-0 mt-2 w-48 bg-card border border-border rounded-lg shadow-lg py-2 z-50">
-                  {[
-                    { code: 'de' as const, flag: '🇩🇪', name: 'Deutsch' },
-                    { code: 'en' as const, flag: '🇬🇧', name: 'English' },
-                  ].map((lang) => (
+                <div className="absolute top-full right-0 mt-2 w-52 bg-card border border-border rounded-xl shadow-xl py-2 z-50 max-h-80 overflow-y-auto">
+                  {languageOptions.map((lang) => (
                     <button
                       key={lang.code}
                       onClick={() => {
-                        onLanguageChange(lang.code);
+                        setLang(lang.code);
                         setShowLangMenu(false);
                       }}
-                      className={`w-full px-4 py-2 text-left text-sm hover:bg-accent transition-colors flex items-center gap-3 ${language === lang.code ? 'text-primary font-medium' : 'text-foreground'
+                      className={`w-full px-4 py-2.5 text-left text-sm hover:bg-accent transition-colors flex items-center gap-3 ${language === lang.code ? 'text-primary font-medium bg-primary/5' : 'text-foreground'
                         }`}
                     >
-                      <span className="text-lg">{lang.flag}</span>
-                      <span>{lang.name}</span>
-                      {language === lang.code && <span className="ml-auto text-primary">✓</span>}
+                      <span>{lang.label}</span>
+                      {language === lang.code && <Check className="w-4 h-4 ml-auto text-primary" />}
                     </button>
                   ))}
                 </div>

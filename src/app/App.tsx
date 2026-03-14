@@ -123,9 +123,7 @@ function AppShell() {
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     return (localStorage.getItem('theme') as 'light' | 'dark') || 'light';
   });
-  const [language, setLanguage] = useState<'de' | 'en'>(() => {
-    return (localStorage.getItem('language') as 'de' | 'en') || 'de';
-  });
+
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -136,10 +134,7 @@ function AppShell() {
     document.documentElement.classList.toggle('dark', newTheme === 'dark');
   }, []);
 
-  const handleLanguageChange = useCallback((newLang: 'de' | 'en') => {
-    setLanguage(newLang);
-    localStorage.setItem('language', newLang);
-  }, []);
+
 
   const handleOpenSettings = useCallback(() => {
     const event = new CustomEvent('open-settings');
@@ -184,8 +179,6 @@ function AppShell() {
       <DashboardHeader
         theme={theme}
         onThemeChange={handleThemeChange}
-        language={language}
-        onLanguageChange={handleLanguageChange}
         userName={me?.user?.first_name ? `${me.user.first_name} ${me.user.last_name}` : me?.user?.username || "Admin"}
         userEmail={me?.user?.email || "admin@autoteile-assistent.com"}
         companyName={currentTenant?.tenant_name || (isWawi ? "WAWI Port" : "Autoteile ERP")}
