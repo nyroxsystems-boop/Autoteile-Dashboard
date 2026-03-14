@@ -1,4 +1,4 @@
-import { useState, useEffect, Suspense, lazy, useCallback, useTransition } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { DashboardSidebar } from './components/DashboardSidebar';
 import { DashboardHeader } from './components/DashboardHeader';
@@ -12,54 +12,37 @@ import { useMe } from './hooks/useMe';
 import { Routes, Route, Navigate, useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 
-// Lazy-loaded views for code splitting
-const LoginView = lazy(() => import('./views/LoginView').then(m => ({ default: m.LoginView })));
-const HeuteView = lazy(() => import('./views/HeuteView').then(m => ({ default: m.HeuteView })));
-const AuftraegeView = lazy(() => import('./views/AuftraegeView').then(m => ({ default: m.AuftraegeView })));
-const AngeboteView = lazy(() => import('./views/AngeboteView').then(m => ({ default: m.AngeboteView })));
-const PreisprofileView = lazy(() => import('./views/PreisprofileView').then(m => ({ default: m.PreisprofileView })));
-const LieferantenView = lazy(() => import('./views/LieferantenView').then(m => ({ default: m.LieferantenView })));
-const StatusView = lazy(() => import('./views/StatusView').then(m => ({ default: m.StatusView })));
-const CustomersInquiriesView = lazy(() => import('./views/CustomersInquiriesView').then(m => ({ default: m.CustomersInquiriesView })));
-const DocumentsInvoicesView = lazy(() => import('./views/DocumentsInvoicesView').then(m => ({ default: m.DocumentsInvoicesView })));
-const SettingsView = lazy(() => import('./views/SettingsView').then(m => ({ default: m.SettingsView })));
-const AdminDashboardView = lazy(() => import('./views/AdminDashboardView').then(m => ({ default: m.AdminDashboardView })));
-const WawiDashboardView = lazy(() => import('./views/wawi/WawiDashboardView').then(m => ({ default: m.WawiDashboardView })));
-const ArticleListView = lazy(() => import('./views/wawi/ArticleListView').then(m => ({ default: m.ArticleListView })));
-const ArticleDetailView = lazy(() => import('./views/wawi/ArticleDetailView').then(m => ({ default: m.ArticleDetailView })));
-const InventoryMovementView = lazy(() => import('./views/wawi/InventoryMovementView').then(m => ({ default: m.InventoryMovementView })));
-const SupplierListView = lazy(() => import('./views/wawi/SupplierListView').then(m => ({ default: m.SupplierListView })));
-const ReorderWizardView = lazy(() => import('./views/wawi/ReorderWizardView').then(m => ({ default: m.ReorderWizardView })));
-const GoodsReceiptView = lazy(() => import('./views/wawi/GoodsReceiptView').then(m => ({ default: m.GoodsReceiptView })));
-const ReportsView = lazy(() => import('./views/wawi/ReportsView').then(m => ({ default: m.ReportsView })));
-const ReturnsView = lazy(() => import('./views/wawi/ReturnsView').then(m => ({ default: m.ReturnsView })));
-const SupplierRatingView = lazy(() => import('./views/wawi/SupplierRatingView').then(m => ({ default: m.SupplierRatingView })));
-const AIInsightsView = lazy(() => import('./views/wawi/AIInsightsView').then(m => ({ default: m.AIInsightsView })));
-const TaxDashboardView = lazy(() => import('./views/tax/TaxDashboardView'));
-const InvoiceListView = lazy(() => import('./views/tax/InvoiceListView'));
-const TaxProfileCreateView = lazy(() => import('./views/tax/TaxProfileCreateView'));
-
-// Suspense fallback component
-function PageLoader() {
-  return (
-    <div className="space-y-6 p-12 animate-shimmer">
-      <div className="h-8 w-48 bg-muted rounded" />
-      <div className="h-5 w-64 bg-muted rounded" />
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {[...Array(4)].map((_, i) => (
-          <div key={i} className="h-32 bg-muted/50 rounded-xl border border-border" />
-        ))}
-      </div>
-      <div className="h-80 bg-muted/30 rounded-xl border border-border" />
-    </div>
-  );
-}
+// Direct imports — no lazy loading = no Suspense flash on navigation
+import { LoginView } from './views/LoginView';
+import { HeuteView } from './views/HeuteView';
+import { AuftraegeView } from './views/AuftraegeView';
+import { AngeboteView } from './views/AngeboteView';
+import { PreisprofileView } from './views/PreisprofileView';
+import { LieferantenView } from './views/LieferantenView';
+import { StatusView } from './views/StatusView';
+import { CustomersInquiriesView } from './views/CustomersInquiriesView';
+import { DocumentsInvoicesView } from './views/DocumentsInvoicesView';
+import { SettingsView } from './views/SettingsView';
+import { AdminDashboardView } from './views/AdminDashboardView';
+import { WawiDashboardView } from './views/wawi/WawiDashboardView';
+import { ArticleListView } from './views/wawi/ArticleListView';
+import { ArticleDetailView } from './views/wawi/ArticleDetailView';
+import { InventoryMovementView } from './views/wawi/InventoryMovementView';
+import { SupplierListView } from './views/wawi/SupplierListView';
+import { ReorderWizardView } from './views/wawi/ReorderWizardView';
+import { GoodsReceiptView } from './views/wawi/GoodsReceiptView';
+import { ReportsView } from './views/wawi/ReportsView';
+import { ReturnsView } from './views/wawi/ReturnsView';
+import { SupplierRatingView } from './views/wawi/SupplierRatingView';
+import { AIInsightsView } from './views/wawi/AIInsightsView';
+import TaxDashboardView from './views/tax/TaxDashboardView';
+import InvoiceListView from './views/tax/InvoiceListView';
+import TaxProfileCreateView from './views/tax/TaxProfileCreateView';
 
 // ── Shared navigation helper ──
 function useAppNavigate() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [, startTransition] = useTransition();
 
   const handleNavigate = useCallback((view: string) => {
     const isCurrentlyInWawi = location.pathname.startsWith('/wawi');
@@ -88,13 +71,10 @@ function useAppNavigate() {
     };
 
     if (viewPaths[view]) {
-      // startTransition keeps current view visible while lazy component loads
-      // This prevents the Suspense fallback (PageLoader) from flashing
-      startTransition(() => {
-        navigate(viewPaths[view]);
-      });
+      navigate(viewPaths[view]);
     }
-  }, [navigate, location.pathname, startTransition]);
+  }, [navigate, location.pathname]);
+
 
   return handleNavigate;
 }
@@ -226,9 +206,7 @@ function AppShell() {
               <div className="h-1 w-12 bg-primary rounded-full" />
             </div>
           )}
-          <Suspense fallback={<PageLoader />}>
-            <Outlet />
-          </Suspense>
+          <Outlet />
         </div>
       </main>
       <CommandPalette
