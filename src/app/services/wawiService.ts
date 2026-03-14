@@ -413,15 +413,13 @@ export const wawiService = {
 
     // ── Server-side Stats & Suggestions ──────────────────────
     getStats: async () => {
-        return await wawiFetch<{
-            totalArticles: number;
-            lowStockCount: number;
-            totalValue: number;
-        }>('/api/products/stats/');
+        // TODO: Re-enable when backend implements /api/products/stats/
+        return { totalArticles: 0, lowStockCount: 0, totalValue: 0 };
     },
 
     getReorderSuggestions: async () => {
-        return await wawiFetchList<unknown>('/api/products/reorder-suggestions/');
+        // TODO: Re-enable when backend implements /api/products/reorder-suggestions/
+        return [] as unknown[];
     },
 
     // ── Dashboard Summary (combined stats) ───────────────────
@@ -467,9 +465,9 @@ export const wawiService = {
     },
 
     // ── Feature 2: Returns ───────────────────────────────────
-    getReturns: async (statusFilter?: string) => {
-        const url = statusFilter ? `/api/returns/?status=${statusFilter}` : '/api/returns/';
-        return await wawiFetchList<ReturnItem>(url);
+    getReturns: async (_statusFilter?: string) => {
+        // TODO: Re-enable when backend implements /api/returns/
+        return [] as ReturnItem[];
     },
 
     createReturn: async (data: { order?: number; product?: number; contact?: number; quantity: number; reason: string; notes?: string; location?: number }) => {
@@ -549,9 +547,9 @@ export const wawiService = {
     },
 
     // ── Feature 8: Supplier Ratings ──────────────────────────
-    getSupplierRatings: async (supplierId?: number) => {
-        const url = supplierId ? `/api/supplier-ratings/?supplier=${supplierId}` : '/api/supplier-ratings/';
-        return await wawiFetchList<SupplierRating>(url);
+    getSupplierRatings: async (_supplierId?: number) => {
+        // TODO: Re-enable when backend implements /api/supplier-ratings/
+        return [] as SupplierRating[];
     },
 
     createSupplierRating: async (data: {
@@ -593,6 +591,7 @@ export const wawiService = {
 
     // ── Feature 14: Dashboard Briefing (AI) ──────────────────
     getBriefing: async () => {
-        return await wawiFetch('/api/ai/briefing/');
+        // TODO: Re-enable when backend implements /api/ai/briefing/
+        return {} as Record<string, unknown>;
     },
 };
