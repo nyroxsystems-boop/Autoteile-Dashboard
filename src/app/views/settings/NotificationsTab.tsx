@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Bell, Save, Loader2 } from 'lucide-react';
+import { Bell, Save, Loader2, MessageCircle, CheckCircle2, Package, Coins, Users } from 'lucide-react';
 import { useMerchantSettings } from '../../hooks/useMerchantSettings';
 import { useI18n } from '../../../i18n';
 import { toast } from 'sonner';
@@ -28,11 +28,11 @@ export function NotificationsTab() {
     };
 
     const items = [
-        { key: 'new_inquiry', label: t('settings_notif_inquiry'), desc: t('settings_notif_inquiry_desc'), icon: '💬' },
-        { key: 'quote_accepted', label: t('settings_notif_quote'), desc: t('settings_notif_quote_desc'), icon: '✅' },
-        { key: 'order_shipped', label: t('settings_notif_shipped'), desc: t('settings_notif_shipped_desc'), icon: '📦' },
-        { key: 'invoice_paid', label: t('settings_notif_paid'), desc: t('settings_notif_paid_desc'), icon: '💰' },
-        { key: 'team_updates', label: t('settings_notif_team'), desc: t('settings_notif_team_desc'), icon: '👥' },
+        { key: 'new_inquiry', label: t('settings_notif_inquiry'), desc: t('settings_notif_inquiry_desc'), icon: <MessageCircle className="w-5 h-5 text-blue-500" /> },
+        { key: 'quote_accepted', label: t('settings_notif_quote'), desc: t('settings_notif_quote_desc'), icon: <CheckCircle2 className="w-5 h-5 text-emerald-500" /> },
+        { key: 'order_shipped', label: t('settings_notif_shipped'), desc: t('settings_notif_shipped_desc'), icon: <Package className="w-5 h-5 text-indigo-500" /> },
+        { key: 'invoice_paid', label: t('settings_notif_paid'), desc: t('settings_notif_paid_desc'), icon: <Coins className="w-5 h-5 text-amber-500" /> },
+        { key: 'team_updates', label: t('settings_notif_team'), desc: t('settings_notif_team_desc'), icon: <Users className="w-5 h-5 text-violet-500" /> },
     ];
 
     return (
@@ -45,7 +45,7 @@ export function NotificationsTab() {
                     {items.map(item => (
                         <div key={item.key} className="flex items-center justify-between p-4 bg-background rounded-lg border border-border">
                             <div className="flex items-center gap-3">
-                                <span className="text-xl">{item.icon}</span>
+                                <span className="flex-shrink-0">{item.icon}</span>
                                 <div>
                                     <div className="text-sm font-medium text-foreground">{item.label}</div>
                                     <div className="text-xs text-muted-foreground">{item.desc}</div>

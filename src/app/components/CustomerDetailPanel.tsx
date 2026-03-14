@@ -1,4 +1,4 @@
-import { X, Phone, MapPin, Building2, FileText, MessageSquare, User } from 'lucide-react';
+import { X, Phone, MapPin, Building2, FileText, MessageSquare, User, Wrench, Handshake, AlertTriangle, PersonStanding } from 'lucide-react';
 import { StatusChip } from './StatusChip';
 import { toast } from 'sonner';
 import { apiFetch } from '../api/client';
@@ -48,10 +48,10 @@ interface CustomerDetailPanelProps {
 export function CustomerDetailPanel({ customer, onClose, onCreateQuote, onCustomerUpdated }: CustomerDetailPanelProps) {
   const { t } = useI18n();
 
-  const customerTypeLabels: Record<string, string> = {
-    werkstatt: `🔧 ${t('customer_workshop')}`,
-    partner: `🤝 ${t('customer_partner')}`,
-    endkunde: `👤 ${t('customer_end_user')}`,
+  const customerTypeConfig: Record<string, { label: string; icon: React.ReactNode }> = {
+    werkstatt: { label: t('customer_workshop'), icon: <Wrench className="w-3.5 h-3.5 inline mr-1" /> },
+    partner: { label: t('customer_partner'), icon: <Handshake className="w-3.5 h-3.5 inline mr-1" /> },
+    endkunde: { label: t('customer_end_user'), icon: <User className="w-3.5 h-3.5 inline mr-1" /> },
   };
 
   const handleSetCustomerType = async (type: 'werkstatt' | 'partner' | 'endkunde') => {
@@ -116,7 +116,7 @@ export function CustomerDetailPanel({ customer, onClose, onCreateQuote, onCustom
                           : 'border-border bg-card text-muted-foreground hover:border-primary/50 hover:text-foreground'
                           }`}
                       >
-                        {customerTypeLabels[type]}
+                        {customerTypeConfig[type]?.icon}{customerTypeConfig[type]?.label}
                       </button>
                     ))}
                   </div>
@@ -130,7 +130,7 @@ export function CustomerDetailPanel({ customer, onClose, onCreateQuote, onCustom
             {!customer.customerType && (
               <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
                 <div className="flex items-start gap-2">
-                  <span className="text-amber-600">⚠️</span>
+                  <AlertTriangle className="w-4 h-4 text-amber-600" />
                   <div className="flex-1">
                     <div className="text-sm font-medium text-amber-900 dark:text-amber-400 mb-1">{t('customer_type_not_set')}</div>
                     <div className="text-xs text-amber-700 dark:text-amber-500 mb-3">
@@ -143,7 +143,7 @@ export function CustomerDetailPanel({ customer, onClose, onCreateQuote, onCustom
                           onClick={() => handleSetCustomerType(type)}
                           className="flex-1 px-3 py-2 rounded-lg border-2 border-amber-500/30 bg-card text-sm font-medium text-foreground hover:border-amber-500 hover:bg-amber-500/5 transition-all"
                         >
-                          {customerTypeLabels[type]}
+                          {customerTypeConfig[type]?.icon}{customerTypeConfig[type]?.label}
                         </button>
                       ))}
                     </div>
@@ -203,7 +203,7 @@ export function CustomerDetailPanel({ customer, onClose, onCreateQuote, onCustom
                   </div>
                   {customer.deliveryMethod === 'abholung' && (
                     <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-500/10 text-amber-600 border border-amber-500/20 mt-1.5">
-                      🚶 {t('customer_pickup_badge')}
+                      <PersonStanding className="w-3.5 h-3.5 inline mr-1" /> {t('customer_pickup_badge')}
                     </span>
                   )}
                 </div>
@@ -322,7 +322,7 @@ export function CustomerDetailPanel({ customer, onClose, onCreateQuote, onCustom
         {customer.status === 'oem_pending' && (
           <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 mb-3">
             <div className="flex items-start gap-2">
-              <span className="text-red-600 text-lg">⚠️</span>
+              <AlertTriangle className="w-5 h-5 text-red-600" />
               <div className="flex-1">
                 <div className="text-sm font-medium text-red-900 dark:text-red-400 mb-1">{t('customer_oem_check')}</div>
                 <div className="text-xs text-red-700 dark:text-red-500">

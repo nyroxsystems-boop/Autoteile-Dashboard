@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
     Package, Warehouse, ShoppingCart, History, ArrowLeft,
     ExternalLink, Edit, Trash2, Truck, AlertTriangle, Box,
-    Link2, Car, DollarSign, Plus, X
+    Link2, Car, DollarSign, Plus, X, Gift, Coins
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -163,9 +163,9 @@ export function ArticleDetailView() {
                                 <div className="p-4 bg-muted/20 rounded-2xl flex flex-col items-center">
                                     <span className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Typ</span>
                                     <span className="font-bold capitalize">
-                                        {article.article_type === 'set' && '🎁 Set/Baukasten'}
-                                        {article.article_type === 'deposit' && '💰 Pfand'}
-                                        {(!article.article_type || article.article_type === 'standard') && '📦 Standard'}
+                                        {article.article_type === 'set' && <><Gift className="w-4 h-4 inline mr-1.5" />Set/Baukasten</>}
+                                        {article.article_type === 'deposit' && <><Coins className="w-4 h-4 inline mr-1.5" />Pfand</>}
+                                        {(!article.article_type || article.article_type === 'standard') && <><Package className="w-4 h-4 inline mr-1.5" />Standard</>}
                                     </span>
                                 </div>
                                 <div className="p-4 bg-muted/20 rounded-2xl flex flex-col items-center">

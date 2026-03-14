@@ -16,7 +16,7 @@ const statusLabels = {
   in_progress: 'In Bearbeitung',
   quoted: 'Angebot gesendet',
   confirmed: 'Bestätigt',
-  oem_pending: '⚠️ OEM-Prüfung',
+  oem_pending: 'OEM-Prüfung',
 };
 
 const statusVariants = {

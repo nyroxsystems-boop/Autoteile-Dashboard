@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MapPin, AlertCircle } from 'lucide-react';
+import { MapPin, AlertCircle, Building2, Package, AlertTriangle, RotateCcw, Lightbulb } from 'lucide-react';
 import { StockByLocation } from '../services/wawiService';
 
 interface StockLocationManagerProps {
@@ -12,11 +12,11 @@ export function StockLocationManager({ locations, totalStock, minimumStock }: St
     const [selectedLocation, setSelectedLocation] = useState<number | null>(null);
 
     const getLocationTypeIcon = (code: string) => {
-        if (code.startsWith('A')) return '🏢'; // Main warehouse
-        if (code.startsWith('B')) return '📦'; // Shelf
-        if (code.startsWith('Q')) return '⚠️'; // Quarantine
-        if (code.startsWith('R')) return '↩️'; // Returns
-        return '📍';
+        if (code.startsWith('A')) return <Building2 className="w-5 h-5 text-primary" />;
+        if (code.startsWith('B')) return <Package className="w-5 h-5 text-blue-500" />;
+        if (code.startsWith('Q')) return <AlertTriangle className="w-5 h-5 text-amber-500" />;
+        if (code.startsWith('R')) return <RotateCcw className="w-5 h-5 text-orange-500" />;
+        return <MapPin className="w-5 h-5 text-muted-foreground" />;
     };
 
     const totalAllocated = locations.reduce((sum, loc) => sum + loc.quantity, 0);
@@ -80,7 +80,7 @@ p - 4 rounded - 2xl border - 2 transition - all text - left
                         >
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3 flex-1">
-                                    <div className="text-2xl">{getLocationTypeIcon(location.location_code)}</div>
+                                    <div className="w-9 h-9 rounded-xl bg-muted/50 flex items-center justify-center">{getLocationTypeIcon(location.location_code)}</div>
                                     <div className="flex-1 min-w-0">
                                         <div className="font-bold text-sm text-foreground">{location.location_name}</div>
                                         <div className="text-xs text-muted-foreground font-mono">{location.location_code}</div>
@@ -103,7 +103,7 @@ p - 4 rounded - 2xl border - 2 transition - all text - left
 
                             {isSelected && (
                                 <div className="mt-4 pt-4 border-t border-border text-xs text-muted-foreground">
-                                    <p>💡 Klicken Sie auf "Bestand buchen" um eine Umbuchung vorzunehmen.</p>
+                                    <p className="flex items-center gap-1.5"><Lightbulb className="w-3.5 h-3.5 text-amber-500" /> Klicken Sie auf "Bestand buchen" um eine Umbuchung vorzunehmen.</p>
                                 </div>
                             )}
                         </button>
