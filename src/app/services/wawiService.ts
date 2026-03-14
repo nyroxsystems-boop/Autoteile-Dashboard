@@ -310,15 +310,15 @@ export const wawiService = {
 
     // ── Stock Movements ──────────────────────────────────────
     getRecentMovements: async (limit = 50) => {
-        return await wawiFetchList<StockMovement>(`/api/stock-movements/?limit=${limit}`);
+        return await wawiFetchList<StockMovement>(`/api/stock/movements?limit=${limit}`);
     },
 
     getMovementHistory: async (partId: number | string) => {
-        return await wawiFetchList<StockMovement>(`/api/stock-movements/?part_id=${partId}`);
+        return await wawiFetchList<StockMovement>(`/api/stock/movements?part_id=${partId}`);
     },
 
     createMovement: async (movement: Partial<StockMovement>) => {
-        return await wawiFetch<StockMovement>('/api/stock-movements/', {
+        return await wawiFetch<StockMovement>('/api/stock/movements', {
             method: 'POST',
             body: JSON.stringify(movement),
         });
@@ -326,11 +326,11 @@ export const wawiService = {
 
     // ── Locations ─────────────────────────────────────────────
     getLocations: async () => {
-        return await wawiFetchList<WarehouseLocation>('/api/stock-locations/');
+        return await wawiFetchList<WarehouseLocation>('/api/stock/locations');
     },
 
     createLocation: async (data: Partial<WarehouseLocation>) => {
-        return await wawiFetch<WarehouseLocation>('/api/stock-locations/', {
+        return await wawiFetch<WarehouseLocation>('/api/stock/locations', {
             method: 'POST',
             body: JSON.stringify(data),
         });
