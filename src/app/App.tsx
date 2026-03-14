@@ -1,4 +1,4 @@
-import { useState, useEffect, Suspense, lazy, useCallback } from 'react';
+import { useState, useEffect, Suspense, lazy, useCallback, useTransition } from 'react';
 import { toast } from 'sonner';
 import { DashboardSidebar } from './components/DashboardSidebar';
 import { DashboardHeader } from './components/DashboardHeader';
@@ -59,6 +59,7 @@ function PageLoader() {
 function useAppNavigate() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [, startTransition] = useTransition();
 
   const handleNavigate = useCallback((view: string) => {
     const isCurrentlyInWawi = location.pathname.startsWith('/wawi');
@@ -87,9 +88,13 @@ function useAppNavigate() {
     };
 
     if (viewPaths[view]) {
-      navigate(viewPaths[view]);
+      // startTransition keeps current view visible while lazy component loads
+      // This prevents the Suspense fallback (PageLoader) from flashing
+      startTransition(() => {
+        navigate(viewPaths[view]);
+      });
     }
-  }, [navigate, location.pathname]);
+  }, [navigate, location.pathname, startTransition]);
 
   return handleNavigate;
 }
@@ -126,7 +131,9 @@ function useActiveView() {
 
 // ── Layout Shell (shared sidebar + header) — defined OUTSIDE App for stable identity ──
 
-function AppShell({ isWawi }: { isWawi: boolean }) {
+function AppShell() {
+  const location = useLocation();
+  const isWawi = location.pathname.startsWith('/wawi');
   const { logout } = useAuth();
   const { tenants, currentTenant, switchTenant } = useTenants();
   const { me } = useMe();
@@ -239,12 +246,10 @@ function AppShell({ isWawi }: { isWawi: boolean }) {
   );
 }
 
-// ── Single unified layout — reads isWawi from URL, never remounts ──
+// ── Single unified layout — stable identity, never remounts ──
 
 function UnifiedLayout() {
-  const location = useLocation();
-  const isWawi = location.pathname.startsWith('/wawi');
-  return <AppShell isWawi={isWawi} />;
+  return <AppShell />;
 }
 
 // ── View wrappers for components that need onNavigate prop ──
