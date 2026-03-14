@@ -89,7 +89,7 @@ export function AIInsightsView() {
         setLoading(l => ({ ...l, reorder: true }));
         try {
             const data = await wawiService.getSmartReorder(90, 30);
-            setReorder(data as ReorderData);
+            setReorder(data as unknown as ReorderData);
         } catch (err) {
             console.error('Reorder load failed:', err);
             toast.error(t('error'));
@@ -100,7 +100,7 @@ export function AIInsightsView() {
     const loadPriceOpt = async () => {
         setLoading(l => ({ ...l, priceOpt: true }));
         try {
-            const data = await wawiService.getPriceOptimization() as PriceOptItem[];
+            const data = await wawiService.getPriceOptimization() as unknown as PriceOptItem[];
             setPriceOpt(data);
         } catch (err) {
             console.error('Price opt load failed:', err);
@@ -113,7 +113,7 @@ export function AIInsightsView() {
         setLoading(l => ({ ...l, anomaly: true }));
         try {
             const data = await wawiService.getAnomalies(7, 3.0);
-            setAnomalies(data as AnomalyData);
+            setAnomalies(data as unknown as AnomalyData);
         } catch (err) {
             console.error('Anomaly load failed:', err);
             toast.error(t('error'));
