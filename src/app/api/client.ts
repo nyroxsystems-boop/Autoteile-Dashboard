@@ -65,13 +65,15 @@ export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): 
             credentials: 'include',  // Send httpOnly cookies with every request
         });
 
-        // Retry on 429 Too Many Requests or 5xx Server Errors with exponential backoff
-        if (response.status === 429 || (response.status >= 500 && response.status < 600)) {
-            const retryAfter = response.headers.get('Retry-After');
-            const waitMs = retryAfter
-                ? parseInt(retryAfter, 10) * 1000
-                : Math.pow(2, attempt) * 1000; // 1s, 2s, 4s
+        // 429 Too Many Requests — fail immediately, retrying just makes it worse
+        if (response.status === 429) {
+            throw new ApiError(`Rate limited on ${endpoint}`, 429);
+        }
+
+        // Retry only on 5xx Server Errors with exponential backoff
+        if (response.status >= 500 && response.status < 600) {
             lastError = new ApiError(`Server error ${response.status} on ${endpoint}`, response.status);
+            const waitMs = Math.pow(2, attempt) * 1000; // 1s, 2s, 4s
             await new Promise(resolve => setTimeout(resolve, waitMs));
             continue;
         }
@@ -89,6 +91,6 @@ export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): 
         return response.json();
     }
 
-    // All retries exhausted (only reachable for 429s)
-    throw lastError || new ApiError(`Rate limited after ${MAX_RETRIES} retries: ${endpoint}`, 429);
+    // All retries exhausted (only reachable for 5xx errors)
+    throw lastError || new ApiError(`Server error after ${MAX_RETRIES} retries: ${endpoint}`, 500);
 }
