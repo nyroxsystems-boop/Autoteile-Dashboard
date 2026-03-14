@@ -250,9 +250,7 @@ export default function App() {
   if (!isAuthenticated) {
     return (
       <>
-        <Suspense fallback={<PageLoader />}>
-          <LoginView />
-        </Suspense>
+        <LoginView />
         <ToastProvider theme="light" />
       </>
     );
