@@ -85,6 +85,13 @@ export function AuftraegeView() {
 
   const handleCreateInvoice = async () => {
     if (!selectedOrderId) return;
+
+    // Guard: prevent invoice creation if no offers exist for this order
+    if (offers.length === 0) {
+      toast.error(t('orders_no_offers_invoice'));
+      return;
+    }
+
     try {
       const invoice = await createInvoiceFromOrder(selectedOrderId as string);
       toast.success(t('orders_invoice_created'));
@@ -95,11 +102,12 @@ export function AuftraegeView() {
       refresh(); // update order status
     } catch (err: unknown) {
       const errMsg = err instanceof Error ? err.message : '';
-      // Check if it's a duplicate
       if (errMsg.includes('already exists')) {
         toast.info(t('orders_invoice_exists'));
+      } else if (errMsg.includes('500') || errMsg.includes('Server')) {
+        toast.error(t('orders_invoice_server_error'));
       } else {
-        toast.error(t('error'));
+        toast.error(t('orders_invoice_error'));
       }
     }
   };
