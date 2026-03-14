@@ -239,14 +239,12 @@ function AppShell({ isWawi }: { isWawi: boolean }) {
   );
 }
 
-// ── Layout wrappers for React Router nested routes ──
+// ── Single unified layout — reads isWawi from URL, never remounts ──
 
-function BotLayout() {
-  return <AppShell isWawi={false} />;
-}
-
-function WawiLayout() {
-  return <AppShell isWawi={true} />;
+function UnifiedLayout() {
+  const location = useLocation();
+  const isWawi = location.pathname.startsWith('/wawi');
+  return <AppShell isWawi={isWawi} />;
 }
 
 // ── View wrappers for components that need onNavigate prop ──
@@ -280,8 +278,9 @@ export default function App() {
   return (
     <ErrorBoundary>
         <Routes>
-          {/* Bot Workspace — nested under stable layout */}
-          <Route element={<BotLayout />}>
+          {/* All routes under ONE layout — sidebar/header never unmount */}
+          <Route element={<UnifiedLayout />}>
+            {/* Bot Workspace */}
             <Route path="/bot" element={<Navigate to="/bot/heute" replace />} />
             <Route path="/bot/heute" element={<HeuteViewWithNav />} />
             <Route path="/bot/kunden" element={<CustomersWithNav />} />
@@ -297,10 +296,8 @@ export default function App() {
             <Route path="/bot/tax/dashboard" element={<TaxDashboardView />} />
             <Route path="/bot/tax/profile/create" element={<TaxProfileCreateView />} />
             <Route path="/bot/tax/invoices" element={<InvoiceListView />} />
-          </Route>
 
-          {/* WAWI Workspace — nested under stable layout */}
-          <Route element={<WawiLayout />}>
+            {/* WAWI Workspace */}
             <Route path="/wawi" element={<Navigate to="/wawi/dashboard" replace />} />
             <Route path="/wawi/dashboard" element={<WawiDashboardView />} />
             <Route path="/wawi/artikel" element={<ArticleListView />} />
