@@ -570,8 +570,9 @@ export const wawiService = {
     },
 
     // ── Feature 9: Smart Reorder (AI) ────────────────────────
-    getSmartReorder: async (lookbackDays = 90, forecastDays = 30) => {
-        return await wawiFetch(`/api/ai/smart-reorder/?days=${lookbackDays}&forecast_days=${forecastDays}`);
+    getSmartReorder: async (_lookbackDays = 90, _forecastDays = 30) => {
+        // TODO: Re-enable when backend implements /api/ai/smart-reorder/
+        return {} as Record<string, unknown>;
     },
 
     // ── Feature 10: Fuzzy OEM Search (AI) ────────────────────
@@ -581,12 +582,14 @@ export const wawiService = {
 
     // ── Feature 11: Price Optimization (AI) ──────────────────
     getPriceOptimization: async () => {
-        return await wawiFetch('/api/ai/price-optimization/');
+        // TODO: Re-enable when backend implements /api/ai/price-optimization/
+        return {} as Record<string, unknown>;
     },
 
     // ── Feature 13: Anomaly Detection (AI) ───────────────────
-    getAnomalies: async (days = 7, threshold = 3.0) => {
-        return await wawiFetch(`/api/ai/anomalies/?days=${days}&threshold=${threshold}`);
+    getAnomalies: async (_days = 7, _threshold = 3.0) => {
+        // TODO: Re-enable when backend implements /api/ai/anomalies/
+        return {} as Record<string, unknown>;
     },
 
     // ── Feature 14: Dashboard Briefing (AI) ──────────────────
