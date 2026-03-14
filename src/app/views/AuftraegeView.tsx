@@ -104,7 +104,38 @@ export function AuftraegeView() {
     }
   };
 
-  if (loading) return <div className="p-8 text-center text-muted-foreground font-medium bg-card/30 rounded-2xl border border-dashed border-border py-20">{t('orders_loading')}</div>;
+  if (loading) return (
+    <div className="flex flex-col lg:grid lg:grid-cols-12 gap-6 lg:h-[calc(100vh-8rem)] animate-in fade-in duration-300">
+      <div className="lg:col-span-5 space-y-6">
+        <div>
+          <div className="h-8 w-32 bg-muted rounded-lg animate-shimmer" />
+          <div className="h-4 w-64 bg-muted/60 rounded mt-3 animate-shimmer" />
+        </div>
+        <div className="space-y-3">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="p-5 rounded-xl border border-border bg-card animate-shimmer" style={{ animationDelay: `${i * 100}ms` }}>
+              <div className="flex items-start justify-between mb-3">
+                <div className="space-y-2 flex-1">
+                  <div className="h-4 w-40 bg-muted rounded" />
+                  <div className="h-3 w-28 bg-muted/60 rounded" />
+                </div>
+                <div className="h-6 w-20 bg-muted rounded-full" />
+              </div>
+              <div className="h-5 w-32 bg-muted/40 rounded" />
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="lg:col-span-7 bg-card border border-border rounded-xl p-8 animate-shimmer">
+        <div className="h-6 w-48 bg-muted rounded mb-6" />
+        <div className="space-y-4">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="h-4 bg-muted/40 rounded" style={{ width: `${80 - i * 8}%` }} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
   if (error) return <div className="p-8 text-center text-error bg-error/5 rounded-2xl border border-error/20 py-20 flex flex-col items-center gap-3"><AlertCircle className="w-8 h-8" /> <span>{error}</span></div>;
 
   const timelineSteps = (order: Order) => [

@@ -3,7 +3,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../components/ui/dialog';
 import { StatusChip } from '../components/StatusChip';
-import { Percent, DollarSign, TrendingUp, Edit2, Trash2, Plus, Loader2 } from 'lucide-react';
+import { Percent, DollarSign, TrendingUp, Edit2, Trash2, Plus } from 'lucide-react';
 import { useMerchantSettings } from '../hooks/useMerchantSettings';
 import { useDashboardSummary } from '../hooks/useDashboardSummary';
 import { PriceGroupModal } from '../components/PriceGroupModal';
@@ -37,7 +37,29 @@ export function PreisprofileView() {
     }
   }, [settings]);
 
-  if (loading) return <div className="p-20 text-center text-muted-foreground flex flex-col items-center gap-4"><Loader2 className="w-8 h-8 animate-spin" /> {t('prices_loading')}</div>;
+  if (loading) return (
+    <div className="space-y-6 animate-in fade-in duration-300">
+      <div className="flex items-start justify-between">
+        <div>
+          <div className="h-8 w-44 bg-muted rounded-lg animate-shimmer" />
+          <div className="h-4 w-72 bg-muted/60 rounded mt-3 animate-shimmer" />
+        </div>
+        <div className="h-10 w-40 bg-muted rounded-lg animate-shimmer" />
+      </div>
+      <div className="h-20 bg-primary/5 border border-primary/10 rounded-xl animate-shimmer" />
+      <div className="bg-card border border-border rounded-xl overflow-hidden">
+        <div className="bg-muted/50 h-12 border-b border-border animate-shimmer" />
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="h-16 border-b border-border animate-shimmer" style={{ animationDelay: `${i * 100}ms` }} />
+        ))}
+      </div>
+      <div className="h-48 bg-card border border-border rounded-xl animate-shimmer" />
+      <div className="grid grid-cols-2 gap-6">
+        <div className="h-40 bg-card border border-border rounded-xl animate-shimmer" />
+        <div className="h-40 bg-card border border-border rounded-xl animate-shimmer" style={{ animationDelay: '100ms' }} />
+      </div>
+    </div>
+  );
 
   return (
     <div className="space-y-6">

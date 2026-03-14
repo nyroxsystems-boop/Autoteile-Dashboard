@@ -1,6 +1,6 @@
 
 import { useState, useMemo, useEffect } from 'react';
-import { Search, Package, Clock, CheckCircle2, XCircle, FileText, Plus, Loader2 } from 'lucide-react';
+import { Search, Package, Clock, CheckCircle2, XCircle, FileText, Plus } from 'lucide-react';
 import { useOrders } from '../hooks/useOrders';
 import { getOrderOffers, Offer } from '../api/wws';
 import { toast } from 'sonner';
@@ -79,9 +79,38 @@ export function AngeboteView() {
   }), [mappedQuotes]);
 
   if (loading) return (
-    <div className="p-20 text-center text-muted-foreground flex flex-col items-center gap-4">
-      <Loader2 className="w-8 h-8 animate-spin" />
-      {t('offers_loading')}
+    <div className="space-y-6 animate-in fade-in duration-300">
+      <div className="flex items-start justify-between">
+        <div>
+          <div className="h-8 w-36 bg-muted rounded-lg animate-shimmer" />
+          <div className="h-4 w-64 bg-muted/60 rounded mt-3 animate-shimmer" />
+        </div>
+        <div className="h-10 w-32 bg-muted rounded-lg animate-shimmer" />
+      </div>
+      <div className="grid grid-cols-4 gap-6">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="p-4 rounded-xl border border-border bg-card animate-shimmer" style={{ animationDelay: `${i * 100}ms` }}>
+            <div className="w-10 h-10 rounded-xl bg-muted mb-3" />
+            <div className="h-3 w-16 bg-muted rounded mb-2" />
+            <div className="h-8 w-10 bg-muted rounded" />
+          </div>
+        ))}
+      </div>
+      <div className="h-10 bg-muted/40 rounded-lg animate-shimmer" />
+      <div className="space-y-6">
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="bg-card border border-border rounded-xl overflow-hidden animate-shimmer" style={{ animationDelay: `${i * 120}ms` }}>
+            <div className="bg-muted/30 px-6 py-4 border-b border-border">
+              <div className="h-5 w-48 bg-muted rounded" />
+              <div className="h-3 w-32 bg-muted/60 rounded mt-2" />
+            </div>
+            <div className="p-6 space-y-3">
+              <div className="h-4 bg-muted/30 rounded w-full" />
+              <div className="h-4 bg-muted/30 rounded w-3/4" />
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 

@@ -1,6 +1,6 @@
 
 import { useState, useMemo } from 'react';
-import { Search, Plus, MessageSquare, Clock, FileText, AlertCircle, Loader2 } from 'lucide-react';
+import { Search, Plus, MessageSquare, Clock, FileText, AlertCircle } from 'lucide-react';
 import { CustomerThreadRow } from '../components/CustomerThreadRow';
 import { CustomerDetailPanel } from '../components/CustomerDetailPanel';
 import { TableDensityToggle, getTableDensityClasses, type TableDensity } from '../components/TableDensityToggle';
@@ -77,9 +77,29 @@ export function CustomersInquiriesView({ onNavigate: _onNavigate }: CustomersInq
 
   if (loading) {
     return (
-      <div className="p-20 text-center text-muted-foreground flex flex-col items-center gap-4">
-        <Loader2 className="w-8 h-8 animate-spin" />
-        {t('customers_loading')}
+      <div className="space-y-6 animate-in fade-in duration-300">
+        <div className="flex items-start justify-between">
+          <div>
+            <div className="h-8 w-48 bg-muted rounded-lg animate-shimmer" />
+            <div className="h-4 w-72 bg-muted/60 rounded mt-3 animate-shimmer" />
+          </div>
+          <div className="h-10 w-36 bg-muted rounded-lg animate-shimmer" />
+        </div>
+        <div className="grid grid-cols-4 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="p-4 rounded-xl border border-border bg-card animate-shimmer" style={{ animationDelay: `${i * 100}ms` }}>
+              <div className="w-10 h-10 rounded-xl bg-muted mb-3" />
+              <div className="h-3 w-20 bg-muted rounded mb-2" />
+              <div className="h-8 w-12 bg-muted rounded" />
+            </div>
+          ))}
+        </div>
+        <div className="h-10 bg-muted/40 rounded-lg animate-shimmer" />
+        <div className="space-y-3">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="h-20 bg-card border border-border rounded-xl animate-shimmer" style={{ animationDelay: `${i * 80}ms` }} />
+          ))}
+        </div>
       </div>
     );
   }
