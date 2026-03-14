@@ -92,10 +92,9 @@ export function DashboardSidebar({
         {/* Logo + Mobile Close */}
         <div className="relative w-full flex justify-center mb-10">
           <div
-            className="w-11 h-11 rounded-xl flex items-center justify-center cursor-pointer shadow-md overflow-hidden"
-            style={{ background: 'linear-gradient(135deg, hsl(221 83% 53%), hsl(240 80% 50%))' }}
+            className="w-11 h-11 rounded-xl flex items-center justify-center cursor-pointer shadow-md overflow-hidden bg-white"
           >
-            <img src="/logo.png" alt="Partsunion" className="w-9 h-9 object-contain" />
+            <img src="/logo.png" alt="Partsunion" className="w-10 h-10 object-contain" />
           </div>
           {/* Mobile close button */}
           <button
