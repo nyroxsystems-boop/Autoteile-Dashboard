@@ -1,34 +1,100 @@
 import { apiFetch, ApiError, API_BASE_URL, getAuthToken } from '../api/client';
 
+// ── Response cache + request dedup ──────────────────────────────────
+// Prevents 429s by caching GET responses for 60s and deduplicating in-flight requests.
+const CACHE_TTL_MS = 60_000; // 60 seconds
+const responseCache = new Map<string, { data: unknown; timestamp: number }>();
+const inflightRequests = new Map<string, Promise<unknown>>();
+
+function getCached<T>(key: string): T | undefined {
+    const entry = responseCache.get(key);
+    if (entry && Date.now() - entry.timestamp < CACHE_TTL_MS) {
+        return entry.data as T;
+    }
+    if (entry) responseCache.delete(key);
+    return undefined;
+}
+
+function setCache(key: string, data: unknown) {
+    responseCache.set(key, { data, timestamp: Date.now() });
+}
+
 // Adapter: route all calls through Bot-Service (same DB as Admin Dashboard)
 // Gracefully handles 404 for endpoints not yet implemented on the backend
 async function wawiFetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
-    try {
-        return await apiFetch<T>(endpoint, options);
-    } catch (err) {
-        if (err instanceof ApiError && err.status === 404) {
-            console.debug(`[WaWi] Endpoint not available: ${endpoint}`);
-            return {} as T;
-        }
-        throw err;
+    const isGet = !options?.method || options.method === 'GET';
+
+    // Only cache GET requests
+    if (isGet) {
+        const cached = getCached<T>(endpoint);
+        if (cached !== undefined) return cached;
+
+        // Deduplicate in-flight requests to same endpoint
+        const inflight = inflightRequests.get(endpoint);
+        if (inflight) return inflight as Promise<T>;
     }
+
+    const request = (async () => {
+        try {
+            const result = await apiFetch<T>(endpoint, options);
+            if (isGet) setCache(endpoint, result);
+            return result;
+        } catch (err) {
+            if (err instanceof ApiError && err.status === 404) {
+                // Silently return empty for unimplemented endpoints
+                const empty = {} as T;
+                if (isGet) setCache(endpoint, empty);
+                return empty;
+            }
+            if (err instanceof ApiError && err.status === 429) {
+                // Return empty on rate limit instead of crashing
+                return {} as T;
+            }
+            throw err;
+        } finally {
+            if (isGet) inflightRequests.delete(endpoint);
+        }
+    })();
+
+    if (isGet) inflightRequests.set(endpoint, request);
+    return request;
 }
 
 async function wawiFetchList<T>(endpoint: string): Promise<T[]> {
-    try {
-        const data = await apiFetch<T[] | { results?: T[] }>(endpoint);
-        if (Array.isArray(data)) return data;
-        if (data && typeof data === 'object' && 'results' in data && Array.isArray(data.results)) {
-            return data.results;
+    const cached = getCached<T[]>(endpoint);
+    if (cached !== undefined) return cached;
+
+    // Deduplicate in-flight requests
+    const inflight = inflightRequests.get(endpoint);
+    if (inflight) return inflight as Promise<T[]>;
+
+    const request = (async () => {
+        try {
+            const data = await apiFetch<T[] | { results?: T[] }>(endpoint);
+            let result: T[];
+            if (Array.isArray(data)) result = data;
+            else if (data && typeof data === 'object' && 'results' in data && Array.isArray(data.results)) {
+                result = data.results;
+            } else {
+                result = [];
+            }
+            setCache(endpoint, result);
+            return result;
+        } catch (err) {
+            if (err instanceof ApiError && (err.status === 404 || err.status === 429)) {
+                // Silently return empty for unimplemented/rate-limited endpoints
+                const empty: T[] = [];
+                setCache(endpoint, empty);
+                return empty;
+            }
+            throw err;
+        } finally {
+            inflightRequests.delete(endpoint);
         }
-        return [];
-    } catch (err) {
-        if (err instanceof ApiError && err.status === 404) {
-            console.debug(`[WaWi] Endpoint not available: ${endpoint}`);
-            return [];
-        }
-        throw err;
-    }
+    })();
+
+    inflightRequests.set(endpoint, request);
+    return request;
 }
 
 async function wawiFetchBlob(endpoint: string): Promise<Blob> {
