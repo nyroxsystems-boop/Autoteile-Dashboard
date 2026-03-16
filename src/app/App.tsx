@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { toast } from 'sonner';
 import { DashboardSidebar } from './components/DashboardSidebar';
 import { DashboardHeader } from './components/DashboardHeader';
@@ -12,32 +12,44 @@ import { useMe } from './hooks/useMe';
 import { Routes, Route, Navigate, useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 
-// Direct imports — no lazy loading = no Suspense flash on navigation
-import { LoginView } from './views/LoginView';
-import { HeuteView } from './views/HeuteView';
-import { AuftraegeView } from './views/AuftraegeView';
-import { AngeboteView } from './views/AngeboteView';
-import { PreisprofileView } from './views/PreisprofileView';
-import { LieferantenView } from './views/LieferantenView';
-import { StatusView } from './views/StatusView';
-import { CustomersInquiriesView } from './views/CustomersInquiriesView';
-import { DocumentsInvoicesView } from './views/DocumentsInvoicesView';
-import { SettingsView } from './views/SettingsView';
-import { AdminDashboardView } from './views/AdminDashboardView';
-import { WawiDashboardView } from './views/wawi/WawiDashboardView';
-import { ArticleListView } from './views/wawi/ArticleListView';
-import { ArticleDetailView } from './views/wawi/ArticleDetailView';
-import { InventoryMovementView } from './views/wawi/InventoryMovementView';
-import { SupplierListView } from './views/wawi/SupplierListView';
-import { ReorderWizardView } from './views/wawi/ReorderWizardView';
-import { GoodsReceiptView } from './views/wawi/GoodsReceiptView';
-import { ReportsView } from './views/wawi/ReportsView';
-import { ReturnsView } from './views/wawi/ReturnsView';
-import { SupplierRatingView } from './views/wawi/SupplierRatingView';
-import { AIInsightsView } from './views/wawi/AIInsightsView';
-import TaxDashboardView from './views/tax/TaxDashboardView';
-import InvoiceListView from './views/tax/InvoiceListView';
-import TaxProfileCreateView from './views/tax/TaxProfileCreateView';
+// ── Lazy-loaded views — each becomes a separate chunk for better performance ──
+const LoginView = lazy(() => import('./views/LoginView').then(m => ({ default: m.LoginView })));
+const HeuteView = lazy(() => import('./views/HeuteView').then(m => ({ default: m.HeuteView })));
+const AuftraegeView = lazy(() => import('./views/AuftraegeView').then(m => ({ default: m.AuftraegeView })));
+const AngeboteView = lazy(() => import('./views/AngeboteView').then(m => ({ default: m.AngeboteView })));
+const PreisprofileView = lazy(() => import('./views/PreisprofileView').then(m => ({ default: m.PreisprofileView })));
+const LieferantenView = lazy(() => import('./views/LieferantenView').then(m => ({ default: m.LieferantenView })));
+const StatusView = lazy(() => import('./views/StatusView').then(m => ({ default: m.StatusView })));
+const CustomersInquiriesView = lazy(() => import('./views/CustomersInquiriesView').then(m => ({ default: m.CustomersInquiriesView })));
+const DocumentsInvoicesView = lazy(() => import('./views/DocumentsInvoicesView').then(m => ({ default: m.DocumentsInvoicesView })));
+const SettingsView = lazy(() => import('./views/SettingsView').then(m => ({ default: m.SettingsView })));
+const AdminDashboardView = lazy(() => import('./views/AdminDashboardView').then(m => ({ default: m.AdminDashboardView })));
+const WawiDashboardView = lazy(() => import('./views/wawi/WawiDashboardView').then(m => ({ default: m.WawiDashboardView })));
+const ArticleListView = lazy(() => import('./views/wawi/ArticleListView').then(m => ({ default: m.ArticleListView })));
+const ArticleDetailView = lazy(() => import('./views/wawi/ArticleDetailView').then(m => ({ default: m.ArticleDetailView })));
+const InventoryMovementView = lazy(() => import('./views/wawi/InventoryMovementView').then(m => ({ default: m.InventoryMovementView })));
+const SupplierListView = lazy(() => import('./views/wawi/SupplierListView').then(m => ({ default: m.SupplierListView })));
+const ReorderWizardView = lazy(() => import('./views/wawi/ReorderWizardView').then(m => ({ default: m.ReorderWizardView })));
+const GoodsReceiptView = lazy(() => import('./views/wawi/GoodsReceiptView').then(m => ({ default: m.GoodsReceiptView })));
+const ReportsView = lazy(() => import('./views/wawi/ReportsView').then(m => ({ default: m.ReportsView })));
+const ReturnsView = lazy(() => import('./views/wawi/ReturnsView').then(m => ({ default: m.ReturnsView })));
+const SupplierRatingView = lazy(() => import('./views/wawi/SupplierRatingView').then(m => ({ default: m.SupplierRatingView })));
+const AIInsightsView = lazy(() => import('./views/wawi/AIInsightsView').then(m => ({ default: m.AIInsightsView })));
+const TaxDashboardView = lazy(() => import('./views/tax/TaxDashboardView'));
+const InvoiceListView = lazy(() => import('./views/tax/InvoiceListView'));
+const TaxProfileCreateView = lazy(() => import('./views/tax/TaxProfileCreateView'));
+
+// ── View loading fallback ──
+function ViewSuspenseFallback() {
+  return (
+    <div className="flex items-center justify-center py-24">
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        <span className="text-sm text-muted-foreground">Laden…</span>
+      </div>
+    </div>
+  );
+}
 
 // ── Shared navigation helper ──
 function useAppNavigate() {
@@ -180,8 +192,8 @@ function AppShell() {
         theme={theme}
         onThemeChange={handleThemeChange}
         userName={me?.user?.first_name ? `${me.user.first_name} ${me.user.last_name}` : me?.user?.username || "Admin"}
-        userEmail={me?.user?.email || "admin@autoteile-assistent.com"}
-        companyName={currentTenant?.tenant_name || (isWawi ? "WAWI Port" : "Autoteile ERP")}
+        userEmail={me?.user?.email || ""}
+        companyName={currentTenant?.tenant_name || (isWawi ? "WAWI Port" : "Partsunion ERP")}
         onOpenCommandPalette={() => setCommandPaletteOpen(true)}
         onNavigate={handleNavigate}
         tenants={tenants}
@@ -199,7 +211,9 @@ function AppShell() {
               <div className="h-1 w-12 bg-primary rounded-full" />
             </div>
           )}
-          <Outlet />
+          <Suspense fallback={<ViewSuspenseFallback />}>
+            <Outlet />
+          </Suspense>
         </div>
       </main>
       <CommandPalette
@@ -243,7 +257,9 @@ export default function App() {
   if (!isAuthenticated) {
     return (
       <>
-        <LoginView />
+        <Suspense fallback={<ViewSuspenseFallback />}>
+          <LoginView />
+        </Suspense>
         <ToastProvider theme="light" />
       </>
     );
