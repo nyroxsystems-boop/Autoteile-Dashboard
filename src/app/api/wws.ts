@@ -265,6 +265,12 @@ export async function login(credentials: { email?: string, username?: string, pa
     user?: { id: string; email: string; username: string; role: string };
     tenant?: { id: number; name: string; slug: string } | null;
     expires_in?: number;
+    jwt?: {
+        accessToken: string;
+        refreshToken: string;
+        expiresIn: number;
+        tokenType: string;
+    };
 }> {
     const device_id = getDeviceId();
     return apiFetch('/api/auth/login', {

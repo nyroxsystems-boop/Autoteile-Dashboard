@@ -133,7 +133,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const res = await fetch(`${API_BASE}/api/auth/refresh/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ refresh: refreshTokenValue }),
+                // Send both for backend compatibility
+                body: JSON.stringify({ refresh: refreshTokenValue, refreshToken: refreshTokenValue }),
             });
 
             if (!res.ok) {
@@ -141,8 +142,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
 
             const data = await res.json();
-            const newToken = data.access;
-            const expiresIn = data.expires_in || DEFAULT_EXPIRY_HOURS * 3600;
+            const newToken = data.accessToken || data.access;
+            const expiresIn = data.expiresIn || data.expires_in || DEFAULT_EXPIRY_HOURS * 3600;
             const expiresAt = Date.now() + (expiresIn * 1000);
 
             setToken(newToken);
@@ -152,7 +153,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 const updatedSession: AuthSession = {
                     ...currentSession,
                     token: newToken,
-                    refreshToken: data.refresh || currentSession.refreshToken,
+                    refreshToken: data.refreshToken || data.refresh || currentSession.refreshToken,
                     expiresAt,
                 };
                 saveSession(updatedSession);

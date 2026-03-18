@@ -58,8 +58,8 @@ export function LoginView({ onLoginSuccess }: LoginViewProps) {
             }
 
             login({
-                access: data.access,
-                refresh: data.refresh,
+                access: data.jwt?.accessToken || data.access,
+                refresh: data.jwt?.refreshToken || data.refresh,
                 user: data.user || {
                     id: '',
                     email: identifier,
@@ -67,7 +67,7 @@ export function LoginView({ onLoginSuccess }: LoginViewProps) {
                     role: 'member',
                 },
                 tenant: data.tenant || null,
-                expires_in: data.expires_in,
+                expires_in: data.jwt?.expiresIn || data.expires_in,
             });
 
             toast.success(t('login_success'));
