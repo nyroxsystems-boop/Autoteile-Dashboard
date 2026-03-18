@@ -1,8 +1,16 @@
 import { describe, it, expect } from 'vitest';
-import { translations } from '../translations';
+import de from '../locales/de.json';
+import en from '../locales/en.json';
+import es from '../locales/es.json';
+import fr from '../locales/fr.json';
+import it from '../locales/it.json';
+import pl from '../locales/pl.json';
+import tr from '../locales/tr.json';
+
+const translations: Record<string, Record<string, string>> = { de, en, es, fr, it, pl, tr };
 
 describe('Translations', () => {
-    const languages = Object.keys(translations) as Array<keyof typeof translations>;
+    const languages = Object.keys(translations);
 
     it('has at least de and en languages', () => {
         expect(languages).toContain('de');
@@ -17,8 +25,8 @@ describe('Translations', () => {
             const missingInLang = deKeys.filter(k => !langKeys.includes(k));
             const extraInLang = langKeys.filter(k => !deKeys.includes(k));
 
-            expect(missingInLang, `Missing keys in ${lang}: ${missingInLang.join(', ')}`).toEqual([]);
-            expect(extraInLang, `Extra keys in ${lang}: ${extraInLang.join(', ')}`).toEqual([]);
+            expect(missingInLang, `Missing keys in ${String(lang)}: ${missingInLang.join(', ')}`).toEqual([]);
+            expect(extraInLang, `Extra keys in ${String(lang)}: ${extraInLang.join(', ')}`).toEqual([]);
         }
     });
 
