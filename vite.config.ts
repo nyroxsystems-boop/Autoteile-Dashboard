@@ -16,6 +16,8 @@ export default defineConfig({
     alias: {
       // Alias @ to the src directory
       '@': path.resolve(__dirname, './src'),
+      // Alias common UI components
+      '@partsunion/ui': path.resolve(__dirname, '../packages/ui/src'),
     },
   },
   // Explicitly embed environment variables in the build

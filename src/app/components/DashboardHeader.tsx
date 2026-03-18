@@ -80,8 +80,9 @@ export function DashboardHeader({
           {/* Mobile hamburger */}
           <button
             onClick={onMobileMenuToggle}
-            className="w-10 h-10 rounded-lg hover:bg-accent flex items-center justify-center md:hidden"
+            className="w-10 h-10 rounded-lg hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary flex items-center justify-center md:hidden"
             aria-label="Menu"
+            aria-expanded={false}
           >
             <svg viewBox="0 0 24 24" className="w-5 h-5 text-foreground" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <line x1="3" y1="6" x2="21" y2="6" />
@@ -120,8 +121,11 @@ export function DashboardHeader({
           {/* Notifications */}
           <div className="relative" ref={notifRef}>
             <button
-              className="w-10 h-10 rounded-lg hover:bg-accent flex items-center justify-center transition-colors relative group"
+              className="w-10 h-10 rounded-lg hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary flex items-center justify-center transition-colors relative group"
               title={t('header_notifications')}
+              aria-label={t('header_notifications')}
+              aria-haspopup="true"
+              aria-expanded={showNotifications}
               onClick={() => setShowNotifications(!showNotifications)}
             >
               <Bell className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" strokeWidth={1.5} />
@@ -174,7 +178,10 @@ export function DashboardHeader({
           <div className="relative">
             <button
               onClick={() => setShowLangMenu(!showLangMenu)}
-              className="h-10 px-3 rounded-lg hover:bg-accent flex items-center gap-2 transition-colors group"
+              aria-haspopup="true"
+              aria-expanded={showLangMenu}
+              aria-label="Sprache wählen"
+              className="h-10 px-3 rounded-lg hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary flex items-center gap-2 transition-colors group"
             >
               <Globe className="w-4 h-4 text-muted-foreground group-hover:text-foreground" strokeWidth={1.5} />
               <span className="text-sm font-medium text-foreground uppercase">{language}</span>
@@ -210,8 +217,9 @@ export function DashboardHeader({
           {/* Dark Mode Toggle */}
           <button
             onClick={() => onThemeChange(theme === 'light' ? 'dark' : 'light')}
-            className="w-10 h-10 rounded-lg hover:bg-accent flex items-center justify-center transition-colors group"
+            className="w-10 h-10 rounded-lg hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary flex items-center justify-center transition-colors group"
             title={theme === 'light' ? t('header_dark_mode') : t('header_light_mode')}
+            aria-label={theme === 'light' ? t('header_dark_mode') : t('header_light_mode')}
           >
             {theme === 'light' ? (
               <Moon className="w-5 h-5 text-muted-foreground group-hover:text-foreground" strokeWidth={1.5} />
@@ -227,7 +235,10 @@ export function DashboardHeader({
           <div className="relative">
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
-              className="h-10 pl-3 pr-2 rounded-lg hover:bg-accent flex items-center gap-3 transition-colors group"
+              aria-haspopup="true"
+              aria-expanded={showUserMenu}
+              aria-label="Benutzermenü"
+              className="h-10 pl-3 pr-2 rounded-lg hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary flex items-center gap-3 transition-colors group"
             >
               <div className="text-right">
                 <div className="text-sm font-medium text-foreground leading-none mb-1">{currentTenant?.tenant_name || userName}</div>

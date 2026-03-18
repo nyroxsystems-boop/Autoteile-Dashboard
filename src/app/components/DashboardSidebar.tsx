@@ -99,14 +99,15 @@ export function DashboardSidebar({
           {/* Mobile close button */}
           <button
             onClick={onMobileClose}
-            className="absolute right-2 top-0 w-8 h-8 rounded-lg hover:bg-accent flex items-center justify-center md:hidden"
+            aria-label={t('close')}
+            className="absolute right-2 top-0 w-8 h-8 rounded-lg hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary flex items-center justify-center md:hidden"
           >
-            <X className="w-4 h-4 text-muted-foreground" />
+            <X className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
           </button>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 flex flex-col gap-0.5 w-full px-3 overflow-y-auto">
+        <nav aria-label="Hauptnavigation" className="flex-1 flex flex-col gap-0.5 w-full px-3 overflow-y-auto">
           {allNavItems.map((item, index) => {
             const Icon = item.icon;
             const isActive = activeView === item.id;
@@ -120,8 +121,9 @@ export function DashboardSidebar({
                 )}
                 <button
                   onClick={() => handleNavClick(item.id)}
+                  aria-current={isActive ? 'page' : undefined}
                   className={`
-                    relative flex flex-col items-center gap-1 py-2.5 rounded-lg transition-all duration-150 w-full
+                    relative flex flex-col items-center gap-1 py-2.5 rounded-lg transition-all duration-150 w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary
                     ${isActive
                       ? 'bg-primary/15 text-primary shadow-sm'
                       : 'text-muted-foreground hover:bg-accent hover:text-foreground'
@@ -129,7 +131,7 @@ export function DashboardSidebar({
                   `}
                   title={item.label}
                 >
-                  <Icon className={`w-5 h-5 ${isActive ? 'drop-shadow-sm' : ''}`} />
+                  <Icon className={`w-5 h-5 ${isActive ? 'drop-shadow-sm' : ''}`} aria-hidden="true" />
                   <span className={`text-[0.6rem] font-medium leading-tight ${isActive ? 'text-primary font-semibold' : ''}`}>
                     {item.label}
                   </span>

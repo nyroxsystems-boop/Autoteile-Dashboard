@@ -1,5 +1,5 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
-import { translations } from './translations';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import deTranslations from './locales/de.json';
 
 export type LanguageCode = 'de' | 'en' | 'fr' | 'es' | 'it' | 'pl' | 'tr';
 
@@ -22,12 +22,18 @@ interface I18nContextType {
     lang: LanguageCode;
     setLang: (lang: LanguageCode) => void;
     t: (key: string) => string;
+    isLoading: boolean;
 }
 
 const I18nContext = createContext<I18nContextType | undefined>(undefined);
 
+// Cache for loaded translations
+const loadedTranslations: Record<string, Record<string, string>> = {
+    de: deTranslations
+};
+
 export function I18nProvider({ children }: { children: ReactNode }) {
-    const [lang, setLang] = useState<LanguageCode>(() => {
+    const [lang, setLangState] = useState<LanguageCode>(() => {
         if (typeof localStorage !== 'undefined') {
             const stored = localStorage.getItem('language');
             if (stored && languageOptions.some(opt => opt.code === stored)) {
@@ -36,20 +42,39 @@ export function I18nProvider({ children }: { children: ReactNode }) {
         }
         return 'de';
     });
+    
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        if (lang !== 'de' && !loadedTranslations[lang]) {
+            setIsLoading(true);
+            // Dynamic import for code splitting
+            import(`./locales/${lang}.json`)
+                .then((module) => {
+                    loadedTranslations[lang] = module.default;
+                    setIsLoading(false);
+                })
+                .catch((err) => {
+                    console.error('Failed to load translations for', lang, err);
+                    setIsLoading(false);
+                });
+        }
+    }, [lang]);
 
     const t = (key: string): string => {
-        return translations[lang]?.[key] || translations.de[key] || key;
+        const dict = loadedTranslations[lang] || loadedTranslations.de;
+        return dict?.[key] || loadedTranslations.de[key] || key;
     };
 
     const handleSetLang = (newLang: LanguageCode) => {
-        setLang(newLang);
+        setLangState(newLang);
         if (typeof localStorage !== 'undefined') {
             localStorage.setItem('language', newLang);
         }
     };
 
     return (
-        <I18nContext.Provider value={{ lang, setLang: handleSetLang, t }}>
+        <I18nContext.Provider value={{ lang, setLang: handleSetLang, t, isLoading }}>
             {children}
         </I18nContext.Provider>
     );
