@@ -188,10 +188,10 @@ export function LoginView({ onLoginSuccess }: LoginViewProps) {
                     <div className="space-y-8 animate-fade-in-up">
                         <div>
                             <h2 className="text-4xl font-bold tracking-tight leading-tight">
-                                Dein Autoersatzteile-<br />Business. Automatisiert.
+                                {t('login_branding_title')}
                             </h2>
                             <p className="text-white/70 text-lg mt-4 max-w-md leading-relaxed">
-                                WhatsApp-Bot, Warenwirtschaft und Kundenmanagement in einer Plattform.
+                                {t('login_branding_subtitle')}
                             </p>
                         </div>
 
@@ -324,12 +324,27 @@ export function LoginView({ onLoginSuccess }: LoginViewProps) {
                                     t('login')
                                 )}
                             </Button>
+
+                            <div className="text-right">
+                                <a
+                                    href="mailto:support@partsunion.de?subject=Passwort%20zurücksetzen"
+                                    className="text-sm text-primary hover:text-primary/80 transition-colors"
+                                >
+                                    {t('login_forgot_password')}
+                                </a>
+                            </div>
                         </form>
                     </div>
 
                     <div className="text-center">
                         <p className="text-sm text-muted-foreground">
-                            {t('login_no_account')}
+                            {t('login_no_account')}{' '}
+                            <a
+                                href="mailto:info@partsunion.de?subject=Neues%20Konto%20erstellen"
+                                className="text-primary hover:text-primary/80 font-medium transition-colors"
+                            >
+                                {t('login_contact_us')}
+                            </a>
                         </p>
                     </div>
                 </div>

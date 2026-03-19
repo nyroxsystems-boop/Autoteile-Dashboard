@@ -325,7 +325,10 @@ export function DocumentsInvoicesView() {
         <h1 className="text-2xl font-bold text-foreground">{t('docs_title')}</h1>
         <div className="flex gap-2">
           {activeTab === 'incoming' ? (
-            <button className="flex items-center gap-2 px-4 py-2 bg-[var(--status-success)] text-white rounded-lg hover:bg-[var(--status-success)]/90">
+            <button
+              onClick={() => toast.info(t('coming_soon'))}
+              className="flex items-center gap-2 px-4 py-2 bg-[var(--status-success)] text-white rounded-lg hover:bg-[var(--status-success)]/90"
+            >
               <Upload className="w-4 h-4" />
               {t('docs_incoming')}
             </button>

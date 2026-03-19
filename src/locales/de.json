@@ -743,5 +743,16 @@
   "header_dark_mode": "Dunkelmodus",
   "header_light_mode": "Hellmodus",
   "confirm_title": "Bestätigung",
-  "confirm_delete_price": "Dieses Preisprofil wirklich löschen?"
+  "confirm_delete_price": "Dieses Preisprofil wirklich löschen?",
+  "login_branding_title": "Dein Autoersatzteile-\nBusiness. Automatisiert.",
+  "login_branding_subtitle": "WhatsApp-Bot, Warenwirtschaft und Kundenmanagement in einer Plattform.",
+  "login_forgot_password": "Passwort vergessen?",
+  "login_contact_us": "Kontaktieren Sie uns",
+  "settings_billing_active": "Aktiv",
+  "settings_billing_users": "Benutzer",
+  "settings_billing_orders": "Aufträge",
+  "settings_billing_bot": "WhatsApp-Bot",
+  "settings_billing_invoices": "Rechnungsübersicht",
+  "settings_billing_invoices_desc": "Ihre Abrechnungsdokumente werden hier angezeigt, sobald Ihr Subscription-Plan aktiv ist.",
+  "settings_billing_contact": "Kontakt für Abrechnungsfragen"
 }
