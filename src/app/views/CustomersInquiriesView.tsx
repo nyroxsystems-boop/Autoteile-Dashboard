@@ -235,6 +235,8 @@ export function CustomersInquiriesView({ onNavigate: _onNavigate }: CustomersInq
           onClose={() => setSelectedCustomerId(null)}
           onCreateQuote={() => {
             setSelectedCustomerId(null);
+            // Navigate to orders view to create quote
+            window.location.href = '/bot/auftraege';
           }}
         />
       )}

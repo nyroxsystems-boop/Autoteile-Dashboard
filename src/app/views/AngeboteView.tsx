@@ -6,10 +6,12 @@ import { getOrderOffers, Offer } from '../api/wws';
 import { toast } from 'sonner';
 import { useI18n } from '../../i18n';
 import { useMerchantSettings } from '../hooks/useMerchantSettings';
+import { useNavigate } from 'react-router-dom';
 
 export function AngeboteView() {
   const { orders, loading } = useOrders();
   const { t } = useI18n();
+  const navigate = useNavigate();
   const { settings: merchantSettings } = useMerchantSettings();
   const hasWholesaler = (merchantSettings?.wholesalers?.length || 0) > 0;
   const [searchQuery, setSearchQuery] = useState('');
@@ -25,7 +27,7 @@ export function AngeboteView() {
             const offers = await getOrderOffers(order.id);
             setOrderOffers(prev => ({ ...prev, [order.id]: offers }));
           } catch {
-            // silently handled
+            toast.error(t('error'));
           }
         }
       });
@@ -130,7 +132,7 @@ export function AngeboteView() {
               toast.info(t('wholesaler_none_desc'));
               return;
             }
-            toast.info(t('offers_create_hint'));
+            navigate('/bot/auftraege');
           }}
           className="h-10 px-6 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors flex items-center gap-2">
           <Plus className="w-4 h-4" />

@@ -39,7 +39,7 @@ export function AuftraegeView() {
       const data = await getOrderOffers(id);
       setOffers(data || []);
     } catch {
-      // silently handled
+      toast.error(t('error'));
     } finally {
       setOffersLoading(false);
     }
@@ -50,7 +50,7 @@ export function AuftraegeView() {
       const msgs = await getOrderMessages(id);
       setMessages(msgs || []);
     } catch {
-      // silently handled
+      toast.error(t('error'));
     }
   };
 
