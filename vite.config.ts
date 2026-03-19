@@ -21,12 +21,10 @@ export default defineConfig({
     },
   },
   // Explicitly embed environment variables in the build
+  // NOTE: Only non-secret config here! API tokens must NOT be in the bundle.
   define: {
     'import.meta.env.VITE_API_BASE_URL': JSON.stringify(
       process.env.VITE_API_BASE_URL || ''
-    ),
-    'import.meta.env.VITE_WAWI_API_TOKEN': JSON.stringify(
-      process.env.VITE_WAWI_API_TOKEN || ''
     ),
   },
   build: {
