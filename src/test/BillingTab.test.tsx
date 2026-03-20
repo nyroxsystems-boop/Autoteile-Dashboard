@@ -7,6 +7,6 @@ describe('BillingTab', () => {
     it('renders billing placeholder', () => {
         render(<I18nProvider><BillingTab /></I18nProvider>);
         expect(screen.getAllByText('Abrechnung').length).toBeGreaterThanOrEqual(1);
-        expect(screen.getByText(/support@partsunion\.de/i)).toBeInTheDocument();
+        expect(screen.getByText(/billing@partsunion\.de/i)).toBeInTheDocument();
     });
 });

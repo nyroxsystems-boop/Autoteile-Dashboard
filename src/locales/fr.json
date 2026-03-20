@@ -743,5 +743,16 @@
   "header_dark_mode": "Dunkelmodus",
   "header_light_mode": "Hellmodus",
   "confirm_title": "Bestätigung",
-  "confirm_delete_price": "Dieses Preisprofil wirklich löschen?"
-}
+  "confirm_delete_price": "Dieses Preisprofil wirklich löschen?",
+  "login_branding_title": "Your Auto Parts\nBusiness. Automated.",
+  "login_branding_subtitle": "WhatsApp bot, inventory management and customer management in one platform.",
+  "login_forgot_password": "Forgot password?",
+  "login_contact_us": "Contact us",
+  "settings_billing_active": "Active",
+  "settings_billing_users": "Users",
+  "settings_billing_orders": "Orders",
+  "settings_billing_bot": "WhatsApp Bot",
+  "settings_billing_invoices": "Invoice Overview",
+  "settings_billing_invoices_desc": "Your billing documents will appear here once your subscription plan is active.",
+  "settings_billing_contact": "Contact for billing questions",
+  "offers_publish": "Send Offers"}
