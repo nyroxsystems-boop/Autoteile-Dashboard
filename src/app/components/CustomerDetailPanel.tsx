@@ -164,29 +164,27 @@ export function CustomerDetailPanel({ customer, onClose, onCreateQuote, onCustom
               </div>
             )}
 
-            {customer.phone && (
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <Phone className="w-4 h-4 text-primary" strokeWidth={1.5} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs text-muted-foreground mb-0.5">{t('customer_phone')}</div>
-                  <div className="text-sm text-foreground">{customer.phone}</div>
-                </div>
+            {/* D6 FIX: Always show phone — fall back to WhatsApp number */}
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <Phone className="w-4 h-4 text-primary" strokeWidth={1.5} />
               </div>
-            )}
+              <div className="flex-1 min-w-0">
+                <div className="text-xs text-muted-foreground mb-0.5">{t('customer_phone')}</div>
+                <div className="text-sm text-foreground">{customer.phone || customer.whatsappNumber}</div>
+              </div>
+            </div>
 
-            {customer.email && (
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <Building2 className="w-4 h-4 text-primary" strokeWidth={1.5} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs text-muted-foreground mb-0.5">E-Mail</div>
-                  <div className="text-sm text-foreground">{customer.email}</div>
-                </div>
+            {/* D6 FIX: Always show email row */}
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <Building2 className="w-4 h-4 text-primary" strokeWidth={1.5} />
               </div>
-            )}
+              <div className="flex-1 min-w-0">
+                <div className="text-xs text-muted-foreground mb-0.5">E-Mail</div>
+                <div className={`text-sm ${customer.email ? 'text-foreground' : 'text-muted-foreground italic'}`}>{customer.email || '—'}</div>
+              </div>
+            </div>
 
             {customer.shippingAddress && (
               <div className="flex items-start gap-3">

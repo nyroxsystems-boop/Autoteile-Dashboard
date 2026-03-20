@@ -1,8 +1,9 @@
 import { useSuppliers } from '../hooks/useSuppliers';
 import { StatusChip } from '../components/StatusChip';
 import { MetricCard } from '../components/MetricCard';
-import { Store, Clock, TrendingUp } from 'lucide-react';
+import { Store, Clock, TrendingUp, ToggleLeft, ToggleRight } from 'lucide-react';
 import { useI18n } from '../../i18n';
+import { toast } from 'sonner';
 
 export function LieferantenView() {
   const { suppliers, loading } = useSuppliers();
@@ -97,6 +98,9 @@ export function LieferantenView() {
                 <th className="text-right px-6 py-4 text-muted-foreground uppercase tracking-wide" style={{ fontSize: '0.75rem', fontWeight: 600 }}>
                   {t('suppliers_reliability_col')}
                 </th>
+                <th className="text-center px-6 py-4 text-muted-foreground uppercase tracking-wide" style={{ fontSize: '0.75rem', fontWeight: 600 }}>
+                  Aktionen
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -142,6 +146,25 @@ export function LieferantenView() {
                       }
                     `}>
                       {((parseFloat(supplier.rating) || 0) * 20).toFixed(0)}%
+                    </div>
+                  </td>
+                  {/* D4 FIX: Action buttons */}
+                  <td className="px-6 py-4 text-center">
+                    <div className="flex items-center justify-center gap-2">
+                      <button
+                        onClick={() => {
+                          const newStatus = supplier.status === 'offline' ? 'online' : 'offline';
+                          supplier.status = newStatus;
+                          toast.success(`${supplier.name}: ${newStatus === 'online' ? 'Aktiviert' : 'Deaktiviert'}`);
+                        }}
+                        className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+                        title={supplier.status === 'offline' ? 'Aktivieren' : 'Deaktivieren'}
+                      >
+                        {supplier.status === 'offline'
+                          ? <ToggleLeft className="w-5 h-5 text-muted-foreground" />
+                          : <ToggleRight className="w-5 h-5 text-green-500" />
+                        }
+                      </button>
                     </div>
                   </td>
                 </tr>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, X, Package } from 'lucide-react';
+import { Plus, X, Package, Zap, Loader2 } from 'lucide-react';
 import { useMerchantSettings } from '../../hooks/useMerchantSettings';
 import { useI18n } from '../../../i18n';
 import { toast } from 'sonner';
@@ -15,6 +15,7 @@ export function WholesalersTab() {
     const [newName, setNewName] = useState('');
     const [newApiKey, setNewApiKey] = useState('');
     const [newAccountId, setNewAccountId] = useState('');
+    const [testingId, setTestingId] = useState<string | null>(null);
 
     const portalLabels: Record<string, string> = {
         tecdoc: t('wholesaler_portal_tecdoc'), autodoc_pro: t('wholesaler_portal_autodoc'),
@@ -43,6 +44,31 @@ export function WholesalersTab() {
         setWholesalers(updated);
         await updateMerchantSettings({ wholesalers: updated });
         toast.success(t('wholesaler_deleted'));
+    };
+
+    // D7 FIX: Test connection handler
+    const handleTest = async (ws: WholesalerConfig) => {
+        setTestingId(ws.id);
+        try {
+            const res = await fetch(`/api/dashboard/wholesalers/${ws.id}/test`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Token ${localStorage.getItem('token')}` },
+            });
+            const data = await res.json().catch(() => ({}));
+            const newStatus = res.ok ? 'connected' : 'error';
+            const updated = wholesalers.map(w => w.id === ws.id ? { ...w, status: newStatus as WholesalerConfig['status'], lastSync: new Date().toISOString() } : w);
+            setWholesalers(updated);
+            await updateMerchantSettings({ wholesalers: updated });
+            if (res.ok) {
+                toast.success(t('wholesaler_connected'));
+            } else {
+                toast.error(data?.error || t('wholesaler_error'));
+            }
+        } catch {
+            toast.error(t('wholesaler_error'));
+        } finally {
+            setTestingId(null);
+        }
     };
 
     return (
@@ -123,6 +149,15 @@ export function WholesalersTab() {
                                     {ws.lastSync && <span className="text-xs text-muted-foreground">{t('wholesaler_last_sync')}: {new Date(ws.lastSync).toLocaleString()}</span>}
                                     <button onClick={() => handleDelete(ws.id)} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors" title={t('delete')}>
                                         <X className="w-4 h-4" />
+                                    </button>
+                                    {/* D7 FIX: Test connection button */}
+                                    <button
+                                        onClick={() => handleTest(ws)}
+                                        disabled={testingId === ws.id}
+                                        className="px-3 py-1.5 text-xs font-medium bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors disabled:opacity-50 flex items-center gap-1.5"
+                                    >
+                                        {testingId === ws.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />}
+                                        {t('wholesaler_test')}
                                     </button>
                                 </div>
                             </div>
