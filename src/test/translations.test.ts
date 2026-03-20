@@ -3,11 +3,11 @@ import de from '../locales/de.json';
 import en from '../locales/en.json';
 import es from '../locales/es.json';
 import fr from '../locales/fr.json';
-import it from '../locales/it.json';
+import itLang from '../locales/it.json';
 import pl from '../locales/pl.json';
 import tr from '../locales/tr.json';
 
-const translations: Record<string, Record<string, string>> = { de, en, es, fr, it, pl, tr };
+const translations: Record<string, Record<string, unknown>> = { de, en, es, fr, it: itLang, pl, tr };
 
 describe('Translations', () => {
     const languages = Object.keys(translations);
