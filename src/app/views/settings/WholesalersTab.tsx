@@ -64,7 +64,7 @@ export function WholesalersTab() {
             } else {
                 toast.error(data?.error || t('wholesaler_error'));
             }
-        } catch {
+        } catch (_err) {
             toast.error(t('wholesaler_error'));
         } finally {
             setTestingId(null);
