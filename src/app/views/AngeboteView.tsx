@@ -243,7 +243,20 @@ export function AngeboteView() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                {/* Action buttons could go here */}
+                {quote.status !== 'confirmed' && quote.options.length > 0 && (
+                  <button
+                    onClick={() => navigate(`/bot/auftraege`)}
+                    className="px-3 py-1.5 text-xs font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                  >
+                    {t('offers_publish')}
+                  </button>
+                )}
+                <button
+                  onClick={() => navigate(`/bot/auftraege`)}
+                  className="px-3 py-1.5 text-xs font-medium rounded-lg border border-border text-foreground hover:bg-accent transition-colors"
+                >
+                  {t('nav_orders')}
+                </button>
               </div>
             </div>
 

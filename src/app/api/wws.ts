@@ -233,7 +233,7 @@ export async function createOffer(orderId: string | number, offerData: Partial<O
 }
 
 export async function publishOffers(orderId: string | number, offerIds: (string | number)[]): Promise<{ success: boolean }> {
-    return apiFetch<{ success: boolean }>(`/api/orders/${orderId}/publish-offers`, {
+    return apiFetch<{ success: boolean }>(`/api/dashboard/orders/${orderId}/publish-offers`, {
         method: 'POST',
         body: JSON.stringify({ offerIds }),
     });

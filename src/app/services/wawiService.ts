@@ -19,6 +19,27 @@ function setCache(key: string, data: unknown) {
     responseCache.set(key, { data, timestamp: Date.now() });
 }
 
+// D9 FIX: Invalidate cache entries matching a prefix after mutations
+function invalidateCacheForPrefix(prefix: string) {
+    for (const key of responseCache.keys()) {
+        if (key.startsWith(prefix)) {
+            responseCache.delete(key);
+        }
+    }
+    for (const key of inflightRequests.keys()) {
+        if (key.startsWith(prefix)) {
+            inflightRequests.delete(key);
+        }
+    }
+}
+
+// Extract base path for cache invalidation (e.g. '/api/products/123/' → '/api/products')
+function getBasePath(endpoint: string): string {
+    const parts = endpoint.split('/').filter(Boolean);
+    // Keep first 2 segments: '/api/products'
+    return '/' + parts.slice(0, Math.min(2, parts.length)).join('/');
+}
+
 // Adapter: route all calls through Bot-Service (same DB as Admin Dashboard)
 // Gracefully handles 404 for endpoints not yet implemented on the backend
 async function wawiFetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
@@ -37,7 +58,12 @@ async function wawiFetch<T>(endpoint: string, options?: RequestInit): Promise<T>
     const request = (async () => {
         try {
             const result = await apiFetch<T>(endpoint, options);
-            if (isGet) setCache(endpoint, result);
+            if (isGet) {
+                setCache(endpoint, result);
+            } else {
+                // D9 FIX: Invalidate related GET cache after mutations
+                invalidateCacheForPrefix(getBasePath(endpoint));
+            }
             return result;
         } catch (err) {
             if (err instanceof ApiError && err.status === 404) {

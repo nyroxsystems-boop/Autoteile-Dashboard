@@ -1,5 +1,6 @@
 
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, Plus, MessageSquare, Clock, FileText, AlertCircle } from 'lucide-react';
 import { CustomerThreadRow } from '../components/CustomerThreadRow';
 import { CustomerDetailPanel } from '../components/CustomerDetailPanel';
@@ -15,6 +16,7 @@ interface CustomersInquiriesViewProps {
 
 export function CustomersInquiriesView({ onNavigate: _onNavigate }: CustomersInquiriesViewProps) {
   const { t } = useI18n();
+  const navigate = useNavigate();
   const { conversations, loading } = useConversations();
   const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -236,7 +238,7 @@ export function CustomersInquiriesView({ onNavigate: _onNavigate }: CustomersInq
           onCreateQuote={() => {
             setSelectedCustomerId(null);
             // Navigate to orders view to create quote
-            window.location.href = '/bot/auftraege';
+            navigate('/bot/auftraege');
           }}
         />
       )}

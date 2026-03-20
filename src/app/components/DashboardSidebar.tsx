@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, Package, FileText, Receipt, Store,
   Activity, MessageSquare, Warehouse, Shield, Settings,
-  DollarSign, Truck, RotateCcw, Star, Brain, X
+  DollarSign, Truck, X
 } from 'lucide-react';
 import { useI18n } from '../../i18n';
 import { useLocation } from 'react-router-dom';
@@ -49,11 +49,12 @@ export function DashboardSidebar({
     { id: 'warenwirtschaft', label: t('nav_wawi_dashboard'), icon: LayoutDashboard, group: 'main' },
     { id: 'artikel', label: t('nav_wawi_articles'), icon: Package, group: 'main' },
     { id: 'lieferanten', label: t('nav_wawi_suppliers'), icon: Store, group: 'main' },
-    { id: 'nachbestellung', label: t('nav_wawi_reorder'), icon: Receipt, group: 'main' },
+    // D1 FIX: Hidden until backend endpoints are implemented
+    // { id: 'nachbestellung', label: t('nav_wawi_reorder'), icon: Receipt, group: 'main' },
     { id: 'wareneingang', label: t('nav_wawi_receipt'), icon: Truck, group: 'main' },
-    { id: 'retouren', label: t('nav_wawi_returns'), icon: RotateCcw, group: 'features' },
-    { id: 'bewertungen', label: t('nav_wawi_ratings'), icon: Star, group: 'features' },
-    { id: 'ki-insights', label: t('nav_wawi_ai'), icon: Brain, group: 'features' },
+    // { id: 'retouren', label: t('nav_wawi_returns'), icon: RotateCcw, group: 'features' },
+    // { id: 'bewertungen', label: t('nav_wawi_ratings'), icon: Star, group: 'features' },
+    // { id: 'ki-insights', label: t('nav_wawi_ai'), icon: Brain, group: 'features' },
     { id: 'berichte', label: t('nav_wawi_reports'), icon: Activity, group: 'system' },
     { id: 'settings', label: t('nav_wawi_settings'), icon: Settings, group: 'system' },
   ];
