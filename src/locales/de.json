@@ -754,5 +754,6 @@
   "settings_billing_bot": "WhatsApp-Bot",
   "settings_billing_invoices": "Rechnungsübersicht",
   "settings_billing_invoices_desc": "Ihre Abrechnungsdokumente werden hier angezeigt, sobald Ihr Subscription-Plan aktiv ist.",
-  "settings_billing_contact": "Kontakt für Abrechnungsfragen"
+  "settings_billing_contact": "Kontakt für Abrechnungsfragen",
+  "offers_publish": "Angebote senden"
 }
