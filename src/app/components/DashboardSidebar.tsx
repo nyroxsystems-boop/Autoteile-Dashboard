@@ -49,8 +49,11 @@ export function DashboardSidebar({
     { id: 'warenwirtschaft', label: t('nav_wawi_dashboard'), icon: LayoutDashboard, group: 'main' },
     { id: 'artikel', label: t('nav_wawi_articles'), icon: Package, group: 'main' },
     { id: 'lieferanten', label: t('nav_wawi_suppliers'), icon: Store, group: 'main' },
-    { id: 'nachbestellung', label: t('nav_wawi_reorder'), icon: Receipt, group: 'main' },
-    { id: 'wareneingang', label: t('nav_wawi_receipt'), icon: Truck, group: 'main' },
+    { id: 'nachbestellung', label: t('nav_wawi_reorder'), icon: Receipt, group: 'operations' },
+    { id: 'wareneingang', label: t('nav_wawi_receipt'), icon: Truck, group: 'operations' },
+    { id: 'retouren', label: t('nav_wawi_returns') || 'Retouren', icon: Package, group: 'operations' },
+    { id: 'bewertungen', label: t('nav_wawi_ratings') || 'Bewertungen', icon: Activity, group: 'operations' },
+    { id: 'ki-insights', label: t('nav_wawi_insights') || 'KI-Insights', icon: Activity, group: 'system' },
     { id: 'berichte', label: t('nav_wawi_reports'), icon: Activity, group: 'system' },
     { id: 'settings', label: t('nav_wawi_settings'), icon: Settings, group: 'system' },
   ];
