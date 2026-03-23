@@ -27,15 +27,6 @@ export class ErrorBoundary extends Component<Props, State> {
             componentStack: errorInfo.componentStack,
             source: 'ErrorBoundary',
         });
-
-        // Auto-reload once on render errors (likely stale CDN cache)
-        if (!sessionStorage.getItem('eb_reload')) {
-            sessionStorage.setItem('eb_reload', '1');
-            window.location.reload();
-            return;
-        }
-        // Clear flag so next session can retry
-        sessionStorage.removeItem('eb_reload');
     }
 
     render() {

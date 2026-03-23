@@ -12,11 +12,7 @@ import { useMe } from './hooks/useMe';
 import { Routes, Route, Navigate, useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 
-
-// ── Resilient lazy loading — handles stale CDN cache / chunk mismatches ──
-// If a lazy chunk fails to load (e.g. CDN serves old chunk names), retry once
-// with a cache-bust query param. If that also fails, force a full page reload
-// so the browser fetches the latest index.html with correct chunk references.
+// ── Resilient lazy loading — catches undefined exports / chunk load failures ──
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function lazyRetry(
   importFn: () => Promise<any>,
@@ -27,33 +23,41 @@ function lazyRetry(
       .then((mod) => {
         const component = namedExport ? mod[namedExport] : mod.default;
         if (component === undefined) {
-          console.error(`[LazyRetry] Component ${String(namedExport || 'default')} is undefined in module`, mod);
-          // Force reload if component is undefined — likely stale cache
-          if (!sessionStorage.getItem('chunk_reload')) {
-            sessionStorage.setItem('chunk_reload', '1');
-            window.location.reload();
-          }
-          // Return a placeholder to prevent crash
-          return { default: () => null };
+          const name = String(namedExport || 'default');
+          console.error(`[LazyRetry] Export "${name}" is undefined in module:`, Object.keys(mod));
+          // Return a visible error component instead of crashing
+          return {
+            default: () => (
+              <div style={{ padding: '2rem', textAlign: 'center' }}>
+                <h3>Modul-Fehler</h3>
+                <p>Component "{name}" konnte nicht geladen werden.</p>
+                <p style={{ fontSize: '0.8rem', color: '#888' }}>
+                  Module keys: {Object.keys(mod).join(', ')}
+                </p>
+                <button onClick={() => window.location.reload()} style={{ marginTop: '1rem', padding: '0.5rem 1rem', cursor: 'pointer' }}>
+                  Seite neu laden
+                </button>
+              </div>
+            ),
+          };
         }
         return { default: component };
       })
       .catch((err) => {
-        console.error('[LazyRetry] Chunk load failed, reloading page...', err);
-        // Chunk failed to load — likely stale cache. Force reload once.
-        if (!sessionStorage.getItem('chunk_reload')) {
-          sessionStorage.setItem('chunk_reload', '1');
-          window.location.reload();
-        }
-        // Return a placeholder to prevent crash loop
-        return { default: () => null } as { default: React.ComponentType };
+        console.error('[LazyRetry] Chunk load failed:', err);
+        return {
+          default: () => (
+            <div style={{ padding: '2rem', textAlign: 'center' }}>
+              <h3>Lade-Fehler</h3>
+              <p>{String(err)}</p>
+              <button onClick={() => window.location.reload()} style={{ marginTop: '1rem', padding: '0.5rem 1rem', cursor: 'pointer' }}>
+                Seite neu laden
+              </button>
+            </div>
+          ),
+        } as { default: React.ComponentType };
       }),
   );
-}
-
-// Clear the reload flag after successful page load
-if (sessionStorage.getItem('chunk_reload')) {
-  sessionStorage.removeItem('chunk_reload');
 }
 
 // ── Lazy-loaded views — each becomes a separate chunk for better performance ──
