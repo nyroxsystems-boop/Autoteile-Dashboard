@@ -9,7 +9,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 export default defineConfig({
   plugins: [
     react({
-      jsxRuntime: 'automatic', // Use modern automatic runtime
+      jsxRuntime: 'classic', // TEMP: classic so createElement interceptor works
     }),
   ],
   resolve: {
@@ -28,7 +28,7 @@ export default defineConfig({
     ),
   },
   build: {
-    sourcemap: false,
+    sourcemap: true, // TEMP: enable for debugging React #130
     minify: 'esbuild',
   },
   test: {
