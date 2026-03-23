@@ -201,15 +201,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                         if (res.ok) {
                             const userData = await res.json();
                             const expiresAt = Date.now() + (DEFAULT_EXPIRY_HOURS * 3600 * 1000);
+                            // Handle both flat { id, email, ... } and nested { user: { id, ... } } formats
+                            const u = userData.user || userData;
                             const newSession: AuthSession = {
                                 token: existingToken,
                                 refreshToken: localStorage.getItem('auth_refresh_token'),
                                 user: {
-                                    id: userData.user?.id || '',
-                                    email: userData.user?.email || '',
-                                    username: userData.user?.username || '',
-                                    role: userData.user?.role || 'member',
-                                    merchant_id: userData.user?.merchant_id,
+                                    id: u.id || '',
+                                    email: u.email || '',
+                                    username: u.username || '',
+                                    role: u.role || 'member',
+                                    merchant_id: u.merchant_id,
                                 },
                                 tenant: userData.tenant || null,
                                 expiresAt,
