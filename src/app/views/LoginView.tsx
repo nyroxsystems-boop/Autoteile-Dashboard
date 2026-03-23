@@ -58,7 +58,7 @@ export function LoginView({ onLoginSuccess }: LoginViewProps) {
             }
 
             login({
-                access: data.jwt?.accessToken || data.access,
+                access: data.access,
                 refresh: data.jwt?.refreshToken || data.refresh,
                 user: data.user || {
                     id: '',
