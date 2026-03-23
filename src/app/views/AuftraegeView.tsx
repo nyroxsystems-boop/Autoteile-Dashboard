@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { StatusChip } from '../components/StatusChip';
 import { OrderTimeline } from '../components/OrderTimeline';
+import { ErrorState } from '../components/ErrorState';
 import { Button } from '../components/ui/button';
 import { Car, MessageSquare, User, Truck, Clock, AlertCircle, FileText } from 'lucide-react';
 import { useOrders } from '../hooks/useOrders';
@@ -144,7 +145,7 @@ export function AuftraegeView() {
       </div>
     </div>
   );
-  if (error) return <div className="p-8 text-center text-error bg-error/5 rounded-2xl border border-error/20 py-20 flex flex-col items-center gap-3"><AlertCircle className="w-8 h-8" /> <span>{error}</span></div>;
+  if (error) return <ErrorState onRetry={refresh} />;
 
   const timelineSteps = (order: Order) => [
     { label: t('status_request_received'), completed: true },

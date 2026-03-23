@@ -2,6 +2,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Search, Package, Clock, CheckCircle2, XCircle, FileText, Plus } from 'lucide-react';
 import { useOrders } from '../hooks/useOrders';
+import { ErrorState } from '../components/ErrorState';
 import { getOrderOffers, Offer } from '../api/wws';
 import { toast } from 'sonner';
 import { useI18n } from '../../i18n';
@@ -9,7 +10,7 @@ import { useMerchantSettings } from '../hooks/useMerchantSettings';
 import { useNavigate } from 'react-router-dom';
 
 export function AngeboteView() {
-  const { orders, loading } = useOrders();
+  const { orders, loading, error, refresh } = useOrders();
   const { t } = useI18n();
   const navigate = useNavigate();
   const { settings: merchantSettings } = useMerchantSettings();
@@ -115,6 +116,8 @@ export function AngeboteView() {
       </div>
     </div>
   );
+
+  if (error) return <ErrorState onRetry={refresh} />;
 
   return (
     <div className="space-y-6">

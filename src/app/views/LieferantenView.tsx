@@ -1,4 +1,5 @@
 import { useSuppliers } from '../hooks/useSuppliers';
+import { ErrorState } from '../components/ErrorState';
 import { StatusChip } from '../components/StatusChip';
 import { MetricCard } from '../components/MetricCard';
 import { Store, Clock, TrendingUp, ToggleLeft, ToggleRight } from 'lucide-react';
@@ -6,7 +7,7 @@ import { useI18n } from '../../i18n';
 import { toast } from 'sonner';
 
 export function LieferantenView() {
-  const { suppliers, loading } = useSuppliers();
+  const { suppliers, loading, error } = useSuppliers();
   const { t } = useI18n();
 
   const getStatusVariant = (status: string) => {
@@ -42,7 +43,7 @@ export function LieferantenView() {
   };
 
   if (loading) return <div className="p-20 text-center text-muted-foreground">{t('suppliers_loading')}</div>;
-  // Silently handle errors - show empty state
+  if (error) return <ErrorState onRetry={() => window.location.reload()} />;
 
   return (
     <div className="space-y-6">

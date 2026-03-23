@@ -4,6 +4,7 @@ import { RevenueChart } from '../components/RevenueChart';
 import { TopCustomers } from '../components/TopCustomers';
 import { ActivityFeed } from '../components/ActivityFeed';
 import { StatusChip } from '../components/StatusChip';
+import { ErrorState } from '../components/ErrorState';
 import { Button } from '../components/ui/button';
 import {
   Package, MessageSquare, TrendingUp, Clock, CheckCircle2,
@@ -20,10 +21,21 @@ interface HeuteViewProps {
 }
 
 export function HeuteView({ onNavigate }: HeuteViewProps) {
-  const { summary, loading: summaryLoading } = useDashboardSummary();
-  const { orders, loading: ordersLoading } = useOrders();
+  const { summary, loading: summaryLoading, error: summaryError, refresh: refreshSummary } = useDashboardSummary();
+  const { orders, loading: ordersLoading, error: ordersError, refresh: refreshOrders } = useOrders();
   const { t, lang } = useI18n();
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d' | '1y'>('30d');
+
+  // Show error state if API is unreachable
+  if ((summaryError || ordersError) && !summaryLoading && !ordersLoading) {
+    return (
+      <ErrorState
+        title={t('error_backend_title') || 'Backend nicht erreichbar'}
+        description={t('error_backend_description') || 'Der Server ist momentan nicht verfügbar. Bitte versuche es erneut.'}
+        onRetry={() => { refreshSummary(); refreshOrders(); }}
+      />
+    );
+  }
 
   const chartData = summary?.revenueHistory || [];
   const topCustomers = summary?.topCustomers?.map(c => ({

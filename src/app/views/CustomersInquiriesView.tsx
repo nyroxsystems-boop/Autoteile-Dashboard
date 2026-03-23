@@ -6,6 +6,7 @@ import { CustomerThreadRow } from '../components/CustomerThreadRow';
 import { CustomerDetailPanel } from '../components/CustomerDetailPanel';
 import { TableDensityToggle, getTableDensityClasses, type TableDensity } from '../components/TableDensityToggle';
 import { useConversations } from '../hooks/useConversations';
+import { ErrorState } from '../components/ErrorState';
 import type { Conversation } from '../api/wws';
 import { NewInquiryModal } from '../components/NewInquiryModal';
 import { useI18n } from '../../i18n';
@@ -17,7 +18,7 @@ interface CustomersInquiriesViewProps {
 export function CustomersInquiriesView({ onNavigate: _onNavigate }: CustomersInquiriesViewProps) {
   const { t } = useI18n();
   const navigate = useNavigate();
-  const { conversations, loading } = useConversations();
+  const { conversations, loading, error, refresh } = useConversations();
   const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [density, setDensity] = useState<TableDensity>('comfortable');
@@ -105,6 +106,8 @@ export function CustomersInquiriesView({ onNavigate: _onNavigate }: CustomersInq
       </div>
     );
   }
+
+  if (error) return <ErrorState onRetry={refresh} />;
 
   return (
     <div className="space-y-6">
