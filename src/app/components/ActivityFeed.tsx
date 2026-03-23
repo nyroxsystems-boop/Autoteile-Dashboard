@@ -14,14 +14,14 @@ interface ActivityFeedProps {
   activities: ActivityItem[];
 }
 
-const iconMap = {
+const iconMap: Record<string, typeof MessageSquare> = {
   message: MessageSquare,
   quote: FileText,
   order: Package,
   completed: CheckCircle2,
 };
 
-const iconColorMap = {
+const iconColorMap: Record<string, string> = {
   message: 'text-[var(--status-processing)]',
   quote: 'text-[var(--status-waiting)]',
   order: 'text-[var(--status-processing)]',
@@ -40,8 +40,8 @@ export function ActivityFeed({ activities }: ActivityFeedProps) {
       </div>
       <div className="space-y-3 overflow-y-auto flex-1">
         {activities.map((activity, index) => {
-          const Icon = iconMap[activity.type];
-          const iconColor = iconColorMap[activity.type];
+          const Icon = iconMap[activity.type] || Package;
+          const iconColor = iconColorMap[activity.type] || 'text-muted-foreground';
           
           return (
             <div 
