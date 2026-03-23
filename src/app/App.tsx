@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { toast } from 'sonner';
 import { DashboardSidebar } from './components/DashboardSidebar';
 import { DashboardHeader } from './components/DashboardHeader';
@@ -13,32 +13,76 @@ import { Routes, Route, Navigate, useNavigate, useLocation, Outlet } from 'react
 import { useAuth } from '../auth/AuthContext';
 
 
+// ── Resilient lazy loading — handles stale CDN cache / chunk mismatches ──
+// If a lazy chunk fails to load (e.g. CDN serves old chunk names), retry once
+// with a cache-bust query param. If that also fails, force a full page reload
+// so the browser fetches the latest index.html with correct chunk references.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function lazyRetry(
+  importFn: () => Promise<any>,
+  namedExport?: string,
+): React.LazyExoticComponent<React.ComponentType<any>> {
+  return lazy(() =>
+    importFn()
+      .then((mod) => {
+        const component = namedExport ? mod[namedExport] : mod.default;
+        if (component === undefined) {
+          console.error(`[LazyRetry] Component ${String(namedExport || 'default')} is undefined in module`, mod);
+          // Force reload if component is undefined — likely stale cache
+          if (!sessionStorage.getItem('chunk_reload')) {
+            sessionStorage.setItem('chunk_reload', '1');
+            window.location.reload();
+          }
+          // Return a placeholder to prevent crash
+          return { default: () => null };
+        }
+        return { default: component };
+      })
+      .catch((err) => {
+        console.error('[LazyRetry] Chunk load failed, reloading page...', err);
+        // Chunk failed to load — likely stale cache. Force reload once.
+        if (!sessionStorage.getItem('chunk_reload')) {
+          sessionStorage.setItem('chunk_reload', '1');
+          window.location.reload();
+        }
+        // Return a placeholder to prevent crash loop
+        return { default: () => null } as { default: React.ComponentType };
+      }),
+  );
+}
+
+// Clear the reload flag after successful page load
+if (sessionStorage.getItem('chunk_reload')) {
+  sessionStorage.removeItem('chunk_reload');
+}
+
 // ── Lazy-loaded views — each becomes a separate chunk for better performance ──
-const LoginView = lazy(() => import('./views/LoginView').then(m => ({ default: m.LoginView })));
-const HeuteView = lazy(() => import('./views/HeuteView').then(m => ({ default: m.HeuteView })));
-const AuftraegeView = lazy(() => import('./views/AuftraegeView').then(m => ({ default: m.AuftraegeView })));
-const AngeboteView = lazy(() => import('./views/AngeboteView').then(m => ({ default: m.AngeboteView })));
-const PreisprofileView = lazy(() => import('./views/PreisprofileView').then(m => ({ default: m.PreisprofileView })));
-const LieferantenView = lazy(() => import('./views/LieferantenView').then(m => ({ default: m.LieferantenView })));
-const StatusView = lazy(() => import('./views/StatusView').then(m => ({ default: m.StatusView })));
-const CustomersInquiriesView = lazy(() => import('./views/CustomersInquiriesView').then(m => ({ default: m.CustomersInquiriesView })));
-const DocumentsInvoicesView = lazy(() => import('./views/DocumentsInvoicesView').then(m => ({ default: m.DocumentsInvoicesView })));
-const SettingsView = lazy(() => import('./views/SettingsView').then(m => ({ default: m.SettingsView })));
-const AdminDashboardView = lazy(() => import('./views/AdminDashboardView').then(m => ({ default: m.AdminDashboardView })));
-const WawiDashboardView = lazy(() => import('./views/wawi/WawiDashboardView').then(m => ({ default: m.WawiDashboardView })));
-const ArticleListView = lazy(() => import('./views/wawi/ArticleListView').then(m => ({ default: m.ArticleListView })));
-const ArticleDetailView = lazy(() => import('./views/wawi/ArticleDetailView').then(m => ({ default: m.ArticleDetailView })));
-const InventoryMovementView = lazy(() => import('./views/wawi/InventoryMovementView').then(m => ({ default: m.InventoryMovementView })));
-const SupplierListView = lazy(() => import('./views/wawi/SupplierListView').then(m => ({ default: m.SupplierListView })));
-const ReorderWizardView = lazy(() => import('./views/wawi/ReorderWizardView').then(m => ({ default: m.ReorderWizardView })));
-const GoodsReceiptView = lazy(() => import('./views/wawi/GoodsReceiptView').then(m => ({ default: m.GoodsReceiptView })));
-const ReportsView = lazy(() => import('./views/wawi/ReportsView').then(m => ({ default: m.ReportsView })));
-const ReturnsView = lazy(() => import('./views/wawi/ReturnsView').then(m => ({ default: m.ReturnsView })));
-const SupplierRatingView = lazy(() => import('./views/wawi/SupplierRatingView').then(m => ({ default: m.SupplierRatingView })));
-const AIInsightsView = lazy(() => import('./views/wawi/AIInsightsView').then(m => ({ default: m.AIInsightsView })));
-const TaxDashboardView = lazy(() => import('./views/tax/TaxDashboardView'));
-const InvoiceListView = lazy(() => import('./views/tax/InvoiceListView'));
-const TaxProfileCreateView = lazy(() => import('./views/tax/TaxProfileCreateView'));
+const LoginView = lazyRetry(() => import('./views/LoginView'), 'LoginView');
+const HeuteView = lazyRetry(() => import('./views/HeuteView'), 'HeuteView');
+const AuftraegeView = lazyRetry(() => import('./views/AuftraegeView'), 'AuftraegeView');
+const AngeboteView = lazyRetry(() => import('./views/AngeboteView'), 'AngeboteView');
+const PreisprofileView = lazyRetry(() => import('./views/PreisprofileView'), 'PreisprofileView');
+const LieferantenView = lazyRetry(() => import('./views/LieferantenView'), 'LieferantenView');
+const StatusView = lazyRetry(() => import('./views/StatusView'), 'StatusView');
+const CustomersInquiriesView = lazyRetry(() => import('./views/CustomersInquiriesView'), 'CustomersInquiriesView');
+const DocumentsInvoicesView = lazyRetry(() => import('./views/DocumentsInvoicesView'), 'DocumentsInvoicesView');
+const SettingsView = lazyRetry(() => import('./views/SettingsView'), 'SettingsView');
+const AdminDashboardView = lazyRetry(() => import('./views/AdminDashboardView'), 'AdminDashboardView');
+const WawiDashboardView = lazyRetry(() => import('./views/wawi/WawiDashboardView'), 'WawiDashboardView');
+const ArticleListView = lazyRetry(() => import('./views/wawi/ArticleListView'), 'ArticleListView');
+const ArticleDetailView = lazyRetry(() => import('./views/wawi/ArticleDetailView'), 'ArticleDetailView');
+const InventoryMovementView = lazyRetry(() => import('./views/wawi/InventoryMovementView'), 'InventoryMovementView');
+const SupplierListView = lazyRetry(() => import('./views/wawi/SupplierListView'), 'SupplierListView');
+const ReorderWizardView = lazyRetry(() => import('./views/wawi/ReorderWizardView'), 'ReorderWizardView');
+const GoodsReceiptView = lazyRetry(() => import('./views/wawi/GoodsReceiptView'), 'GoodsReceiptView');
+const ReportsView = lazyRetry(() => import('./views/wawi/ReportsView'), 'ReportsView');
+const ReturnsView = lazyRetry(() => import('./views/wawi/ReturnsView'), 'ReturnsView');
+const SupplierRatingView = lazyRetry(() => import('./views/wawi/SupplierRatingView'), 'SupplierRatingView');
+const AIInsightsView = lazyRetry(() => import('./views/wawi/AIInsightsView'), 'AIInsightsView');
+const TaxDashboardView = lazyRetry(() => import('./views/tax/TaxDashboardView'));
+const InvoiceListView = lazyRetry(() => import('./views/tax/InvoiceListView'));
+const TaxProfileCreateView = lazyRetry(() => import('./views/tax/TaxProfileCreateView'));
+
 
 // ── View loading fallback ──
 function ViewSuspenseFallback() {
