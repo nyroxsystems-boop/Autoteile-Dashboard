@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { CheckCircle2, Printer, TruckIcon, Calendar, Plus, Minus } from 'lucide-react';
 import { Button } from '../../components/ui/button';
+import { ErrorState } from '../../components/ErrorState';
 import { wawiService, PurchaseOrder, PurchaseOrderItem, WarehouseLocation } from '../../services/wawiService';
 import { toast } from 'sonner';
 import { useI18n } from '../../../i18n';
@@ -16,6 +17,7 @@ export function GoodsReceiptView() {
     const [selectedPO, setSelectedPO] = useState<PurchaseOrder | null>(null);
     const [receiptItems, setReceiptItems] = useState<ReceiptItem[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
     const [locations, setLocations] = useState<WarehouseLocation[]>([]);
 
     useEffect(() => {
@@ -25,12 +27,13 @@ export function GoodsReceiptView() {
 
     const loadOrders = async () => {
         setLoading(true);
+        setError(false);
         try {
             const orders = await wawiService.getPurchaseOrders();
             // Filter for confirmed/sent orders only
             setPurchaseOrders(orders.filter(o => ['sent', 'confirmed'].includes(o.status)));
         } catch {
-            // load error handled silently
+            setError(true);
         } finally {
             setLoading(false);
         }
@@ -85,6 +88,8 @@ export function GoodsReceiptView() {
     };
 
     const totalReceived = receiptItems.reduce((sum, item) => sum + item.received_quantity, 0);
+
+    if (error && !loading) return <ErrorState onRetry={loadOrders} />;
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">

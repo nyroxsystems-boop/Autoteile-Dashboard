@@ -3,6 +3,7 @@ import { Search, Plus, Building2, CheckCircle2, XCircle, MoreVertical, Edit, Tra
 import { wawiService } from '../../services/wawiService';
 import type { Supplier } from '../../services/wawiService';
 import { Button } from '../../components/ui/button';
+import { ErrorState } from '../../components/ErrorState';
 import { SupplierModal } from '../../components/SupplierModal';
 import { toast } from 'sonner';
 import { useI18n } from '../../../i18n';
@@ -11,6 +12,7 @@ export function SupplierListView() {
     const [suppliers, setSuppliers] = useState<Supplier[]>([]);
     const { t } = useI18n();
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
@@ -22,12 +24,12 @@ export function SupplierListView() {
 
     const loadSuppliers = async () => {
         setLoading(true);
+        setError(false);
         try {
             const data = await wawiService.getSuppliers();
             setSuppliers(Array.isArray(data) ? data : []);
-        } catch (err) {
-            console.error('Failed to load suppliers', err);
-            toast.error('Fehler beim Laden der Lieferanten');
+        } catch {
+            setError(true);
         } finally {
             setLoading(false);
         }
@@ -74,6 +76,8 @@ export function SupplierListView() {
     const filteredSuppliers = suppliers.filter(s =>
         searchTerm ? s.name.toLowerCase().includes(searchTerm.toLowerCase()) : true
     );
+
+    if (error && !loading) return <ErrorState onRetry={loadSuppliers} />;
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">

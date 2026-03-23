@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { AlertTriangle, Package, TrendingDown, ShoppingCart, Plus } from 'lucide-react';
 import { Button } from '../../components/ui/button';
+import { ErrorState } from '../../components/ErrorState';
 import { wawiService, Part } from '../../services/wawiService';
 import { Link } from 'react-router-dom';
 import { useI18n } from '../../../i18n';
@@ -17,6 +18,7 @@ export function ReorderWizardView() {
     const [suggestions, setSuggestions] = useState<ReorderSuggestion[]>([]);
     const { t } = useI18n();
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
     const [selectedItems, setSelectedItems] = useState<Set<number | string>>(new Set());
 
     useEffect(() => {
@@ -25,11 +27,12 @@ export function ReorderWizardView() {
 
     const loadSuggestions = async () => {
         setLoading(true);
+        setError(false);
         try {
             const data = await wawiService.getReorderSuggestions();
             setSuggestions(Array.isArray(data) ? data as ReorderSuggestion[] : []);
-        } catch (err) {
-            // Failed to load reorder suggestions
+        } catch {
+            setError(true);
         } finally {
             setLoading(false);
         }
@@ -50,6 +53,8 @@ export function ReorderWizardView() {
         toast.success(t('wawi_po_created'));
         setSelectedItems(new Set());
     };
+
+    if (error && !loading) return <ErrorState onRetry={loadSuggestions} />;
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">

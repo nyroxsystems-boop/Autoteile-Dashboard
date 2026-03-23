@@ -8,6 +8,7 @@ import {
 import { toast } from 'sonner';
 
 import { Button } from '../../components/ui/button';
+import { ErrorState } from '../../components/ErrorState';
 import { wawiService, Part, type OemCrossRef, type VehicleApplication, type PriceRule } from '../../services/wawiService';
 import { StatusChip } from '../../components/StatusChip';
 import { BOMManager } from '../../components/BOMManager';
@@ -28,6 +29,7 @@ export function ArticleDetailView() {
     const [newPrice, setNewPrice] = useState({ profile: 'endkunde', min_quantity: 1, price: 0, discount_percent: 0 });
     const [article, setArticle] = useState<Part | null>(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
 
     useEffect(() => {
         if (id) {
@@ -37,6 +39,7 @@ export function ArticleDetailView() {
 
     const loadArticle = async (articleId: string | number) => {
         setLoading(true);
+        setError(false);
         try {
             const data = await wawiService.getArticleDetails(articleId);
             setArticle(data);
@@ -49,8 +52,8 @@ export function ArticleDetailView() {
             setCrossRefs(refs);
             setVehicleApps(vehs);
             setPriceRules(rules);
-        } catch (err) {
-            console.error('Failed to load article detail', err);
+        } catch {
+            setError(true);
         } finally {
             setLoading(false);
         }
@@ -71,6 +74,7 @@ export function ArticleDetailView() {
     };
 
     if (loading) return <div className="p-20 text-center animate-pulse">{t('wawi_loading')}</div>;
+    if (error) return <ErrorState onRetry={() => id && loadArticle(id)} />;
     if (!article) return <div className="p-20 text-center">Artikel nicht gefunden.</div>;
 
     const tabs = [

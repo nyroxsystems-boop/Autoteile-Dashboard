@@ -5,6 +5,7 @@ import {
     Settings, RefreshCcw
 } from 'lucide-react';
 import { getAdminStats, listActiveDevices, removeActiveDevice, updateTenantLimits, createTenantUser, AdminStats, ActiveDevice } from '../api/wws';
+import { ErrorState } from '../components/ErrorState';
 import { toast } from 'sonner';
 import { useI18n } from '../../i18n';
 
@@ -23,6 +24,7 @@ export function AdminDashboardView() {
     const { t } = useI18n();
     const [stats, setStats] = useState<AdminStats | null>(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
     const [selectedTenant, setSelectedTenant] = useState<TenantInfo | null>(null);
     const [activeDevices, setActiveDevices] = useState<ActiveDevice[]>([]);
     const [showUserModal, setShowUserModal] = useState(false);
@@ -37,10 +39,11 @@ export function AdminDashboardView() {
     const loadStats = async () => {
         try {
             setLoading(true);
+            setError(false);
             const data = await getAdminStats();
             setStats(data);
         } catch (_err: unknown) {
-            toast.error(t('admin_error_loading'));
+            setError(true);
         } finally {
             setLoading(false);
         }
@@ -109,6 +112,8 @@ export function AdminDashboardView() {
             </div>
         );
     }
+
+    if (error && !stats) return <ErrorState onRetry={loadStats} />;
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
