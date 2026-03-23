@@ -12,6 +12,19 @@ import { useMe } from './hooks/useMe';
 import { Routes, Route, Navigate, useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 
+// ─── DEBUG: validate all eager imports ───────────────────────────
+const _imports: Record<string, unknown> = {
+  DashboardSidebar, DashboardHeader, CommandPalette, ShortcutsOverlay,
+  ToastProvider, ErrorBoundary, useKeyboardShortcuts, useTenants, useMe,
+  Routes, Route, Navigate, useNavigate, useLocation, Outlet, useAuth, toast,
+};
+for (const [name, value] of Object.entries(_imports)) {
+  if (value === undefined) {
+    console.error(`[DEBUG] IMPORT "${name}" IS UNDEFINED — this is the React #130 source!`);
+  }
+}
+// ─── END DEBUG ──────────────────────────────────────────────────
+
 // ── Lazy-loaded views — each becomes a separate chunk for better performance ──
 const LoginView = lazy(() => import('./views/LoginView').then(m => ({ default: m.LoginView })));
 const HeuteView = lazy(() => import('./views/HeuteView').then(m => ({ default: m.HeuteView })));
