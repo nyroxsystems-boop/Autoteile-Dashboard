@@ -28,8 +28,8 @@ export function HeuteView({ onNavigate }: HeuteViewProps) {
   const chartData = summary?.revenueHistory || [];
   const topCustomers = summary?.topCustomers?.map(c => ({
     name: c.name,
-    revenue: `€${c.revenue.toLocaleString('de-DE', { minimumFractionDigits: 2 })}`,
-    orders: c.orders,
+    revenue: `€${(c.revenue ?? 0).toLocaleString('de-DE', { minimumFractionDigits: 2 })}`,
+    orders: c.orders ?? 0,
     change: 0,
     avatar: c.avatar
   })) || [];
