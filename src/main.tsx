@@ -12,19 +12,21 @@ import './styles/index.css'
 errorTracker.init();
 
 // ─── TEMPORARY DEBUG: catch undefined components ───────────────
-// This interceptor logs the call stack when React.createElement
-// is called with `undefined` — identifying the exact source of
-// React Error #130. REMOVE AFTER DEBUGGING.
-const _origCreateElement = React.createElement;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-(React as any).createElement = function (type: any, ...rest: any[]) {
+// Patch jsx/jsxs from react/jsx-runtime to find the undefined component
+import * as JsxRuntime from 'react/jsx-runtime';
+const origJsx = (JsxRuntime as any).jsx;
+const origJsxs = (JsxRuntime as any).jsxs;
+(JsxRuntime as any).jsx = function(type: any, ...args: any[]) {
   if (type === undefined) {
-    console.error(
-      '[DEBUG] React.createElement called with undefined component!',
-      new Error().stack,
-    );
+    console.error('[DEBUG] jsx() called with UNDEFINED component! Stack:', new Error().stack);
   }
-  return _origCreateElement.apply(this, [type, ...rest]);
+  return origJsx.call(this, type, ...args);
+};
+(JsxRuntime as any).jsxs = function(type: any, ...args: any[]) {
+  if (type === undefined) {
+    console.error('[DEBUG] jsxs() called with UNDEFINED component! Stack:', new Error().stack);
+  }
+  return origJsxs.call(this, type, ...args);
 };
 // ─── END TEMPORARY DEBUG ───────────────────────────────────────
 
