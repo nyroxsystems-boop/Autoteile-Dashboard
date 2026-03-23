@@ -5,6 +5,7 @@ import {
     ArrowDownLeft, ArrowUpRight, Repeat, Edit
 } from 'lucide-react';
 import { MetricCard } from '../../components/MetricCard';
+import { ErrorState } from '../../components/ErrorState';
 import { Button } from '../../components/ui/button';
 import { wawiService, Part, StockMovement, PurchaseOrder } from '../../services/wawiService';
 import { useNavigate } from 'react-router-dom';
@@ -18,6 +19,7 @@ export function WawiDashboardView() {
     const [recentMovements, setRecentMovements] = useState<StockMovement[]>([]);
     const [openOrderCount, setOpenOrderCount] = useState(0);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
 
     useEffect(() => {
         loadDashboardData();
@@ -25,6 +27,7 @@ export function WawiDashboardView() {
 
     const loadDashboardData = async () => {
         setLoading(true);
+        setError(false);
         try {
             const [dashboardStats, articlesData] = await Promise.all([
                 wawiService.getStats(),
@@ -54,11 +57,15 @@ export function WawiDashboardView() {
                 setOpenOrderCount(orderList.filter(o => o.status !== 'received' && o.status !== 'cancelled').length);
             } catch { /* graceful */ }
         } catch {
-            // Error loading dashboard data
+            setError(true);
         } finally {
             setLoading(false);
         }
     };
+
+    if (error && !loading) {
+        return <ErrorState onRetry={loadDashboardData} />;
+    }
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">

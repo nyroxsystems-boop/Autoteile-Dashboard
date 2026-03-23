@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { RotateCcw, CheckCircle2, PackageCheck, CreditCard, XCircle, Plus, Filter, type LucideIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../../components/ui/button';
+import { ErrorState } from '../../components/ErrorState';
 import { wawiService, type ReturnItem } from '../../services/wawiService';
 import { useI18n } from '../../../i18n';
 
@@ -18,6 +19,7 @@ export function ReturnsView() {
     const { t } = useI18n();
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('');
+    const [error, setError] = useState(false);
     const [showCreate, setShowCreate] = useState(false);
     const [form, setForm] = useState({ product: '', quantity: 1, reason: '', notes: '' });
 
@@ -25,10 +27,11 @@ export function ReturnsView() {
 
     const loadReturns = async () => {
         setLoading(true);
+        setError(false);
         try {
             const data = await wawiService.getReturns(filter || undefined);
             setReturns(Array.isArray(data) ? data : []);
-        } catch { /* handled silently */ }
+        } catch { setError(true); }
         finally { setLoading(false); }
     };
 
@@ -42,6 +45,8 @@ export function ReturnsView() {
             loadReturns();
         } catch { toast.error(t('error')); }
     };
+
+    if (error && !loading) return <ErrorState onRetry={loadReturns} />;
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">

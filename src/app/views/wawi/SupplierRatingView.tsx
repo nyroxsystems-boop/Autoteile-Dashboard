@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Star, Plus, Clock, Truck, BarChart3 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../../components/ui/button';
+import { ErrorState } from '../../components/ErrorState';
 import { wawiService, Supplier, type SupplierRating } from '../../services/wawiService';
 import { useI18n } from '../../../i18n';
 
@@ -11,6 +12,7 @@ export function SupplierRatingView() {
     const { t } = useI18n();
     const [suppliers, setSuppliers] = useState<Supplier[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
     const [showCreate, setShowCreate] = useState(false);
     const [form, setForm] = useState({
         supplier: '', period: '', orders_total: 0, orders_on_time: 0, orders_late: 0,
@@ -21,6 +23,7 @@ export function SupplierRatingView() {
 
     const loadData = async () => {
         setLoading(true);
+        setError(false);
         try {
             const [r, s] = await Promise.all([
                 wawiService.getSupplierRatings(),
@@ -28,7 +31,7 @@ export function SupplierRatingView() {
             ]);
             setRatings(Array.isArray(r) ? r : []);
             setSuppliers(Array.isArray(s) ? s : []);
-        } catch { console.error('Failed to load'); toast.error('Laden fehlgeschlagen'); }
+        } catch { setError(true); }
         finally { setLoading(false); }
     };
 
@@ -43,6 +46,8 @@ export function SupplierRatingView() {
             <span className={`text-xs font-bold ${scoreColor(score)}`}>{score}</span>
         </div>
     );
+
+    if (error && !loading) return <ErrorState onRetry={loadData} />;
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">

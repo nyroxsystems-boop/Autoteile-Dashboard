@@ -20,7 +20,7 @@ export function StatusView() {
 
         const summary = await getDashboardSummary();
         setApiOnline(true);
-        setLastSync(new Date(summary.lastSync).toLocaleString());
+        setLastSync(summary.lastSync ? new Date(summary.lastSync).toLocaleString() : t('system_just_now'));
       } catch (err) {
         setBotOnline(false);
         setApiOnline(false);

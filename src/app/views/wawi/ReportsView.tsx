@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown, DollarSign, Package, AlertTriangle, Download } from 'lucide-react';
 import { Button } from '../../components/ui/button';
+import { ErrorState } from '../../components/ErrorState';
 import { wawiService, Part, StockMovement } from '../../services/wawiService';
 import { useI18n } from '../../../i18n';
 import { useNavigate } from 'react-router-dom';
@@ -20,6 +21,7 @@ export function ReportsView() {
     const [reportData, setReportData] = useState<ReportData | null>(null);
     const { t } = useI18n();
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
     const [dateRange, setDateRange] = useState('30d');
     const [exporting, setExporting] = useState(false);
 
@@ -29,6 +31,7 @@ export function ReportsView() {
 
     const loadReportData = async () => {
         setLoading(true);
+        setError(false);
         try {
             const articles = await wawiService.getArticles();
 
@@ -86,8 +89,7 @@ export function ReportsView() {
                 criticalStock: critical,
             });
         } catch (err) {
-            console.error('Failed to load report data', err);
-            toast.error('Fehler beim Laden der Berichtsdaten');
+            setError(true);
         } finally {
             setLoading(false);
         }
@@ -129,6 +131,8 @@ export function ReportsView() {
             setExporting(false);
         }
     };
+
+    if (error && !loading) return <ErrorState onRetry={loadReportData} />;
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">

@@ -5,6 +5,7 @@ import { Button } from '../../components/ui/button';
 import { StatusChip } from '../../components/StatusChip';
 import { wawiService, Part } from '../../services/wawiService';
 import { ArticleFormModal, type ArticleFormData } from '../../components/ArticleFormModal';
+import { ErrorState } from '../../components/ErrorState';
 import { useI18n } from '../../../i18n';
 import { toast } from 'sonner';
 
@@ -12,6 +13,7 @@ export function ArticleListView() {
     const [articles, setArticles] = useState<Part[]>([]);
     const { t } = useI18n();
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
@@ -21,11 +23,12 @@ export function ArticleListView() {
 
     const loadArticles = async () => {
         setLoading(true);
+        setError(false);
         try {
             const data = await wawiService.getArticles();
             setArticles(Array.isArray(data) ? data : []);
         } catch {
-            // Failed to load articles
+            setError(true);
         } finally {
             setLoading(false);
         }
@@ -44,6 +47,8 @@ export function ArticleListView() {
             toast.error(t('error'));
         }
     };
+
+    if (error && !loading) return <ErrorState onRetry={loadArticles} />;
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
