@@ -3,10 +3,12 @@ import { Plus, X, Package, Zap, Loader2 } from 'lucide-react';
 import { useMerchantSettings } from '../../hooks/useMerchantSettings';
 import { useI18n } from '../../../i18n';
 import { toast } from 'sonner';
+import { useConfirmDialog } from '../../components/ConfirmDialog';
 import type { WholesalerConfig } from '../../api/wws';
 
 export function WholesalersTab() {
     const { t } = useI18n();
+    const { confirm, ConfirmDialog } = useConfirmDialog();
     const { settings: merchantSettings, update: updateMerchantSettings } = useMerchantSettings();
 
     const [wholesalers, setWholesalers] = useState<WholesalerConfig[]>([]);
@@ -39,7 +41,8 @@ export function WholesalersTab() {
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm(t('wholesaler_delete_confirm'))) return;
+        const confirmed = await confirm({ title: t('wholesaler_delete_title') || 'Großhändler entfernen', message: t('wholesaler_delete_confirm'), variant: 'danger', confirmLabel: t('delete') });
+        if (!confirmed) return;
         const updated = wholesalers.filter((w) => w.id !== id);
         setWholesalers(updated);
         await updateMerchantSettings({ wholesalers: updated });
@@ -180,6 +183,7 @@ export function WholesalersTab() {
                     </p>
                 </div>
             </div>
+            <ConfirmDialog />
         </div>
     );
 }

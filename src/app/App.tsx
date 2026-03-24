@@ -10,6 +10,7 @@ import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useTenants } from './hooks/useTenants';
 import { useMe } from './hooks/useMe';
 import { Routes, Route, Navigate, useNavigate, useLocation, Outlet } from 'react-router-dom';
+import { safeReload } from './utils/desktop';
 import { useAuth } from '../auth/AuthContext';
 
 // ── Resilient lazy loading — catches undefined exports / chunk load failures ──
@@ -34,7 +35,7 @@ function lazyRetry(
                 <p style={{ fontSize: '0.8rem', color: '#888' }}>
                   Module keys: {Object.keys(mod).join(', ')}
                 </p>
-                <button onClick={() => window.location.reload()} style={{ marginTop: '1rem', padding: '0.5rem 1rem', cursor: 'pointer' }}>
+                <button onClick={() => safeReload()} style={{ marginTop: '1rem', padding: '0.5rem 1rem', cursor: 'pointer' }}>
                   Seite neu laden
                 </button>
               </div>
@@ -50,7 +51,7 @@ function lazyRetry(
             <div style={{ padding: '2rem', textAlign: 'center' }}>
               <h3>Lade-Fehler</h3>
               <p>{String(err)}</p>
-              <button onClick={() => window.location.reload()} style={{ marginTop: '1rem', padding: '0.5rem 1rem', cursor: 'pointer' }}>
+              <button onClick={() => safeReload()} style={{ marginTop: '1rem', padding: '0.5rem 1rem', cursor: 'pointer' }}>
                 Seite neu laden
               </button>
             </div>

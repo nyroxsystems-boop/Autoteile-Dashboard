@@ -9,6 +9,7 @@ import InvoiceCreationModal from '../components/tax/InvoiceCreationModal';
 import { toast } from 'sonner';
 import { useI18n } from '../../i18n';
 import { openBlobPreview } from '../utils/desktop';
+import { useConfirmDialog } from '../components/ConfirmDialog';
 import { API_BASE_URL, getAuthToken, getTenantId } from '../api/client';
 
 async function fetchInvoicePdf(invoiceNumber: string): Promise<Blob> {
@@ -30,6 +31,7 @@ type TabType = 'all' | 'outgoing' | 'incoming' | 'tax-office';
 export function DocumentsInvoicesView() {
   const navigate = useNavigate();
   const { t } = useI18n();
+  const { confirm, ConfirmDialog } = useConfirmDialog();
   const [activeTab, setActiveTab] = useState<TabType>('all');
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
@@ -77,7 +79,8 @@ export function DocumentsInvoicesView() {
   };
 
   const handleCancel = async (id: string) => {
-    if (!confirm(t('docs_cancel_confirm'))) return;
+    const confirmed = await confirm({ title: t('docs_cancel_confirm_title') || 'Rechnung stornieren', message: t('docs_cancel_confirm'), variant: 'danger', confirmLabel: t('confirm_yes') });
+    if (!confirmed) return;
 
     try {
       await cancelInvoice(id);
@@ -428,6 +431,7 @@ export function DocumentsInvoicesView() {
         onClose={() => setShowCreateModal(false)}
         onSuccess={loadInvoices}
       />
+      <ConfirmDialog />
     </div>
   );
 }

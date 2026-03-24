@@ -199,15 +199,15 @@ export function LoginView({ onLoginSuccess }: LoginViewProps) {
                         <div className="flex flex-wrap gap-3">
                             <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 text-sm">
                                 <Sparkles className="w-4 h-4 text-amber-300" />
-                                KI-gestützter Bot
+                                {t('login_pill_ai_bot')}
                             </div>
                             <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 text-sm">
                                 <Globe className="w-4 h-4 text-emerald-300" />
-                                Multi-Tenant
+                                {t('login_pill_multi_tenant')}
                             </div>
                             <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 text-sm">
                                 <Zap className="w-4 h-4 text-sky-300" />
-                                Echtzeit-Angebote
+                                {t('login_pill_realtime')}
                             </div>
                         </div>
                     </div>
@@ -217,12 +217,12 @@ export function LoginView({ onLoginSuccess }: LoginViewProps) {
                         <div className="flex items-center gap-6 text-white/40 text-xs">
                             <div className="flex items-center gap-1.5">
                                 <Shield className="w-3.5 h-3.5" />
-                                DSGVO-konform
+                                {t('login_trust_gdpr')}
                             </div>
                             <div>•</div>
-                            <div>99.9% Uptime</div>
+                            <div>{t('login_trust_uptime')}</div>
                             <div>•</div>
-                            <div>Enterprise Ready</div>
+                            <div>{t('login_trust_enterprise')}</div>
                         </div>
                     </div>
                 </div>

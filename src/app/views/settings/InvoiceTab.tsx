@@ -164,7 +164,7 @@ export function InvoiceTab() {
                                 const previewEl = document.getElementById('invoice-preview');
                                 if (!previewEl) return;
                                 const htmlContent = `<html><head><title>Rechnungsvorschau</title><style>body{margin:2rem;font-family:${fontFamily}}</style></head><body>${previewEl.innerHTML}</body></html>`;
-                                const success = openPrintWindow(htmlContent, 'Rechnungsvorschau');
+                                const success = openPrintWindow(htmlContent);
                                 if (!success) { toast.info(t('invoice_popup_blocked')); }
                             }}
                         >Als PDF exportieren</button>

@@ -3,9 +3,8 @@
  * 
  * Captures unhandled errors and promise rejections, stores them locally,
  * and optionally sends to a remote endpoint when configured.
- * 
- * This serves as a Sentry-lite until a proper error tracking service is set up.
  */
+import { getCurrentPageUrl } from '../utils/desktop';
 
 interface ErrorEntry {
     id: string;
@@ -54,7 +53,7 @@ class ErrorTracker {
             id: crypto.randomUUID?.() || Math.random().toString(36).slice(2),
             message: error.message,
             stack: error.stack,
-            url: window.location.href,
+            url: getCurrentPageUrl(),
             timestamp: new Date().toISOString(),
             userAgent: navigator.userAgent,
             extra,

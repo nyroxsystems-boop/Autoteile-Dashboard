@@ -20,16 +20,25 @@ export function AngeboteView() {
   const [orderOffers, setOrderOffers] = useState<Record<string, Offer[]>>({});
 
   useEffect(() => {
-    // Fetch offers for each order
-    if (Array.isArray(orders)) {
-      orders.forEach(async (order) => {
-        if (order && order.id && !orderOffers[order.id]) {
-          try {
-            const offers = await getOrderOffers(order.id);
-            setOrderOffers(prev => ({ ...prev, [order.id]: offers }));
-          } catch {
-            toast.error(t('error'));
+    // Fetch offers for all orders in parallel (batch, max 20)
+    if (Array.isArray(orders) && orders.length > 0) {
+      const unfetched = orders.filter(o => o && o.id && !orderOffers[o.id]).slice(0, 20);
+      if (unfetched.length === 0) return;
+      
+      Promise.allSettled(
+        unfetched.map(async (order) => {
+          const offers = await getOrderOffers(order.id);
+          return { id: order.id, offers };
+        })
+      ).then((results) => {
+        const newOffers: Record<string, Offer[]> = {};
+        results.forEach((result) => {
+          if (result.status === 'fulfilled') {
+            newOffers[result.value.id] = result.value.offers;
           }
+        });
+        if (Object.keys(newOffers).length > 0) {
+          setOrderOffers(prev => ({ ...prev, ...newOffers }));
         }
       });
     }

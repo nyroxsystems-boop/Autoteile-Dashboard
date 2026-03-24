@@ -58,7 +58,7 @@ export function StatusView() {
     },
     {
       id: 4,
-      name: 'Beleg-Service',
+      name: t('system_invoice_service'),
       icon: FileText,
       status: apiOnline ? 'online' : 'offline',
       lastUpdate: lastSync,

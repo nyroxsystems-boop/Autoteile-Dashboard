@@ -4,6 +4,7 @@ import { CustomSelect } from '../../components/CustomSelect';
 import { getTeam, inviteTeamMember, updateTeamMember, removeTeamMember } from '../../api/wws';
 import { useI18n } from '../../../i18n';
 import { toast } from 'sonner';
+import { useConfirmDialog } from '../../components/ConfirmDialog';
 
 interface TeamMember {
     id: string;
@@ -25,6 +26,7 @@ const getInitials = (name: string) => name.split(' ').map((n) => n[0]).join('').
 
 export function TeamTab() {
     const { t } = useI18n();
+    const { confirm, ConfirmDialog } = useConfirmDialog();
     const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [newMemberEmail, setNewMemberEmail] = useState('');
@@ -105,7 +107,8 @@ export function TeamTab() {
     };
 
     const handleRemoveMember = async (memberId: string) => {
-        if (!confirm(t('settings_remove_confirm'))) return;
+        const confirmed = await confirm({ title: t('settings_remove_title') || 'Mitglied entfernen', message: t('settings_remove_confirm'), variant: 'danger', confirmLabel: t('delete') });
+        if (!confirmed) return;
         try {
             await removeTeamMember(memberId);
             toast.success(t('settings_member_removed'));
@@ -284,6 +287,7 @@ export function TeamTab() {
                     </div>
                 </div>
             )}
+            <ConfirmDialog />
         </div>
     );
 }

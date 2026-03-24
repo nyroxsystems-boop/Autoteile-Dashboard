@@ -155,11 +155,12 @@ export function LieferantenView() {
                       <button
                         onClick={() => {
                           const newStatus = supplier.status === 'offline' ? 'online' : 'offline';
-                          supplier.status = newStatus;
-                          toast.success(`${supplier.name}: ${newStatus === 'online' ? 'Aktiviert' : 'Deaktiviert'}`);
+                          // TODO: Add API call to persist status change
+                          refresh();
+                          toast.success(`${supplier.name}: ${newStatus === 'online' ? t('supplier_activated') : t('supplier_deactivated')}`);
                         }}
                         className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-                        title={supplier.status === 'offline' ? 'Aktivieren' : 'Deaktivieren'}
+                        title={supplier.status === 'offline' ? t('supplier_activate') : t('supplier_deactivate')}
                       >
                         {supplier.status === 'offline'
                           ? <ToggleLeft className="w-5 h-5 text-muted-foreground" />

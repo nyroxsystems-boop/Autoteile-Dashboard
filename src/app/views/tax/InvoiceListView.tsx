@@ -12,6 +12,7 @@ import {
 import InvoiceCreationModal from '../../components/tax/InvoiceCreationModal';
 import { useI18n } from '../../../i18n';
 import { toast } from 'sonner';
+import { useConfirmDialog } from '../../components/ConfirmDialog';
 
 export default function InvoiceListView() {
     const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -19,6 +20,7 @@ export default function InvoiceListView() {
     const [filter, setFilter] = useState<InvoiceStatus | 'all'>('all');
     const [showCreateModal, setShowCreateModal] = useState(false);
     const { t } = useI18n();
+    const { confirm, ConfirmDialog } = useConfirmDialog();
 
     useEffect(() => {
         loadInvoices();
@@ -41,7 +43,8 @@ export default function InvoiceListView() {
     };
 
     const handleMarkAsPaid = async (id: string) => {
-        if (!confirm(t('invoice_mark_paid_confirm'))) return;
+        const confirmed = await confirm({ title: t('invoice_mark_paid_title') || 'Als bezahlt markieren', message: t('invoice_mark_paid_confirm') });
+        if (!confirmed) return;
 
         try {
             await markInvoiceAsPaid(id);
@@ -53,7 +56,8 @@ export default function InvoiceListView() {
     };
 
     const handleCancel = async (id: string) => {
-        if (!confirm(t('invoice_cancel_confirm'))) return;
+        const confirmed = await confirm({ title: t('invoice_cancel_title') || 'Rechnung stornieren', message: t('invoice_cancel_confirm'), variant: 'danger' });
+        if (!confirmed) return;
 
         try {
             await cancelInvoice(id);
@@ -226,6 +230,7 @@ export default function InvoiceListView() {
                 onClose={() => setShowCreateModal(false)}
                 onSuccess={loadInvoices}
             />
+            <ConfirmDialog />
         </div>
     );
 }

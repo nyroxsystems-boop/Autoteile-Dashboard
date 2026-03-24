@@ -7,10 +7,12 @@ import { ErrorState } from '../../components/ErrorState';
 import { SupplierModal } from '../../components/SupplierModal';
 import { toast } from 'sonner';
 import { useI18n } from '../../../i18n';
+import { useConfirmDialog } from '../../components/ConfirmDialog';
 
 export function SupplierListView() {
     const [suppliers, setSuppliers] = useState<Supplier[]>([]);
     const { t } = useI18n();
+    const { confirm, ConfirmDialog } = useConfirmDialog();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
@@ -61,7 +63,8 @@ export function SupplierListView() {
     };
 
     const handleDeleteSupplier = async (id: number | string) => {
-        if (!confirm(t('supplier_delete_confirm'))) return;
+        const confirmed = await confirm({ title: t('supplier_delete_title') || 'Lieferant löschen', message: t('supplier_delete_confirm'), variant: 'danger', confirmLabel: t('delete') });
+        if (!confirmed) return;
         try {
             await wawiService.deleteSupplier(id);
             toast.success(t('supplier_deleted'));
@@ -238,6 +241,7 @@ export function SupplierListView() {
                     title={t('supplier_edit_title')}
                 />
             )}
+            <ConfirmDialog />
         </div>
     );
 }

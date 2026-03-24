@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { getMeTenants } from '../api/wws';
 import { getAuthToken, getTenantId } from '../api/client';
 import { toast } from 'sonner';
+import { safeReload } from '../utils/desktop';
 
 export interface TenantMembership {
     id: number;
@@ -86,7 +87,7 @@ export function useTenants() {
         // Clear all caches and reload to get fresh data for new tenant
         cachedTenants = null;
         tenantsPromise = null;
-        window.location.reload();
+        safeReload();
     }, []);
 
     return {
