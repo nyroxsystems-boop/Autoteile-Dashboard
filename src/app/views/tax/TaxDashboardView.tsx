@@ -11,6 +11,7 @@ import {
     type TaxPeriod
 } from '../../services/taxService';
 import { API_BASE_URL, getAuthToken, getTenantId } from '../../api/client';
+import { toast } from 'sonner';
 
 export default function TaxDashboardView() {
     const [profile, setProfile] = useState<TaxProfile | null>(null);
@@ -47,6 +48,7 @@ export default function TaxDashboardView() {
             }
         } catch (error) {
             console.error('Failed to load tax data:', error);
+            toast.error('Fehler beim Laden der Steuerdaten');
         } finally {
             setLoading(false);
         }
@@ -147,7 +149,7 @@ export default function TaxDashboardView() {
                                         window.URL.revokeObjectURL(downloadUrl);
                                     } catch (error) {
                                         console.error('Export failed:', error);
-                                        // Error is already logged above
+                                        toast.error('Export fehlgeschlagen');
                                     }
                                 }}
                                 className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm"

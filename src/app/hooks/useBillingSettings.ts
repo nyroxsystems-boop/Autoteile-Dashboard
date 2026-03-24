@@ -15,7 +15,7 @@ export function useBillingSettings() {
             setSettings(data);
             setError(null);
         } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : 'Fehler beim Laden der Rechnungs-Einstellungen');
+            setError(err instanceof Error ? err.message : 'Failed to load billing settings');
         } finally {
             setLoading(false);
         }
@@ -27,7 +27,7 @@ export function useBillingSettings() {
             toast.success('Design-Einstellungen gespeichert');
             refresh();
         } catch (err: unknown) {
-            toast.error('Fehler beim Speichern des Designs');
+            toast.error(err instanceof Error ? err.message : 'Fehler beim Speichern des Designs');
         }
     };
 

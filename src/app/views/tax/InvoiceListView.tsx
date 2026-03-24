@@ -11,6 +11,7 @@ import {
 } from '../../services/taxService';
 import InvoiceCreationModal from '../../components/tax/InvoiceCreationModal';
 import { useI18n } from '../../../i18n';
+import { toast } from 'sonner';
 
 export default function InvoiceListView() {
     const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -33,6 +34,7 @@ export default function InvoiceListView() {
             setInvoices(data);
         } catch (error) {
             console.error('Failed to load invoices:', error);
+            toast.error(t('error'));
         } finally {
             setLoading(false);
         }
@@ -46,7 +48,7 @@ export default function InvoiceListView() {
             await loadInvoices();
         } catch (error) {
             console.error('Failed to mark as paid:', error);
-            // Error already logged above
+            toast.error(t('error'));
         }
     };
 
@@ -58,7 +60,7 @@ export default function InvoiceListView() {
             await loadInvoices();
         } catch (error) {
             console.error('Failed to cancel invoice:', error);
-            // Error already logged above
+            toast.error(t('error'));
         }
     };
 

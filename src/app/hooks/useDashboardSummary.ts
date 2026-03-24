@@ -19,7 +19,7 @@ export function useDashboardSummary(autoRefresh = true) {
             setError(null);
             setLastUpdated(new Date());
         } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : 'Fehler beim Laden der Zusammenfassung');
+            setError(err instanceof Error ? err.message : 'Failed to load summary');
         } finally {
             setLoading(false);
         }

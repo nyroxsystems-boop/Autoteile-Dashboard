@@ -19,7 +19,7 @@ export function useOrders(autoRefresh = true) {
             setError(null);
             setLastUpdated(new Date());
         } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : 'Unbekannter Fehler');
+            setError(err instanceof Error ? err.message : 'Failed to load orders');
         } finally {
             setLoading(false);
         }

@@ -15,7 +15,7 @@ export function useMerchantSettings() {
             setSettings(data);
             setError(null);
         } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : 'Fehler beim Laden der Einstellungen');
+            setError(err instanceof Error ? err.message : 'Failed to load settings');
         } finally {
             setLoading(false);
         }
@@ -27,7 +27,7 @@ export function useMerchantSettings() {
             toast.success('Einstellungen gespeichert');
             refresh();
         } catch (err: unknown) {
-            toast.error('Fehler beim Speichern');
+            toast.error(err instanceof Error ? err.message : 'Fehler beim Speichern');
         }
     };
 
