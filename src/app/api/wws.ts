@@ -477,3 +477,89 @@ export async function getInvoiceByOrderId(orderId: string): Promise<Invoice[] | 
         return null;
     }
 }
+
+// ── OEM Register & Seeder ────────────────────────────────────────────────────
+
+export interface OemDbStats {
+    totalRecords: number;
+    brands: Record<string, number>;
+    categories: Record<string, number>;
+    seederAvailableVehicles: number;
+    seederAvailableParts: number;
+    seederTotalCombinations: number;
+}
+
+export interface OemRecord {
+    oem: string;
+    confidence: number;
+    source: string;
+    description: string;
+    supersededBy?: string;
+}
+
+export interface SeederStatus {
+    running: boolean;
+    startedAt: string | null;
+    elapsed: number;
+    etaSeconds: number;
+    currentVehicle: string | null;
+    currentPart: string | null;
+    brandFilter: string | null;
+    completed: number;
+    total: number;
+    found: number;
+    skipped: number;
+    failed: number;
+}
+
+export interface OemVehiclesData {
+    brands: string[];
+    vehiclesByBrand: Record<string, Array<{ model: string; modelCode: string; yearFrom: number; yearTo: number }>>;
+    parts: Array<{ category: string; description: string }>;
+}
+
+export async function getOemDbStats(): Promise<OemDbStats> {
+    return apiFetch<OemDbStats>('/api/oem/db/stats');
+}
+
+export async function getOemRecords(params: { page?: number; limit?: number; brand?: string; category?: string; search?: string } = {}): Promise<{ records: OemRecord[]; total: number }> {
+    const qs = new URLSearchParams();
+    if (params.page) qs.set('page', String(params.page));
+    if (params.limit) qs.set('limit', String(params.limit));
+    if (params.brand) qs.set('brand', params.brand);
+    if (params.category) qs.set('category', params.category);
+    if (params.search) qs.set('search', params.search);
+    return apiFetch(`/api/oem/db/records?${qs.toString()}`);
+}
+
+export async function getOemVehicles(): Promise<OemVehiclesData> {
+    return apiFetch<OemVehiclesData>('/api/oem/vehicles');
+}
+
+export async function startSeeder(params: { brand?: string; partCategory?: string } = {}): Promise<{ success: boolean; message: string; total: number }> {
+    return apiFetch('/api/oem/seeder/start', {
+        method: 'POST',
+        body: JSON.stringify(params),
+    });
+}
+
+export async function getSeederStatus(): Promise<SeederStatus> {
+    return apiFetch<SeederStatus>('/api/oem/seeder/status');
+}
+
+export async function stopSeeder(): Promise<{ success: boolean; message: string }> {
+    return apiFetch('/api/oem/seeder/stop', { method: 'POST' });
+}
+
+export async function resolveSingleOem(params: { brand: string; model: string; partDescription: string }): Promise<{
+    success: boolean;
+    source?: string;
+    oem?: string;
+    confidence?: number;
+    message?: string;
+}> {
+    return apiFetch('/api/oem/resolve-single', {
+        method: 'POST',
+        body: JSON.stringify(params),
+    });
+}

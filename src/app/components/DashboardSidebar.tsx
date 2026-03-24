@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, Package, FileText, Receipt, Store,
   Activity, MessageSquare, Warehouse, Shield, Settings,
-  DollarSign, Truck, X
+  DollarSign, Truck, X, Hash
 } from 'lucide-react';
 import { useI18n } from '../../i18n';
 import { useLocation } from 'react-router-dom';
@@ -41,6 +41,7 @@ export function DashboardSidebar({
     { id: 'belege', label: t('nav_documents'), icon: Receipt, group: 'operations' },
     { id: 'warenwirtschaft', label: t('nav_warehouse'), icon: Warehouse, group: 'partners' },
     { id: 'lieferanten', label: t('nav_suppliers'), icon: Store, group: 'partners' },
+    { id: 'oem-register', label: 'OEM', icon: Hash, group: 'partners' },
     { id: 'status', label: t('nav_status'), icon: Activity, group: 'system' },
     { id: 'settings', label: t('nav_settings'), icon: Settings, group: 'system' },
   ];

@@ -84,6 +84,7 @@ const ReportsView = lazyRetry(() => import('./views/wawi/ReportsView'), 'Reports
 const ReturnsView = lazyRetry(() => import('./views/wawi/ReturnsView'), 'ReturnsView');
 const SupplierRatingView = lazyRetry(() => import('./views/wawi/SupplierRatingView'), 'SupplierRatingView');
 const AIInsightsView = lazyRetry(() => import('./views/wawi/AIInsightsView'), 'AIInsightsView');
+const OemRegisterView = lazyRetry(() => import('./views/OemRegisterView'), 'OemRegisterView');
 const TaxDashboardView = lazyRetry(() => import('./views/tax/TaxDashboardView'));
 const InvoiceListView = lazyRetry(() => import('./views/tax/InvoiceListView'));
 const TaxProfileCreateView = lazyRetry(() => import('./views/tax/TaxProfileCreateView'));
@@ -130,6 +131,7 @@ function useAppNavigate() {
       'ki-insights': '/wawi/ki-insights',
       berichte: '/wawi/berichte',
       admin: '/bot/admin',
+      'oem-register': '/bot/oem-register',
     };
 
     if (viewPaths[view]) {
@@ -155,6 +157,7 @@ function useActiveView() {
     if (path.startsWith('/bot/status')) return 'status';
     if (path.startsWith('/bot/settings')) return 'settings';
     if (path.startsWith('/bot/admin')) return 'admin';
+    if (path.startsWith('/bot/oem-register')) return 'oem-register';
     if (path.startsWith('/wawi/dashboard')) return 'warenwirtschaft';
     if (path.startsWith('/wawi/artikel')) return 'artikel';
     if (path.startsWith('/wawi/lieferanten')) return 'lieferanten';
@@ -347,6 +350,7 @@ export default function App() {
             <Route path="/bot/status" element={<StatusView />} />
             <Route path="/bot/settings" element={<SettingsView />} />
             <Route path="/bot/admin" element={<AdminDashboardView />} />
+            <Route path="/bot/oem-register" element={<OemRegisterView />} />
             <Route path="/bot/tax" element={<Navigate to="/bot/tax/dashboard" replace />} />
             <Route path="/bot/tax/dashboard" element={<TaxDashboardView />} />
             <Route path="/bot/tax/profile/create" element={<TaxProfileCreateView />} />
