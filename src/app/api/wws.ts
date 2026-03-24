@@ -392,6 +392,24 @@ export async function createTenantUser(tenantId: number, userData: { username: s
     });
 }
 
+export async function createTenant(data: { name: string; email: string; phone?: string; password?: string; whatsapp_number?: string }): Promise<any> {
+    return apiFetch('/api/admin/tenants', {
+        method: 'POST',
+        body: JSON.stringify(data),
+    });
+}
+
+export interface AdminKpis {
+    sales: { totalOrders: number; ordersToday: number; revenue: number; conversionRate: number };
+    team: { activeUsers: number; callsMade: number; messagesSent: number };
+    oem: { resolvedCount: number; successRate: number };
+    history: Array<{ name: string; orders: number; revenue: number }>;
+}
+
+export async function getAdminKpis(): Promise<AdminKpis> {
+    return apiFetch<AdminKpis>('/api/admin/kpis');
+}
+
 export async function getTeam(): Promise<Array<{ id: number; username: string; email: string; role: string; joined: string; first_name?: string; last_name?: string; is_active?: boolean }>> {
     return apiFetchList<{ id: number; username: string; email: string; role: string; joined: string; first_name?: string; last_name?: string; is_active?: boolean }>('/api/auth/team/');
 }
