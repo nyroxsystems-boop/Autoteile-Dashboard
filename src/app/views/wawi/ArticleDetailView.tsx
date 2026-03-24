@@ -15,10 +15,12 @@ import { BOMManager } from '../../components/BOMManager';
 import { MovementLog } from '../../components/MovementLog';
 import { StockLocationManager } from '../../components/StockLocationManager';
 import { useI18n } from '../../../i18n';
+import { useConfirmDialog } from '../../components/ConfirmDialog';
 
 export function ArticleDetailView() {
     const { id } = useParams();
     const { t } = useI18n();
+    const { confirm, ConfirmDialog } = useConfirmDialog();
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState<'overview' | 'stock' | 'bom' | 'oem' | 'vehicles' | 'pricing' | 'purchase' | 'history'>('overview');
     const [crossRefs, setCrossRefs] = useState<OemCrossRef[]>([]);
@@ -61,7 +63,12 @@ export function ArticleDetailView() {
 
     const handleDelete = async () => {
         if (!article || !id) return;
-        const confirmed = window.confirm(t('article_delete_confirm').replace('{0}', article.name));
+        const confirmed = await confirm({
+            title: t('article_delete_confirm_title') || 'Artikel löschen',
+            message: t('article_delete_confirm').replace('{0}', article.name),
+            variant: 'danger',
+            confirmLabel: t('delete') || 'Löschen',
+        });
         if (!confirmed) return;
         try {
             await wawiService.deleteArticle(Number(id));
@@ -408,6 +415,7 @@ export function ArticleDetailView() {
                     )}
                 </div>
             </div>
+            <ConfirmDialog />
         </div>
     );
 }

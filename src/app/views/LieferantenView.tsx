@@ -7,7 +7,7 @@ import { useI18n } from '../../i18n';
 import { toast } from 'sonner';
 
 export function LieferantenView() {
-  const { suppliers, loading, error } = useSuppliers();
+  const { suppliers, loading, error, refresh } = useSuppliers();
   const { t } = useI18n();
 
   const getStatusVariant = (status: string) => {
@@ -43,7 +43,7 @@ export function LieferantenView() {
   };
 
   if (loading) return <div className="p-20 text-center text-muted-foreground">{t('suppliers_loading')}</div>;
-  if (error) return <ErrorState onRetry={() => window.location.reload()} />;
+  if (error) return <ErrorState onRetry={refresh} />;
 
   return (
     <div className="space-y-6">

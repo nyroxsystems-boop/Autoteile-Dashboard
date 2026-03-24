@@ -8,6 +8,7 @@ import { listInvoices, markInvoiceAsPaid, cancelInvoice, type Invoice, type Invo
 import InvoiceCreationModal from '../components/tax/InvoiceCreationModal';
 import { toast } from 'sonner';
 import { useI18n } from '../../i18n';
+import { openBlobPreview } from '../utils/desktop';
 import { API_BASE_URL, getAuthToken, getTenantId } from '../api/client';
 
 async function fetchInvoicePdf(invoiceNumber: string): Promise<Blob> {
@@ -272,9 +273,7 @@ export function DocumentsInvoicesView() {
                       onClick={async () => {
                         try {
                           const blob = await fetchInvoicePdf(invoice.invoice_number);
-                          const blobUrl = window.URL.createObjectURL(blob);
-                          window.open(blobUrl, '_blank');
-                          setTimeout(() => window.URL.revokeObjectURL(blobUrl), 1000);
+                          openBlobPreview(blob);
                         } catch (error) {
                           console.error('PDF preview failed:', error);
                           toast.error(t('error'));

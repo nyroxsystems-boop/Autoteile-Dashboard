@@ -3,12 +3,14 @@
 
 import { useState, useEffect } from 'react';
 import { ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { updateTaxProfile, getTaxProfile, type TaxProfile, type BusinessType, type TaxMethod, type PeriodType } from '../../services/taxService';
 import { toast } from 'sonner';
 import { useI18n } from '../../../i18n';
 
 export default function TaxProfileCreateView() {
     const { t } = useI18n();
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         business_type: 'company' as BusinessType,
         tax_method: 'IST' as TaxMethod,
@@ -51,7 +53,7 @@ export default function TaxProfileCreateView() {
             await updateTaxProfile(formData);
             toast.success(t('tax_profile_saved'));
             // Navigate back to dashboard
-            window.location.hash = '#/bot/tax/dashboard';
+            navigate('/bot/tax/dashboard');
         } catch (error: unknown) {
             console.error('Failed to save tax profile:', error);
             toast.error(t('tax_profile_error') + ': ' + (error instanceof Error ? error.message : 'Unbekannter Fehler'));
@@ -66,7 +68,7 @@ export default function TaxProfileCreateView() {
                 {/* Header */}
                 <div className="mb-6">
                     <button
-                        onClick={() => window.location.hash = '#/bot/tax/dashboard'}
+                        onClick={() => navigate('/bot/tax/dashboard')}
                         className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
                     >
                         <ArrowLeft className="w-5 h-5 mr-2" />
@@ -250,7 +252,7 @@ export default function TaxProfileCreateView() {
                     <div className="flex justify-end gap-3 pt-4 border-t">
                         <button
                             type="button"
-                            onClick={() => window.location.hash = '#/bot/tax/dashboard'}
+                            onClick={() => navigate('/bot/tax/dashboard')}
                             className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
                         >
                             Abbrechen

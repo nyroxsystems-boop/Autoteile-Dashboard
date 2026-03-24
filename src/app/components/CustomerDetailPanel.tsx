@@ -3,6 +3,7 @@ import { StatusChip } from './StatusChip';
 import { toast } from 'sonner';
 import { apiFetch } from '../api/client';
 import { useI18n } from '../../i18n';
+import { openExternal } from '../utils/desktop';
 
 interface Message {
   id: string;
@@ -271,7 +272,7 @@ export function CustomerDetailPanel({ customer, onClose, onCreateQuote, onCustom
             <button
               onClick={() => {
                 const phoneNumber = customer.whatsappNumber.replace(/\s/g, '').replace(/\+/g, '');
-                window.open(`https://wa.me/${phoneNumber}`, '_blank');
+                openExternal(`https://wa.me/${phoneNumber}`);
               }}
               className="text-xs text-[#25D366] hover:text-[#1fb855] font-medium flex items-center gap-1 transition-colors"
             >
@@ -335,7 +336,7 @@ export function CustomerDetailPanel({ customer, onClose, onCreateQuote, onCustom
         <button
           onClick={() => {
             const phoneNumber = customer.whatsappNumber.replace(/\s/g, '').replace(/\+/g, '');
-            window.open(`https://wa.me/${phoneNumber}`, '_blank');
+            openExternal(`https://wa.me/${phoneNumber}`);
           }}
           className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-[#25D366] text-white hover:bg-[#1fb855] transition-colors font-medium"
         >

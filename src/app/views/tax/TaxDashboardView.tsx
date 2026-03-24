@@ -12,8 +12,10 @@ import {
 } from '../../services/taxService';
 import { API_BASE_URL, getAuthToken, getTenantId } from '../../api/client';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 export default function TaxDashboardView() {
+    const navigate = useNavigate();
     const [profile, setProfile] = useState<TaxProfile | null>(null);
     const [currentPeriod, setCurrentPeriod] = useState<PeriodCalculation | null>(null);
     const [periods, setPeriods] = useState<TaxPeriod[]>([]);
@@ -81,7 +83,7 @@ export default function TaxDashboardView() {
                         Bitte konfigurieren Sie zuerst Ihr Steuer-Profil, um die Steuerfunktionen zu nutzen.
                     </p>
                     <button
-                        onClick={() => window.location.hash = '#/bot/tax/profile/create'}
+                        onClick={() => navigate('/bot/tax/profile/create')}
                         className="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700"
                     >
                         Profil erstellen
@@ -97,7 +99,7 @@ export default function TaxDashboardView() {
             <div className="flex justify-between items-center">
                 <h1 className="text-2xl font-bold text-gray-900">Steuer-Dashboard</h1>
                 <button
-                    onClick={() => window.location.hash = '#/tax/invoices'}
+                    onClick={() => navigate('/tax/invoices')}
                     className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
                 >
                     Rechnungen verwalten
@@ -214,7 +216,7 @@ export default function TaxDashboardView() {
                 <div className="flex justify-between items-start mb-4">
                     <h2 className="text-lg font-semibold text-gray-900">Steuer-Profil</h2>
                     <button
-                        onClick={() => window.location.hash = '#/bot/tax/profile/create'}
+                        onClick={() => navigate('/bot/tax/profile/create')}
                         className="text-sm text-blue-600 hover:text-blue-700"
                     >
                         Bearbeiten

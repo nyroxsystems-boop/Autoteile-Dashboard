@@ -4,6 +4,7 @@ import { CustomSelect } from '../../components/CustomSelect';
 import { useBillingSettings } from '../../hooks/useBillingSettings';
 import { toast } from 'sonner';
 import { useI18n } from '../../../i18n';
+import { openPrintWindow } from '../../utils/desktop';
 
 export function InvoiceTab() {
     const { settings: billingSettings, update: updateBillingSettings } = useBillingSettings();
@@ -160,16 +161,11 @@ export function InvoiceTab() {
                         <button
                             className="text-sm text-primary hover:underline"
                             onClick={() => {
-                                // Print/export the preview as PDF using browser print
-                                const printWindow = window.open('', '_blank');
-                                if (!printWindow) { toast.info(t('invoice_popup_blocked')); return; }
                                 const previewEl = document.getElementById('invoice-preview');
                                 if (!previewEl) return;
-                                printWindow.document.write(`<html><head><title>Rechnungsvorschau</title><style>body{margin:2rem;font-family:${fontFamily}}</style></head><body>${previewEl.innerHTML}</body></html>`);
-                                printWindow.document.close();
-                                printWindow.focus();
-                                printWindow.print();
-                                printWindow.close();
+                                const htmlContent = `<html><head><title>Rechnungsvorschau</title><style>body{margin:2rem;font-family:${fontFamily}}</style></head><body>${previewEl.innerHTML}</body></html>`;
+                                const success = openPrintWindow(htmlContent, 'Rechnungsvorschau');
+                                if (!success) { toast.info(t('invoice_popup_blocked')); }
                             }}
                         >Als PDF exportieren</button>
                     </div>
