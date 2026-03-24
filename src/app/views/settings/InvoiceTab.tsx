@@ -3,9 +3,11 @@ import { Save, Upload } from 'lucide-react';
 import { CustomSelect } from '../../components/CustomSelect';
 import { useBillingSettings } from '../../hooks/useBillingSettings';
 import { toast } from 'sonner';
+import { useI18n } from '../../../i18n';
 
 export function InvoiceTab() {
     const { settings: billingSettings, update: updateBillingSettings } = useBillingSettings();
+    const { t } = useI18n();
 
     const [invoiceTemplate, setInvoiceTemplate] = useState('clean');
     const [invoiceColor, setInvoiceColor] = useState('#2563eb');
@@ -42,11 +44,11 @@ export function InvoiceTab() {
     const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
-        if (!file.type.startsWith('image/')) { toast.error('Nur Bilddateien erlaubt (PNG, JPG, SVG)'); return; }
-        if (file.size > 2 * 1024 * 1024) { toast.error('Datei zu groß. Max. 2MB erlaubt.'); return; }
+        if (!file.type.startsWith('image/')) { toast.error(t('invoice_logo_images_only')); return; }
+        if (file.size > 2 * 1024 * 1024) { toast.error(t('invoice_logo_too_large')); return; }
         const reader = new FileReader();
-        reader.onload = () => { setLogoBase64(reader.result as string); toast.success('Logo hochgeladen'); };
-        reader.onerror = () => { toast.error('Fehler beim Lesen der Datei'); };
+        reader.onload = () => { setLogoBase64(reader.result as string); toast.success(t('invoice_logo_uploaded')); };
+        reader.onerror = () => { toast.error(t('invoice_logo_read_error')); };
         reader.readAsDataURL(file);
     };
 
@@ -86,7 +88,7 @@ export function InvoiceTab() {
                                 <div className="flex gap-2">
                                     <button type="button" onClick={() => document.getElementById('logo-upload')?.click()}
                                         className="flex-1 px-3 py-1.5 bg-background border border-border rounded-full text-xs font-medium text-foreground hover:bg-accent hover:border-border-strong transition-all">Logo ändern</button>
-                                    <button type="button" onClick={() => { setLogoBase64(null); toast.info('Logo entfernt'); }}
+                                    <button type="button" onClick={() => { setLogoBase64(null); toast.info(t('invoice_logo_removed')); }}
                                         className="px-4 py-1.5 bg-background border border-red-200 rounded-full text-xs font-medium text-red-600 hover:bg-red-50 hover:border-red-300 transition-all">Entfernen</button>
                                 </div>
                             </div>
@@ -160,7 +162,7 @@ export function InvoiceTab() {
                             onClick={() => {
                                 // Print/export the preview as PDF using browser print
                                 const printWindow = window.open('', '_blank');
-                                if (!printWindow) { toast.info('Pop-up blocked — bitte erlauben Sie Pop-ups'); return; }
+                                if (!printWindow) { toast.info(t('invoice_popup_blocked')); return; }
                                 const previewEl = document.getElementById('invoice-preview');
                                 if (!previewEl) return;
                                 printWindow.document.write(`<html><head><title>Rechnungsvorschau</title><style>body{margin:2rem;font-family:${fontFamily}}</style></head><body>${previewEl.innerHTML}</body></html>`);

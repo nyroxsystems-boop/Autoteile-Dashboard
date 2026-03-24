@@ -38,12 +38,12 @@ export function SupplierListView() {
     const handleCreateSupplier = async (formData: Parameters<typeof wawiService.createSupplier>[0]) => {
         try {
             await wawiService.createSupplier(formData);
-            toast.success('Lieferant erfolgreich erstellt');
+            toast.success(t('supplier_created'));
             loadSuppliers();
             setIsCreateModalOpen(false);
         } catch (err) {
             console.error('Create failed:', err);
-            toast.error('Fehler beim Erstellen des Lieferanten');
+            toast.error(t('supplier_create_error'));
         }
     };
 
@@ -51,25 +51,25 @@ export function SupplierListView() {
         if (!editingSupplier) return;
         try {
             await wawiService.updateSupplier(editingSupplier.id, formData);
-            toast.success('Lieferant erfolgreich aktualisiert');
+            toast.success(t('supplier_updated'));
             loadSuppliers();
             setEditingSupplier(null);
         } catch (err) {
             console.error('Update failed:', err);
-            toast.error('Fehler beim Aktualisieren des Lieferanten');
+            toast.error(t('supplier_update_error'));
         }
     };
 
     const handleDeleteSupplier = async (id: number | string) => {
-        if (!confirm('Möchten Sie diesen Lieferanten wirklich löschen?')) return;
+        if (!confirm(t('supplier_delete_confirm'))) return;
         try {
             await wawiService.deleteSupplier(id);
-            toast.success('Lieferant erfolgreich gelöscht');
+            toast.success(t('supplier_deleted'));
             loadSuppliers();
             setOpenMenuId(null);
         } catch (err) {
             console.error('Delete failed:', err);
-            toast.error('Fehler beim Löschen des Lieferanten');
+            toast.error(t('supplier_delete_error'));
         }
     };
 
@@ -85,7 +85,7 @@ export function SupplierListView() {
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">{t('wawi_supplier_list')}</h1>
                     <p className="text-muted-foreground mt-1">
-                        Verwalte deine Lieferanten und Lieferbedingungen.
+                        {t('supplier_subtitle')}
                     </p>
                 </div>
                 <Button
@@ -93,7 +93,7 @@ export function SupplierListView() {
                     className="bg-primary text-white rounded-xl font-bold"
                 >
                     <Plus className="w-4 h-4 mr-2" />
-                    Neuer Lieferant
+                    {t('wawi_supplier_new')}
                 </Button>
             </div>
 
@@ -103,7 +103,7 @@ export function SupplierListView() {
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                         <input
                             className="w-full bg-background border border-border rounded-xl pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary focus:outline-none"
-                            placeholder="Suchen nach Name, Kontakt..."
+                            placeholder={t('supplier_search_placeholder')}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
@@ -114,24 +114,24 @@ export function SupplierListView() {
                     <table className="w-full">
                         <thead>
                             <tr className="text-left text-xs uppercase tracking-wider text-muted-foreground font-semibold bg-muted/30">
-                                <th className="px-6 py-4">Lieferant</th>
-                                <th className="px-6 py-4">Kontaktperson</th>
-                                <th className="px-6 py-4">Kontakt</th>
-                                <th className="px-6 py-4">Status</th>
-                                <th className="px-6 py-4 text-right">Aktion</th>
+                                <th className="px-6 py-4">{t('supplier_col_supplier')}</th>
+                                <th className="px-6 py-4">{t('supplier_col_contact_person')}</th>
+                                <th className="px-6 py-4">{t('supplier_col_contact')}</th>
+                                <th className="px-6 py-4">{t('supplier_col_status')}</th>
+                                <th className="px-6 py-4 text-right">{t('supplier_col_action')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border">
                             {loading ? (
                                 <tr>
                                     <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">
-                                        Lade Lieferanten...
+                                        {t('supplier_loading')}
                                     </td>
                                 </tr>
                             ) : filteredSuppliers.length === 0 ? (
                                 <tr>
                                     <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground italic">
-                                        Keine Lieferanten gefunden.
+                                        {t('supplier_none_found')}
                                     </td>
                                 </tr>
                             ) : (
@@ -170,12 +170,12 @@ export function SupplierListView() {
                                             {supplier.status === 'active' || supplier.active ? (
                                                 <div className="flex items-center gap-2 text-green-500">
                                                     <CheckCircle2 className="w-4 h-4" />
-                                                    <span className="text-xs font-bold">Aktiv</span>
+                                                    <span className="text-xs font-bold">{t('supplier_active')}</span>
                                                 </div>
                                             ) : (
                                                 <div className="flex items-center gap-2 text-red-500">
                                                     <XCircle className="w-4 h-4" />
-                                                    <span className="text-xs font-bold">Inaktiv</span>
+                                                    <span className="text-xs font-bold">{t('supplier_inactive')}</span>
                                                 </div>
                                             )}
                                         </td>
@@ -199,14 +199,14 @@ export function SupplierListView() {
                                                             className="w-full px-4 py-2 text-sm text-left hover:bg-muted/50 flex items-center gap-2 transition-colors"
                                                         >
                                                             <Edit className="w-4 h-4" />
-                                                            Bearbeiten
+                                                            {t('edit')}
                                                         </button>
                                                         <button
                                                             onClick={() => handleDeleteSupplier(supplier.id)}
                                                             className="w-full px-4 py-2 text-sm text-left hover:bg-muted/50 flex items-center gap-2 text-red-500 transition-colors"
                                                         >
                                                             <Trash2 className="w-4 h-4" />
-                                                            Löschen
+                                                            {t('delete')}
                                                         </button>
                                                     </div>
                                                 )}
@@ -225,7 +225,7 @@ export function SupplierListView() {
                 isOpen={isCreateModalOpen}
                 onClose={() => setIsCreateModalOpen(false)}
                 onSubmit={handleCreateSupplier}
-                title="Neuer Lieferant"
+                title={t('wawi_supplier_new')}
             />
 
             {/* Edit Modal */}
@@ -235,7 +235,7 @@ export function SupplierListView() {
                     onClose={() => setEditingSupplier(null)}
                     onSubmit={handleUpdateSupplier}
                     initialData={editingSupplier}
-                    title="Lieferant bearbeiten"
+                    title={t('supplier_edit_title')}
                 />
             )}
         </div>

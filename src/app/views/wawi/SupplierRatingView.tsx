@@ -78,13 +78,13 @@ export function SupplierRatingView() {
                         <input type="number" className="px-4 py-3 rounded-xl border border-border bg-background text-sm" placeholder="Retourenquote %" value={form.return_rate || ''} onChange={e => setForm({ ...form, return_rate: Number(e.target.value) })} />
                         <input type="number" className="px-4 py-3 rounded-xl border border-border bg-background text-sm" placeholder="Kommunikation (0-10)" value={form.communication_score || ''} onChange={e => setForm({ ...form, communication_score: Number(e.target.value) })} />
                         <Button className="rounded-xl" onClick={async () => {
-                            if (!form.supplier || !form.period) { toast.error('Lieferant und Periode erforderlich'); return; }
+                            if (!form.supplier || !form.period) { toast.error(t('rating_supplier_period_required')); return; }
                             try {
                                 await wawiService.createSupplierRating({ ...form, supplier: Number(form.supplier) });
-                                toast.success('Bewertung gespeichert');
+                                toast.success(t('rating_saved'));
                                 setShowCreate(false);
                                 loadData();
-                            } catch { toast.error('Fehler'); }
+                            } catch { toast.error(t('wawi_error_generic')); }
                         }}>{t('wawi_rating_save')}</Button>
                     </div>
                 </div>

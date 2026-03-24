@@ -126,7 +126,7 @@ export function ReportsView() {
             }
         } catch (err) {
             console.error('Export failed', err);
-            toast.error('Export fehlgeschlagen');
+            toast.error(t('export_failed'));
         } finally {
             setExporting(false);
         }

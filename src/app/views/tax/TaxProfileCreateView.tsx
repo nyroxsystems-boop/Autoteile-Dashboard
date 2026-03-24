@@ -5,8 +5,10 @@ import { useState, useEffect } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { updateTaxProfile, getTaxProfile, type TaxProfile, type BusinessType, type TaxMethod, type PeriodType } from '../../services/taxService';
 import { toast } from 'sonner';
+import { useI18n } from '../../../i18n';
 
 export default function TaxProfileCreateView() {
+    const { t } = useI18n();
     const [formData, setFormData] = useState({
         business_type: 'company' as BusinessType,
         tax_method: 'IST' as TaxMethod,
@@ -47,12 +49,12 @@ export default function TaxProfileCreateView() {
         try {
             setLoading(true);
             await updateTaxProfile(formData);
-            toast.success('Steuer-Profil erfolgreich gespeichert');
+            toast.success(t('tax_profile_saved'));
             // Navigate back to dashboard
             window.location.hash = '#/bot/tax/dashboard';
         } catch (error: unknown) {
             console.error('Failed to save tax profile:', error);
-            toast.error('Fehler beim Speichern: ' + (error instanceof Error ? error.message : 'Unbekannter Fehler'));
+            toast.error(t('tax_profile_error') + ': ' + (error instanceof Error ? error.message : 'Unbekannter Fehler'));
         } finally {
             setLoading(false);
         }

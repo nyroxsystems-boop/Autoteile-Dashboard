@@ -61,31 +61,31 @@ export function ArticleDetailView() {
 
     const handleDelete = async () => {
         if (!article || !id) return;
-        const confirmed = window.confirm(`Artikel "${article.name}" wirklich löschen? Dies kann nicht rückgängig gemacht werden.`);
+        const confirmed = window.confirm(t('article_delete_confirm').replace('{0}', article.name));
         if (!confirmed) return;
         try {
             await wawiService.deleteArticle(Number(id));
-            toast.success(`Artikel "${article.name}" wurde gelöscht.`);
+            toast.success(t('article_deleted_success').replace('{0}', article.name));
             navigate(-1);
         } catch (err) {
             console.error('Failed to delete article', err);
-            toast.error('Fehler beim Löschen des Artikels.');
+            toast.error(t('article_delete_error'));
         }
     };
 
     if (loading) return <div className="p-20 text-center animate-pulse">{t('wawi_loading')}</div>;
     if (error) return <ErrorState onRetry={() => id && loadArticle(id)} />;
-    if (!article) return <div className="p-20 text-center">Artikel nicht gefunden.</div>;
+    if (!article) return <div className="p-20 text-center">{t('wawi_article_not_found')}</div>;
 
     const tabs = [
-        { id: 'overview', label: 'Übersicht', icon: Package },
-        { id: 'stock', label: 'Lager & Bestand', icon: Warehouse },
-        { id: 'oem', label: `OEM (${crossRefs.length})`, icon: Link2 },
-        { id: 'vehicles', label: `Fahrzeuge (${vehicleApps.length})`, icon: Car },
-        { id: 'pricing', label: `Preise (${priceRules.length})`, icon: DollarSign },
-        ...(article.article_type === 'set' ? [{ id: 'bom', label: 'Baukasten', icon: Box }] : []),
-        { id: 'purchase', label: 'Einkauf', icon: ShoppingCart },
-        { id: 'history', label: 'Historie', icon: History },
+        { id: 'overview', label: t('wawi_overview'), icon: Package },
+        { id: 'stock', label: t('wawi_stock_inventory'), icon: Warehouse },
+        { id: 'oem', label: `${t('wawi_tab_oem')} (${crossRefs.length})`, icon: Link2 },
+        { id: 'vehicles', label: `${t('wawi_tab_vehicles')} (${vehicleApps.length})`, icon: Car },
+        { id: 'pricing', label: `${t('wawi_tab_prices')} (${priceRules.length})`, icon: DollarSign },
+        ...(article.article_type === 'set' ? [{ id: 'bom', label: t('wawi_kit_bom'), icon: Box }] : []),
+        { id: 'purchase', label: t('wawi_purchase'), icon: ShoppingCart },
+        { id: 'history', label: t('wawi_history'), icon: History },
     ];
 
     return (
@@ -100,7 +100,7 @@ export function ArticleDetailView() {
                             <h1 className="text-3xl font-bold tracking-tight">{article.name}</h1>
                             <StatusChip
                                 status={article.total_in_stock < article.minimum_stock ? 'error' : 'success'}
-                                label={article.total_in_stock < article.minimum_stock ? 'Mangel' : 'OK'}
+                                label={article.total_in_stock < article.minimum_stock ? t('wawi_shortage') : t('wawi_ok')}
                                 size="sm"
                             />
                         </div>
@@ -108,11 +108,11 @@ export function ArticleDetailView() {
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
-                    <Button variant="outline" size="sm" className="rounded-xl" onClick={() => toast.info('Inline-Bearbeitung kommt bald. Nutze InvenTree für vollständige Bearbeitung.')}>
-                        <Edit className="w-4 h-4 mr-2" /> Bearbeiten
+                    <Button variant="outline" size="sm" className="rounded-xl" onClick={() => toast.info(t('article_edit_coming_soon'))}>
+                        <Edit className="w-4 h-4 mr-2" /> {t('wawi_edit_article')}
                     </Button>
-                    <Button size="sm" className="bg-primary hover:bg-primary/90 text-white rounded-xl">
-                        Bestellen
+                    <Button size="sm" className="bg-primary hover:bg-primary/90 text-white rounded-xl" onClick={() => navigate('/wawi/nachbestellung')}>
+                        {t('wawi_order_article')}
                     </Button>
                 </div>
             </div>
@@ -145,12 +145,12 @@ export function ArticleDetailView() {
                             <div className="grid grid-cols-2 gap-8">
                                 <div className="space-y-4">
                                     <div>
-                                        <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">Kategorie</h4>
+                                        <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">{t('wawi_category_label')}</h4>
                                         <p className="text-lg font-medium">{article.category_name || 'Standard'}</p>
                                     </div>
                                     <div>
-                                        <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">Beschreibung</h4>
-                                        <p className="text-muted-foreground leading-relaxed italic">{article.description || 'Keine Beschreibung hinterlegt.'}</p>
+                                        <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">{t('wawi_description_label')}</h4>
+                                        <p className="text-muted-foreground leading-relaxed italic">{article.description || t('wawi_no_description')}</p>
                                     </div>
                                 </div>
                                 <div className="space-y-4 text-right">
@@ -183,20 +183,20 @@ export function ArticleDetailView() {
                     {activeTab === 'stock' && (
                         <div className="space-y-6">
                             <div className="bg-card border border-border rounded-3xl p-8 shadow-sm">
-                                <h3 className="font-bold text-xl mb-6">Bestandsdetails</h3>
+                                <h3 className="font-bold text-xl mb-6">{t('wawi_stock_details')}</h3>
                                 <div className="flex items-center justify-between p-6 bg-primary/5 border border-primary/20 rounded-3xl">
                                     <div className="flex items-center gap-4">
                                         <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
                                             <Warehouse className="w-6 h-6" />
                                         </div>
                                         <div>
-                                            <div className="text-xs font-bold text-muted-foreground uppercase tracking-tight">Aktueller Gesamtbestand</div>
-                                            <div className="text-3xl font-bold">{article.total_in_stock} Stück</div>
+                                            <div className="text-xs font-bold text-muted-foreground uppercase tracking-tight">{t('wawi_total_stock')}</div>
+                                            <div className="text-3xl font-bold">{article.total_in_stock} {t('wawi_pieces')}</div>
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <div className="text-xs font-bold text-muted-foreground uppercase tracking-tight">Mindestbestand</div>
-                                        <div className="text-xl font-semibold text-red-500">{article.minimum_stock} Stück</div>
+                                        <div className="text-xs font-bold text-muted-foreground uppercase tracking-tight">{t('wawi_min_stock_label')}</div>
+                                        <div className="text-xl font-semibold text-red-500">{article.minimum_stock} {t('wawi_pieces')}</div>
                                     </div>
                                 </div>
 
@@ -210,7 +210,7 @@ export function ArticleDetailView() {
                             </div>
 
                             <Button onClick={() => navigate('/wawi/lager')} className="w-full bg-accent text-accent-foreground rounded-2xl py-6 font-bold hover:bg-accent/80 transition-all border border-border">
-                                Bestand buchen (Korrektur/Verschieben)
+                                {t('wawi_book_stock')}
                             </Button>
                         </div>
                     )}
@@ -238,7 +238,7 @@ export function ArticleDetailView() {
                     {activeTab === 'oem' && (
                         <div className="bg-card border border-border rounded-3xl p-8 shadow-sm space-y-6">
                             <div className="flex items-center justify-between">
-                                <h3 className="font-bold text-xl">OEM-Querverweise</h3>
+                                <h3 className="font-bold text-xl">{t('wawi_oem_crossrefs')}</h3>
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 <input className="px-4 py-3 rounded-xl border border-border bg-background text-sm" placeholder="OEM-Nummer *" value={newOem.oem_number} onChange={e => setNewOem({ ...newOem, oem_number: e.target.value })} />
@@ -250,13 +250,13 @@ export function ArticleDetailView() {
                                         const refs = await wawiService.getOemCrossRefs(Number(id));
                                         setCrossRefs(refs);
                                         setNewOem({ oem_number: '', brand: '', oem_type: 'aftermarket' });
-                                        toast.success('OEM-Querverweis hinzugefügt');
-                                    } catch { toast.error('Fehler beim Speichern'); }
-                                }}><Plus className="w-4 h-4 mr-2" /> Hinzufügen</Button>
+                                        toast.success(t('wawi_oem_added'));
+                                    } catch { toast.error(t('wawi_error_saving')); }
+                                }}><Plus className="w-4 h-4 mr-2" /> {t('wawi_add_btn')}</Button>
                             </div>
                             <div className="divide-y divide-border">
                                 {crossRefs.length === 0 ? (
-                                    <div className="py-12 text-center text-muted-foreground text-sm italic">Keine OEM-Querverweise hinterlegt.</div>
+                                    <div className="py-12 text-center text-muted-foreground text-sm italic">{t('wawi_no_oem_refs')}</div>
                                 ) : crossRefs.map((ref) => (
                                     <div key={ref.id} className="py-3 flex items-center justify-between">
                                         <div>
@@ -267,7 +267,7 @@ export function ArticleDetailView() {
                                         <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:bg-red-50" onClick={async () => {
                                             await wawiService.deleteOemCrossRef(ref.id);
                                             setCrossRefs(crossRefs.filter(r => r.id !== ref.id));
-                                            toast.success('Gelöscht');
+                                            toast.success(t('wawi_deleted'));
                                         }}><X className="w-4 h-4" /></Button>
                                     </div>
                                 ))}
@@ -278,7 +278,7 @@ export function ArticleDetailView() {
                     {/* Vehicle Applications Tab */}
                     {activeTab === 'vehicles' && (
                         <div className="bg-card border border-border rounded-3xl p-8 shadow-sm space-y-6">
-                            <h3 className="font-bold text-xl">Fahrzeug-Zuordnung</h3>
+                            <h3 className="font-bold text-xl">{t('wawi_vehicle_assignments')}</h3>
                             <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                                 <input className="px-4 py-3 rounded-xl border border-border bg-background text-sm" placeholder="HSN" value={newVehicle.kba_hsn} onChange={e => setNewVehicle({ ...newVehicle, kba_hsn: e.target.value })} />
                                 <input className="px-4 py-3 rounded-xl border border-border bg-background text-sm" placeholder="TSN" value={newVehicle.kba_tsn} onChange={e => setNewVehicle({ ...newVehicle, kba_tsn: e.target.value })} />
@@ -291,13 +291,13 @@ export function ArticleDetailView() {
                                         const vehs = await wawiService.getVehicleApplications(Number(id));
                                         setVehicleApps(vehs);
                                         setNewVehicle({ kba_hsn: '', kba_tsn: '', make: '', model: '', year_from: '' });
-                                        toast.success('Fahrzeug hinzugefügt');
-                                    } catch { toast.error('Fehler'); }
-                                }}><Plus className="w-4 h-4 mr-2" /> Hinzufügen</Button>
+                                        toast.success(t('wawi_vehicle_added'));
+                                    } catch { toast.error(t('wawi_error_generic')); }
+                                }}><Plus className="w-4 h-4 mr-2" /> {t('wawi_add_btn')}</Button>
                             </div>
                             <div className="divide-y divide-border">
                                 {vehicleApps.length === 0 ? (
-                                    <div className="py-12 text-center text-muted-foreground text-sm italic">Keine Fahrzeug-Zuordnungen.</div>
+                                    <div className="py-12 text-center text-muted-foreground text-sm italic">{t('wawi_no_vehicle_apps')}</div>
                                 ) : vehicleApps.map((va) => (
                                     <div key={va.id} className="py-3 flex items-center justify-between">
                                         <div>
@@ -319,7 +319,7 @@ export function ArticleDetailView() {
                     {/* Pricing Rules Tab */}
                     {activeTab === 'pricing' && (
                         <div className="bg-card border border-border rounded-3xl p-8 shadow-sm space-y-6">
-                            <h3 className="font-bold text-xl">Staffelpreise & Mengenrabatte</h3>
+                            <h3 className="font-bold text-xl">{t('wawi_tiered_pricing')}</h3>
                             <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                                 <select className="px-4 py-3 rounded-xl border border-border bg-background text-sm" value={newPrice.profile} onChange={e => setNewPrice({ ...newPrice, profile: e.target.value })}>
                                     <option value="endkunde">{t('wawi_customer')}</option>
@@ -335,9 +335,9 @@ export function ArticleDetailView() {
                                         const rules = await wawiService.getPriceRules(Number(id));
                                         setPriceRules(rules);
                                         setNewPrice({ profile: 'endkunde', min_quantity: 1, price: 0, discount_percent: 0 });
-                                        toast.success('Preisregel gespeichert');
-                                    } catch { toast.error('Fehler'); }
-                                }}><Plus className="w-4 h-4 mr-2" /> Speichern</Button>
+                                        toast.success(t('wawi_price_rule_saved'));
+                                    } catch { toast.error(t('wawi_error_generic')); }
+                                }}><Plus className="w-4 h-4 mr-2" /> {t('wawi_save_btn')}</Button>
                             </div>
                             <div className="overflow-x-auto">
                                 <table className="w-full text-sm">
@@ -346,7 +346,7 @@ export function ArticleDetailView() {
                                     </tr></thead>
                                     <tbody>
                                         {priceRules.length === 0 ? (
-                                            <tr><td colSpan={5} className="py-12 text-center text-muted-foreground italic">Keine Preisregeln.</td></tr>
+                                            <tr><td colSpan={5} className="py-12 text-center text-muted-foreground italic">{t('wawi_no_price_rules')}</td></tr>
                                         ) : priceRules.map((rule) => (
                                             <tr key={rule.id} className="border-b border-border/50 hover:bg-muted/20">
                                                 <td className="py-3 px-2 capitalize">{rule.profile}</td>
@@ -368,9 +368,9 @@ export function ArticleDetailView() {
                     {activeTab === 'purchase' && (
                         <div className="bg-card border border-border rounded-3xl p-8 shadow-sm text-center py-20">
                             <Truck className="w-12 h-12 text-muted-foreground/20 mx-auto mb-4" />
-                            <h3 className="font-bold text-xl mb-2">Lieferanten & Einkauf</h3>
+                            <h3 className="font-bold text-xl mb-2">{t('wawi_purchase_suppliers')}</h3>
                             <p className="text-muted-foreground text-sm max-w-sm mx-auto">
-                                Hier werden bald verknüpfte Lieferanten, Einkaufspreise und die Bestellhistorie angezeigt.
+                                {t('wawi_purchase_coming')}
                             </p>
                         </div>
                     )}
@@ -384,13 +384,13 @@ export function ArticleDetailView() {
 
                 <div className="space-y-6">
                     <div className="bg-card border border-border rounded-3xl p-6 shadow-sm">
-                        <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-4">Schnellzugriff</h4>
+                        <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-4">{t('wawi_quick_access')}</h4>
                         <div className="flex flex-col gap-2">
                             <Button variant="outline" className="justify-start rounded-xl h-11">
-                                <ExternalLink className="w-4 h-4 mr-2" /> InvenTree öffnen
+                                <ExternalLink className="w-4 h-4 mr-2" /> {t('wawi_open_inventree')}
                             </Button>
                             <Button variant="outline" className="justify-start rounded-xl h-11 text-red-500 hover:text-red-600 hover:bg-red-50 border-dashed" onClick={handleDelete}>
-                                <Trash2 className="w-4 h-4 mr-2" /> Artikel löschen
+                                <Trash2 className="w-4 h-4 mr-2" /> {t('wawi_delete_article')}
                             </Button>
                         </div>
                     </div>
@@ -399,10 +399,10 @@ export function ArticleDetailView() {
                         <div className="bg-red-500/10 border border-red-500/20 rounded-3xl p-6">
                             <div className="flex items-center gap-3 text-red-600 mb-3">
                                 <AlertTriangle className="w-5 h-5" />
-                                <span className="font-bold font-sm">Bestand zu niedrig!</span>
+                                <span className="font-bold font-sm">{t('wawi_stock_too_low')}</span>
                             </div>
                             <p className="text-xs text-red-500/80 leading-relaxed">
-                                Der aktuelle Bestand unterschreitet den Mindestbestand. Bitte lösen Sie eine Nachbestellung aus.
+                                {t('wawi_stock_too_low_desc')}
                             </p>
                         </div>
                     )}

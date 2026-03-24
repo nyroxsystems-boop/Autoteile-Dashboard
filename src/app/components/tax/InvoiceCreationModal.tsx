@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 import { X, Plus, Trash2 } from 'lucide-react';
 import { createInvoice, type InvoiceLine, type TaxRate } from '../../services/taxService';
 import { toast } from 'sonner';
+import { useI18n } from '../../../i18n';
 
 interface InvoiceCreationModalProps {
     isOpen: boolean;
@@ -17,6 +18,7 @@ interface InvoiceCreationModalProps {
 }
 
 export default function InvoiceCreationModal({ isOpen, onClose, onSuccess, prefilledData }: InvoiceCreationModalProps) {
+    const { t } = useI18n();
     const getInitialFormData = () => ({
         customer_name: prefilledData?.customerName || '',
         issue_date: new Date().toISOString().split('T')[0],
@@ -79,25 +81,25 @@ export default function InvoiceCreationModal({ isOpen, onClose, onSuccess, prefi
 
         // Validation
         if (!formData.customer_name.trim()) {
-            toast.error('Bitte Kundenname eingeben');
+            toast.error(t('invoice_customer_required'));
             return;
         }
 
         if (lines.length === 0 || lines.some(l => !l.description.trim())) {
-            toast.error('Bitte mindestens eine Position mit Beschreibung hinzufügen');
+            toast.error(t('invoice_position_required'));
             return;
         }
 
         // Validate line items
         const hasInvalidPrices = lines.some(l => l.unit_price < 0);
         if (hasInvalidPrices) {
-            toast.error('Preise dürfen nicht negativ sein');
+            toast.error(t('invoice_no_negative_prices'));
             return;
         }
 
         const hasInvalidQuantities = lines.some(l => l.quantity <= 0);
         if (hasInvalidQuantities) {
-            toast.error('Mengen müssen größer als 0 sein');
+            toast.error(t('invoice_quantity_positive'));
             return;
         }
 
@@ -112,7 +114,7 @@ export default function InvoiceCreationModal({ isOpen, onClose, onSuccess, prefi
                     tax_rate: l.tax_rate
                 }))
             });
-            toast.success('Rechnung erfolgreich erstellt');
+            toast.success(t('invoice_created_success'));
             onSuccess();
             onClose();
         } catch (error: unknown) {

@@ -10,12 +10,14 @@ import {
     type InvoiceStatus
 } from '../../services/taxService';
 import InvoiceCreationModal from '../../components/tax/InvoiceCreationModal';
+import { useI18n } from '../../../i18n';
 
 export default function InvoiceListView() {
     const [invoices, setInvoices] = useState<Invoice[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<InvoiceStatus | 'all'>('all');
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const { t } = useI18n();
 
     useEffect(() => {
         loadInvoices();
@@ -37,7 +39,7 @@ export default function InvoiceListView() {
     };
 
     const handleMarkAsPaid = async (id: string) => {
-        if (!confirm('Rechnung als bezahlt markieren?')) return;
+        if (!confirm(t('invoice_mark_paid_confirm'))) return;
 
         try {
             await markInvoiceAsPaid(id);
@@ -49,7 +51,7 @@ export default function InvoiceListView() {
     };
 
     const handleCancel = async (id: string) => {
-        if (!confirm('Rechnung stornieren?')) return;
+        if (!confirm(t('invoice_cancel_confirm'))) return;
 
         try {
             await cancelInvoice(id);
@@ -78,10 +80,10 @@ export default function InvoiceListView() {
         };
 
         const labels: Record<InvoiceStatus, string> = {
-            draft: 'Entwurf',
-            issued: 'Ausgestellt',
-            paid: 'Bezahlt',
-            canceled: 'Storniert'
+            draft: t('invoice_status_draft'),
+            issued: t('invoice_status_issued'),
+            paid: t('invoice_status_paid'),
+            canceled: t('invoice_status_canceled')
         };
 
         return (
@@ -95,12 +97,12 @@ export default function InvoiceListView() {
         <div className="p-6">
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold text-gray-900">Rechnungen</h1>
+                <h1 className="text-2xl font-bold text-gray-900">{t('invoice_title')}</h1>
                 <button
                     onClick={() => setShowCreateModal(true)}
                     className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
                 >
-                    + Neue Rechnung
+                    {t('invoice_new')}
                 </button>
             </div>
 
@@ -115,26 +117,26 @@ export default function InvoiceListView() {
                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                             }`}
                     >
-                        {status === 'all' && 'Alle'}
-                        {status === 'draft' && 'Entwürfe'}
-                        {status === 'issued' && 'Ausgestellt'}
-                        {status === 'paid' && 'Bezahlt'}
-                        {status === 'canceled' && 'Storniert'}
+                        {status === 'all' && t('invoice_filter_all')}
+                        {status === 'draft' && t('invoice_filter_draft')}
+                        {status === 'issued' && t('invoice_filter_issued')}
+                        {status === 'paid' && t('invoice_filter_paid')}
+                        {status === 'canceled' && t('invoice_filter_canceled')}
                     </button>
                 ))}
             </div>
 
             {/* Invoice List */}
             {loading ? (
-                <div className="text-center py-12 text-gray-500">Rechnungen laden...</div>
+                <div className="text-center py-12 text-gray-500">{t('invoice_loading')}</div>
             ) : invoices.length === 0 ? (
                 <div className="text-center py-12">
-                    <div className="text-gray-500 mb-4">Keine Rechnungen gefunden</div>
+                    <div className="text-gray-500 mb-4">{t('invoice_none_found')}</div>
                     <button
                         onClick={() => setShowCreateModal(true)}
                         className="text-blue-600 hover:text-blue-700"
                     >
-                        Erste Rechnung erstellen
+                        {t('invoice_create_first')}
                     </button>
                 </div>
             ) : (
@@ -143,22 +145,22 @@ export default function InvoiceListView() {
                         <thead className="bg-gray-50">
                             <tr>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                    Rechnungsnummer
+                                    {t('invoice_col_number')}
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                    Kunde
+                                    {t('invoice_col_customer')}
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                    Datum
+                                    {t('invoice_col_date')}
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                    Betrag
+                                    {t('invoice_col_amount')}
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                    Status
+                                    {t('invoice_col_status')}
                                 </th>
                                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                                    Aktionen
+                                    {t('invoice_col_actions')}
                                 </th>
                             </tr>
                         </thead>
@@ -177,7 +179,7 @@ export default function InvoiceListView() {
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="font-medium">{formatCurrency(invoice.gross_amount)}</div>
                                         <div className="text-xs text-gray-500">
-                                            Netto: {formatCurrency(invoice.net_amount)}
+                                            {t('invoice_net')}: {formatCurrency(invoice.net_amount)}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
@@ -189,7 +191,7 @@ export default function InvoiceListView() {
                                                 onClick={() => handleMarkAsPaid(invoice.id)}
                                                 className="text-green-600 hover:text-green-900 mr-3"
                                             >
-                                                Bezahlt
+                                                {t('invoice_action_paid')}
                                             </button>
                                         )}
                                         {invoice.status === 'issued' && (
@@ -197,7 +199,7 @@ export default function InvoiceListView() {
                                                 onClick={() => handleMarkAsPaid(invoice.id)}
                                                 className="text-green-600 hover:text-green-900 mr-3"
                                             >
-                                                Bezahlt
+                                                {t('invoice_action_paid')}
                                             </button>
                                         )}
                                         {invoice.status !== 'canceled' && (
@@ -205,7 +207,7 @@ export default function InvoiceListView() {
                                                 onClick={() => handleCancel(invoice.id)}
                                                 className="text-red-600 hover:text-red-900"
                                             >
-                                                Stornieren
+                                                {t('invoice_action_cancel')}
                                             </button>
                                         )}
                                     </td>

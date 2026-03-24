@@ -5,6 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { updateTaxProfile, type TaxProfile, type BusinessType, type TaxMethod, type PeriodType } from '../../services/taxService';
 import { toast } from 'sonner';
+import { useI18n } from '../../../i18n';
 
 interface TaxProfileModalProps {
     isOpen: boolean;
@@ -14,6 +15,7 @@ interface TaxProfileModalProps {
 }
 
 export default function TaxProfileModal({ isOpen, onClose, existingProfile, onSuccess }: TaxProfileModalProps) {
+    const { t } = useI18n();
     const [formData, setFormData] = useState({
         business_type: 'company' as BusinessType,
         tax_method: 'IST' as TaxMethod,
@@ -43,12 +45,12 @@ export default function TaxProfileModal({ isOpen, onClose, existingProfile, onSu
         try {
             setLoading(true);
             await updateTaxProfile(formData);
-            toast.success('Steuer-Profil erfolgreich gespeichert');
+            toast.success(t('tax_profile_saved'));
             onSuccess();
             onClose();
         } catch (error: unknown) {
             console.error('Failed to save tax profile:', error);
-            toast.error('Fehler beim Speichern: ' + (error instanceof Error ? error.message : 'Unbekannter Fehler'));
+            toast.error(t('tax_profile_error') + ': ' + (error instanceof Error ? error.message : 'Unbekannter Fehler'));
         } finally {
             setLoading(false);
         }

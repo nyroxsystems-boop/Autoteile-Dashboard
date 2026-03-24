@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { History, ArrowDownLeft, ArrowUpRight, Repeat, Edit, Filter, Calendar } from 'lucide-react';
 import { StockMovement, wawiService } from '../services/wawiService';
 import { toast } from 'sonner';
+import { useI18n } from '../../i18n';
 
 interface MovementLogProps {
     partId: number | string;
@@ -10,6 +11,7 @@ interface MovementLogProps {
 export function MovementLog({ partId }: MovementLogProps) {
     const [movements, setMovements] = useState<StockMovement[]>([]);
     const [loading, setLoading] = useState(true);
+    const { t } = useI18n();
     const [filter, setFilter] = useState<'all' | 'IN' | 'OUT' | 'TRANSFER' | 'CORRECTION'>('all');
 
     useEffect(() => {
@@ -23,7 +25,7 @@ export function MovementLog({ partId }: MovementLogProps) {
             setMovements(data);
         } catch (err) {
             console.error('Failed to load movements', err);
-            toast.error('Fehler beim Laden der Bewegungen');
+            toast.error(t('movement_load_error'));
         } finally {
             setLoading(false);
         }
