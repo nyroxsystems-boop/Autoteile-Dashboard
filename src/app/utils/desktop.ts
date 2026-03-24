@@ -31,8 +31,9 @@ export function openExternal(url: string): void {
         }
     } else if (isTauri()) {
         // Tauri v2: use @tauri-apps/plugin-shell
-        // @ts-expect-error — Tauri plugin only available in Tauri context
-        import('@tauri-apps/plugin-shell').then(({ open }: { open: (url: string) => Promise<void> }) => open(url)).catch(() => {
+        // Use variable to prevent Rollup from trying to resolve this at build time
+        const tauriShellModule = '@tauri-apps/plugin-shell';
+        import(/* @vite-ignore */ tauriShellModule).then((mod: { open: (url: string) => Promise<void> }) => mod.open(url)).catch(() => {
             window.open(url, '_blank', 'noopener,noreferrer');
         });
     } else {
