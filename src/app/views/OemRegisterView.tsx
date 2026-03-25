@@ -7,7 +7,7 @@ import {
 import { Button } from '../components/ui/button';
 import {
     getOemDbStats, getOemRecords, getOemVehicles, startSeeder,
-    getSeederStatus, stopSeeder, resolveSingleOem,
+    getSeederStatus, stopSeeder, resolveSingleOem, reverseOemLookup, resolveOemFull,
     OemDbStats, OemRecord, SeederStatus, OemVehiclesData
 } from '../api/wws';
 import { toast } from 'sonner';
@@ -436,34 +436,102 @@ function SeederTab({ onStatsRefresh }: { onStatsRefresh: () => void }) {
 
 function CustomSearchTab() {
     const [vehicleData, setVehicleData] = useState<OemVehiclesData | null>(null);
+    const [mode, setMode] = useState<'forward' | 'reverse'>('forward');
+
+    // Forward mode state
     const [brand, setBrand] = useState('');
     const [model, setModel] = useState('');
     const [customModel, setCustomModel] = useState('');
+    const [vin, setVin] = useState('');
     const [partDesc, setPartDesc] = useState('');
     const [loading, setLoading] = useState(false);
-    const [result, setResult] = useState<{ success: boolean; source?: string; oem?: string; confidence?: number; message?: string } | null>(null);
+    const [forwardResult, setForwardResult] = useState<{
+        success: boolean; oem?: string | null;
+        candidates?: Array<{ oem: string; brand: string; confidence: number; source: string; note?: string }>;
+        confidence?: number; notes?: string | null; source?: string; message?: string;
+    } | null>(null);
+
+    // Reverse mode state
+    const [oemInput, setOemInput] = useState('');
+    const [reverseLoading, setReverseLoading] = useState(false);
+    const [reverseResult, setReverseResult] = useState<{
+        success: boolean; oem: string;
+        partName?: string; partCategory?: string; vehicles?: string;
+        manufacturer?: string; confidence?: number; notes?: string;
+    } | null>(null);
 
     useEffect(() => { getOemVehicles().then(setVehicleData).catch(() => {}); }, []);
 
-    const handleSearch = async () => {
+    // ── Forward Search: Vehicle + Part → OEM ──
+    const handleForwardSearch = async () => {
         const finalModel = customModel || model;
-        if (!brand || !finalModel || !partDesc) {
-            toast.error('Bitte Marke, Modell und Teil ausfüllen');
+        if (!partDesc) {
+            toast.error('Bitte ein Teil eingeben');
             return;
         }
 
         setLoading(true);
-        setResult(null);
+        setForwardResult(null);
         try {
-            const res = await resolveSingleOem({ brand, model: finalModel, partDescription: partDesc });
-            setResult(res);
-            if (res.success && res.oem) {
-                toast.success(`OEM gefunden: ${res.oem}`);
+            // Try full Hydra v2 engine first (same as live demo / WhatsApp bot)
+            const hydraResult = await resolveOemFull({
+                vehicle: {
+                    make: brand || undefined,
+                    model: finalModel || undefined,
+                    vin: vin || undefined,
+                },
+                part: partDesc,
+            });
+            setForwardResult(hydraResult);
+            if (hydraResult.success && hydraResult.oem) {
+                toast.success(`OEM gefunden: ${hydraResult.oem}`);
             }
-        } catch (err: any) {
-            toast.error(err?.message || 'Suche fehlgeschlagen');
+        } catch (_err) {
+            // Fallback to simple resolve
+            try {
+                if (!brand || !finalModel) {
+                    toast.error('Für Fallback: Marke und Modell benötigt');
+                    setLoading(false);
+                    return;
+                }
+                const fallback = await resolveSingleOem({ brand, model: finalModel, partDescription: partDesc });
+                setForwardResult({
+                    success: fallback.success,
+                    oem: fallback.oem,
+                    confidence: fallback.confidence ? Math.round(fallback.confidence * 100) : undefined,
+                    notes: fallback.message,
+                    source: fallback.source,
+                });
+                if (fallback.success && fallback.oem) {
+                    toast.success(`OEM gefunden: ${fallback.oem}`);
+                }
+            } catch (err: any) {
+                toast.error(err?.message || 'Suche fehlgeschlagen');
+            }
         } finally {
             setLoading(false);
+        }
+    };
+
+    // ── Reverse Search: OEM → Part ──
+    const handleReverseSearch = async () => {
+        if (!oemInput || oemInput.length < 4) {
+            toast.error('Bitte eine OEM-Nummer eingeben (min. 4 Zeichen)');
+            return;
+        }
+
+        setReverseLoading(true);
+        setReverseResult(null);
+        try {
+            const result = await reverseOemLookup(oemInput.trim());
+            setReverseResult(result);
+            if (result.success && result.partName) {
+                toast.success(`Teil identifiziert: ${result.partName}`);
+            }
+        } catch (err: any) {
+            toast.error(err?.message || 'Reverse Lookup fehlgeschlagen');
+        } finally {
+            setReverseLoading(false);
         }
     };
 
@@ -471,157 +539,326 @@ function CustomSearchTab() {
 
     return (
         <div className="bg-card border border-border rounded-3xl p-6 shadow-sm space-y-6">
-            <div className="flex items-center gap-3 mb-2">
-                <Search className="w-5 h-5 text-primary" />
-                <h3 className="font-bold text-lg">Custom OEM-Suche</h3>
+            {/* Header with Mode Toggle */}
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <Search className="w-5 h-5 text-primary" />
+                    <h3 className="font-bold text-lg">OEM Intelligence</h3>
+                </div>
+
+                {/* Direction Toggle */}
+                <div className="flex bg-muted/40 rounded-xl p-1 gap-1">
+                    <button
+                        onClick={() => setMode('forward')}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                            mode === 'forward'
+                                ? 'bg-primary text-white shadow-sm'
+                                : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                    >
+                        <Car className="w-4 h-4" />
+                        Fahrzeug → OEM
+                    </button>
+                    <button
+                        onClick={() => setMode('reverse')}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                            mode === 'reverse'
+                                ? 'bg-primary text-white shadow-sm'
+                                : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                    >
+                        <Hash className="w-4 h-4" />
+                        OEM → Teil
+                    </button>
+                </div>
             </div>
 
             <p className="text-sm text-muted-foreground">
-                Suche eine spezifische OEM-Nummer. Wähle ein vordefiniertes Fahrzeug oder gib es manuell ein.
+                {mode === 'forward'
+                    ? '🔍 Volle Hydra v2 Pipeline: DB → CrossRef → AI Search (Gemini) → Validation → Self-Learning'
+                    : '🔄 KI-gestützte Rückwärtssuche: OEM-Nummer → Teil + kompatible Fahrzeuge (via Gemini)'
+                }
             </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Brand */}
-                <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Marke</label>
-                    <div className="relative">
-                        <Car className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <select
-                            className="w-full pl-10 pr-4 py-3 rounded-xl border border-border bg-background text-sm appearance-none cursor-pointer"
-                            value={brand}
-                            onChange={e => { setBrand(e.target.value); setModel(''); setCustomModel(''); }}
-                        >
-                            <option value="">Marke wählen</option>
-                            {vehicleData?.brands.map(b => (
-                                <option key={b} value={b}>{b}</option>
-                            ))}
-                            <option value="__custom">Andere Marke…</option>
-                        </select>
-                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-                    </div>
-                </div>
+            {/* ═══ FORWARD MODE ═══ */}
+            {mode === 'forward' && (
+                <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {/* VIN */}
+                        <div>
+                            <label className="text-xs font-medium text-muted-foreground mb-1.5 block">VIN/FIN (optional)</label>
+                            <input
+                                className="w-full px-4 py-3 rounded-xl border border-border bg-background text-sm font-mono"
+                                placeholder="WVWZZZAUZJP023456"
+                                value={vin}
+                                onChange={e => setVin(e.target.value.toUpperCase())}
+                            />
+                        </div>
 
-                {/* Model */}
-                <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Modell</label>
-                    {models.length > 0 ? (
-                        <div className="space-y-2">
+                        {/* Brand */}
+                        <div>
+                            <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Marke</label>
                             <div className="relative">
+                                <Car className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                                 <select
-                                    className="w-full px-4 py-3 rounded-xl border border-border bg-background text-sm appearance-none cursor-pointer"
-                                    value={model}
-                                    onChange={e => { setModel(e.target.value); setCustomModel(''); }}
+                                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-border bg-background text-sm appearance-none cursor-pointer"
+                                    value={brand}
+                                    onChange={e => { setBrand(e.target.value); setModel(''); setCustomModel(''); }}
                                 >
-                                    <option value="">Modell wählen</option>
-                                    {models.map(m => (
-                                        <option key={m.modelCode} value={m.model}>{m.model} ({m.yearFrom}–{m.yearTo})</option>
+                                    <option value="">Marke wählen</option>
+                                    {vehicleData?.brands.map(b => (
+                                        <option key={b} value={b}>{b}</option>
                                     ))}
-                                    <option value="__custom">Anderes Modell…</option>
+                                    <option value="__custom">Andere Marke…</option>
                                 </select>
                                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
                             </div>
-                            {model === '__custom' && (
+                        </div>
+
+                        {/* Model */}
+                        <div>
+                            <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Modell</label>
+                            {models.length > 0 ? (
+                                <div className="space-y-2">
+                                    <div className="relative">
+                                        <select
+                                            className="w-full px-4 py-3 rounded-xl border border-border bg-background text-sm appearance-none cursor-pointer"
+                                            value={model}
+                                            onChange={e => { setModel(e.target.value); setCustomModel(''); }}
+                                        >
+                                            <option value="">Modell wählen</option>
+                                            {models.map(m => (
+                                                <option key={m.modelCode} value={m.model}>{m.model} ({m.yearFrom}–{m.yearTo})</option>
+                                            ))}
+                                            <option value="__custom">Anderes Modell…</option>
+                                        </select>
+                                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                                    </div>
+                                    {model === '__custom' && (
+                                        <input
+                                            className="w-full px-4 py-3 rounded-xl border border-border bg-background text-sm"
+                                            placeholder="z.B. 5er G60"
+                                            value={customModel}
+                                            onChange={e => setCustomModel(e.target.value)}
+                                        />
+                                    )}
+                                </div>
+                            ) : (
                                 <input
                                     className="w-full px-4 py-3 rounded-xl border border-border bg-background text-sm"
-                                    placeholder="z.B. 5er G60"
+                                    placeholder="z.B. Golf 8, C-Klasse W206"
                                     value={customModel}
                                     onChange={e => setCustomModel(e.target.value)}
                                 />
                             )}
                         </div>
-                    ) : (
-                        <input
-                            className="w-full px-4 py-3 rounded-xl border border-border bg-background text-sm"
-                            placeholder="z.B. Golf 8, C-Klasse W206"
-                            value={customModel}
-                            onChange={e => setCustomModel(e.target.value)}
-                        />
+
+                        {/* Part */}
+                        <div>
+                            <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Ersatzteil</label>
+                            <div className="relative">
+                                <Wrench className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                <input
+                                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-border bg-background text-sm"
+                                    placeholder="z.B. Bremsscheibe vorne"
+                                    value={partDesc}
+                                    onChange={e => setPartDesc(e.target.value)}
+                                    onKeyDown={e => e.key === 'Enter' && handleForwardSearch()}
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Quick Part Buttons */}
+                    {vehicleData && (
+                        <div>
+                            <div className="text-xs font-medium text-muted-foreground mb-2">Schnellauswahl:</div>
+                            <div className="flex gap-2 flex-wrap">
+                                {vehicleData.parts.slice(0, 12).map(p => (
+                                    <button
+                                        key={p.category}
+                                        onClick={() => setPartDesc(p.description)}
+                                        className={`text-xs px-3 py-1.5 rounded-lg border transition-all ${
+                                            partDesc === p.description
+                                                ? 'bg-primary/10 border-primary/30 text-primary font-medium'
+                                                : 'bg-card border-border text-muted-foreground hover:border-primary/30'
+                                        }`}
+                                    >
+                                        {p.description}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
                     )}
-                </div>
 
-                {/* Part */}
-                <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Teilebeschreibung</label>
-                    <div className="relative">
-                        <Wrench className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <input
-                            className="w-full pl-10 pr-4 py-3 rounded-xl border border-border bg-background text-sm"
-                            placeholder="z.B. Bremsscheibe vorne"
-                            value={partDesc}
-                            onChange={e => setPartDesc(e.target.value)}
-                            onKeyDown={e => e.key === 'Enter' && handleSearch()}
-                        />
-                    </div>
-                </div>
-            </div>
+                    <Button
+                        className="rounded-xl px-8 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg w-full md:w-auto"
+                        onClick={handleForwardSearch}
+                        disabled={loading}
+                    >
+                        {loading ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <Search className="w-4 h-4 mr-2" />}
+                        OEM-Nummer suchen (Hydra v2)
+                    </Button>
 
-            {/* Quick Part Buttons */}
-            {vehicleData && (
-                <div>
-                    <div className="text-xs font-medium text-muted-foreground mb-2">Schnellauswahl:</div>
-                    <div className="flex gap-2 flex-wrap">
-                        {vehicleData.parts.slice(0, 12).map(p => (
-                            <button
-                                key={p.category}
-                                onClick={() => setPartDesc(p.description)}
-                                className={`text-xs px-3 py-1.5 rounded-lg border transition-all ${
-                                    partDesc === p.description
-                                        ? 'bg-primary/10 border-primary/30 text-primary font-medium'
-                                        : 'bg-card border-border text-muted-foreground hover:border-primary/30'
-                                }`}
-                            >
-                                {p.description}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            )}
+                    {/* Forward Result */}
+                    {forwardResult && (
+                        <div className={`rounded-2xl p-6 border ${
+                            forwardResult.success && forwardResult.oem
+                                ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800'
+                                : 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800'
+                        }`}>
+                            {forwardResult.success && forwardResult.oem ? (
+                                <div className="space-y-4">
+                                    <div className="flex items-start gap-4">
+                                        <CheckCircle2 className="w-8 h-8 text-emerald-500 flex-shrink-0 mt-0.5" />
+                                        <div>
+                                            <div className="flex items-center gap-3 mb-2">
+                                                <Hash className="w-4 h-4 text-muted-foreground" />
+                                                <span className="text-2xl font-mono font-bold text-foreground">{forwardResult.oem}</span>
+                                            </div>
+                                            <div className="flex gap-3 text-sm text-muted-foreground flex-wrap">
+                                                {forwardResult.confidence !== undefined && (
+                                                    <span>Confidence: <strong className={Number(forwardResult.confidence) >= 80 ? 'text-emerald-600' : 'text-yellow-600'}>
+                                                        {forwardResult.confidence}%
+                                                    </strong></span>
+                                                )}
+                                                {forwardResult.notes && (
+                                                    <span>Info: {forwardResult.notes}</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
 
-            <Button
-                className="rounded-xl px-8 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg w-full md:w-auto"
-                onClick={handleSearch}
-                disabled={loading}
-            >
-                {loading ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <Search className="w-4 h-4 mr-2" />}
-                OEM-Nummer suchen
-            </Button>
-
-            {/* Result */}
-            {result && (
-                <div className={`rounded-2xl p-6 border ${
-                    result.success && result.oem
-                        ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800'
-                        : 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800'
-                }`}>
-                    {result.success && result.oem ? (
-                        <div className="flex items-start gap-4">
-                            <CheckCircle2 className="w-8 h-8 text-emerald-500 flex-shrink-0 mt-0.5" />
-                            <div>
-                                <div className="flex items-center gap-3 mb-2">
-                                    <Hash className="w-4 h-4 text-muted-foreground" />
-                                    <span className="text-2xl font-mono font-bold text-foreground">{result.oem}</span>
-                                </div>
-                                <div className="flex gap-3 text-sm text-muted-foreground">
-                                    <span>Quelle: <strong className="text-foreground">{result.source}</strong></span>
-                                    {result.confidence !== undefined && (
-                                        <span>Confidence: <strong className={result.confidence >= 0.9 ? 'text-emerald-600' : 'text-yellow-600'}>
-                                            {Math.round(result.confidence * 100)}%
-                                        </strong></span>
+                                    {/* Candidates table */}
+                                    {forwardResult.candidates && forwardResult.candidates.length > 0 && (
+                                        <div className="mt-4">
+                                            <div className="text-xs font-medium text-muted-foreground mb-2">Alle Kandidaten:</div>
+                                            <div className="space-y-2">
+                                                {forwardResult.candidates.map((c, i) => (
+                                                    <div key={i} className="flex items-center justify-between bg-white dark:bg-white/5 rounded-xl px-4 py-3 border border-border/50">
+                                                        <div className="flex items-center gap-3">
+                                                            <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center">
+                                                                {i + 1}
+                                                            </span>
+                                                            <span className="font-mono font-bold">{c.oem}</span>
+                                                            <span className="text-xs text-muted-foreground">{c.brand}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-3">
+                                                            <span className="text-xs text-muted-foreground">{c.source}</span>
+                                                            <span className={`text-xs font-bold ${c.confidence >= 80 ? 'text-emerald-500' : c.confidence >= 50 ? 'text-yellow-500' : 'text-red-500'}`}>
+                                                                {c.confidence}%
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
                                     )}
                                 </div>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="flex items-start gap-4">
-                            <XCircle className="w-8 h-8 text-red-500 flex-shrink-0 mt-0.5" />
-                            <div>
-                                <div className="font-bold text-red-700 dark:text-red-400 mb-1">Keine OEM-Nummer gefunden</div>
-                                <div className="text-sm text-muted-foreground">{result.message || 'Hydra konnte keine passende Nummer finden.'}</div>
-                            </div>
+                            ) : (
+                                <div className="flex items-start gap-4">
+                                    <XCircle className="w-8 h-8 text-red-500 flex-shrink-0 mt-0.5" />
+                                    <div>
+                                        <div className="font-bold text-red-700 dark:text-red-400 mb-1">Keine OEM-Nummer gefunden</div>
+                                        <div className="text-sm text-muted-foreground">{forwardResult.notes || 'Hydra konnte keine passende Nummer finden.'}</div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
-                </div>
+                </>
+            )}
+
+            {/* ═══ REVERSE MODE ═══ */}
+            {mode === 'reverse' && (
+                <>
+                    <div className="max-w-lg">
+                        <label className="text-xs font-medium text-muted-foreground mb-1.5 block">OEM-Nummer eingeben</label>
+                        <div className="relative">
+                            <Hash className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                            <input
+                                className="w-full pl-12 pr-4 py-4 rounded-xl border border-border bg-background text-lg font-mono font-bold tracking-wider"
+                                placeholder="z.B. 5Q0 407 151 M"
+                                value={oemInput}
+                                onChange={e => setOemInput(e.target.value.toUpperCase())}
+                                onKeyDown={e => e.key === 'Enter' && handleReverseSearch()}
+                            />
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-2">KI identifiziert automatisch: Teilname, Kategorie, Hersteller und kompatible Fahrzeuge</p>
+                    </div>
+
+                    <Button
+                        className="rounded-xl px-8 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white shadow-lg w-full md:w-auto"
+                        onClick={handleReverseSearch}
+                        disabled={reverseLoading}
+                    >
+                        {reverseLoading ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <Search className="w-4 h-4 mr-2" />}
+                        Teil identifizieren (Gemini AI)
+                    </Button>
+
+                    {/* Reverse Result */}
+                    {reverseResult && (
+                        <div className={`rounded-2xl p-6 border ${
+                            reverseResult.success && reverseResult.partName && reverseResult.partName !== 'Unbekannt'
+                                ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800'
+                                : 'bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800'
+                        }`}>
+                            {reverseResult.success && reverseResult.partName && reverseResult.partName !== 'Unbekannt' ? (
+                                <div className="space-y-4">
+                                    <div className="flex items-start gap-4">
+                                        <CheckCircle2 className="w-8 h-8 text-emerald-500 flex-shrink-0 mt-0.5" />
+                                        <div>
+                                            <div className="mb-1 text-xs text-muted-foreground font-mono">{reverseResult.oem}</div>
+                                            <div className="text-2xl font-bold text-foreground mb-2">{reverseResult.partName}</div>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {reverseResult.partCategory && (
+                                            <div className="bg-white dark:bg-white/5 rounded-xl p-4 border border-border/50">
+                                                <div className="text-xs text-muted-foreground mb-1">Kategorie</div>
+                                                <div className="font-medium">{reverseResult.partCategory}</div>
+                                            </div>
+                                        )}
+                                        {reverseResult.manufacturer && (
+                                            <div className="bg-white dark:bg-white/5 rounded-xl p-4 border border-border/50">
+                                                <div className="text-xs text-muted-foreground mb-1">OE-Hersteller</div>
+                                                <div className="font-medium">{reverseResult.manufacturer}</div>
+                                            </div>
+                                        )}
+                                        {reverseResult.vehicles && (
+                                            <div className="bg-white dark:bg-white/5 rounded-xl p-4 border border-border/50 md:col-span-2">
+                                                <div className="text-xs text-muted-foreground mb-1">Kompatible Fahrzeuge</div>
+                                                <div className="font-medium text-sm">{reverseResult.vehicles}</div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="flex gap-3 text-sm text-muted-foreground">
+                                        {reverseResult.confidence !== undefined && (
+                                            <span>Confidence: <strong className={reverseResult.confidence >= 0.8 ? 'text-emerald-600' : 'text-yellow-600'}>
+                                                {Math.round(reverseResult.confidence * 100)}%
+                                            </strong></span>
+                                        )}
+                                        {reverseResult.notes && <span>· {reverseResult.notes}</span>}
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="flex items-start gap-4">
+                                    <XCircle className="w-8 h-8 text-amber-500 flex-shrink-0 mt-0.5" />
+                                    <div>
+                                        <div className="font-bold text-amber-700 dark:text-amber-400 mb-1">Teil nicht identifiziert</div>
+                                        <div className="text-sm text-muted-foreground">
+                                            {reverseResult.notes || 'Die KI konnte diese OEM-Nummer nicht zuordnen.'}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </>
             )}
         </div>
     );
 }
+

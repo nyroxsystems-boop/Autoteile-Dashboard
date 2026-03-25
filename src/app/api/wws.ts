@@ -581,3 +581,37 @@ export async function resolveSingleOem(params: { brand: string; model: string; p
         body: JSON.stringify(params),
     });
 }
+
+/** Reverse OEM lookup: given an OEM number, identify the part + compatible vehicles */
+export async function reverseOemLookup(oem: string): Promise<{
+    success: boolean;
+    oem: string;
+    partName?: string;
+    partCategory?: string;
+    vehicles?: string;
+    manufacturer?: string;
+    confidence?: number;
+    notes?: string;
+}> {
+    return apiFetch('/api/bot-testing/oem-reverse-lookup', {
+        method: 'POST',
+        body: JSON.stringify({ oem }),
+    });
+}
+
+/** Full Hydra v2 OEM resolution (same as live demo) — DB → CrossRef → AI → Validation → Learning */
+export async function resolveOemFull(params: {
+    vehicle: { vin?: string; hsn?: string; tsn?: string; make?: string; model?: string; year?: string; engine?: string };
+    part: string;
+}): Promise<{
+    success: boolean;
+    oem: string | null;
+    candidates: Array<{ oem: string; brand: string; confidence: number; source: string; note?: string }>;
+    notes: string | null;
+    confidence: number;
+}> {
+    return apiFetch('/api/demo/oem-resolve', {
+        method: 'POST',
+        body: JSON.stringify(params),
+    });
+}
