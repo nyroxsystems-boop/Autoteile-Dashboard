@@ -439,13 +439,11 @@ export const wawiService = {
 
     // ── Server-side Stats & Suggestions ──────────────────────
     getStats: async () => {
-        // TODO: Re-enable when backend implements /api/products/stats/
-        return { totalArticles: 0, lowStockCount: 0, totalValue: 0 };
+        return await wawiFetch<{ totalArticles: number; lowStockCount: number; totalValue: number }>('/api/products/stats/');
     },
 
     getReorderSuggestions: async () => {
-        // TODO: Re-enable when backend implements /api/products/reorder-suggestions/
-        return [] as unknown[];
+        return await wawiFetchList('/api/products/reorder-suggestions/');
     },
 
     // ── Dashboard Summary (combined stats) ───────────────────
@@ -490,10 +488,9 @@ export const wawiService = {
         await wawiFetch(`/api/vehicle-applications/${id}/`, { method: 'DELETE' });
     },
 
-    // ── Feature 2: Returns ───────────────────────────────────
-    getReturns: async (_statusFilter?: string) => {
-        // TODO: Re-enable when backend implements /api/returns/
-        return [] as ReturnItem[];
+    getReturns: async (statusFilter?: string) => {
+        const url = statusFilter ? `/api/returns/?status=${statusFilter}` : '/api/returns/';
+        return await wawiFetchList<ReturnItem>(url);
     },
 
     createReturn: async (data: { order?: number; product?: number; contact?: number; quantity: number; reason: string; notes?: string; location?: number }) => {
@@ -573,9 +570,9 @@ export const wawiService = {
     },
 
     // ── Feature 8: Supplier Ratings ──────────────────────────
-    getSupplierRatings: async (_supplierId?: number) => {
-        // TODO: Re-enable when backend implements /api/supplier-ratings/
-        return [] as SupplierRating[];
+    getSupplierRatings: async (supplierId?: number) => {
+        const url = supplierId ? `/api/supplier-ratings/?supplier=${supplierId}` : '/api/supplier-ratings/';
+        return await wawiFetchList<SupplierRating>(url);
     },
 
     createSupplierRating: async (data: {
@@ -595,10 +592,8 @@ export const wawiService = {
         return await wawiFetch(`/api/supplier-ratings/${id}/recalculate/`, { method: 'POST' });
     },
 
-    // ── Feature 9: Smart Reorder (AI) ────────────────────────
-    getSmartReorder: async (_lookbackDays = 90, _forecastDays = 30) => {
-        // TODO: Re-enable when backend implements /api/ai/smart-reorder/
-        return {} as Record<string, unknown>;
+    getSmartReorder: async (lookbackDays = 90, forecastDays = 30) => {
+        return await wawiFetch<Record<string, unknown>>(`/api/ai/smart-reorder/?lookback=${lookbackDays}&forecast=${forecastDays}`);
     },
 
     // ── Feature 10: Fuzzy OEM Search (AI) ────────────────────
@@ -608,19 +603,16 @@ export const wawiService = {
 
     // ── Feature 11: Price Optimization (AI) ──────────────────
     getPriceOptimization: async () => {
-        // TODO: Re-enable when backend implements /api/ai/price-optimization/
-        return {} as Record<string, unknown>;
+        return await wawiFetch<Record<string, unknown>>('/api/ai/price-optimization/');
     },
 
     // ── Feature 13: Anomaly Detection (AI) ───────────────────
-    getAnomalies: async (_days = 7, _threshold = 3.0) => {
-        // TODO: Re-enable when backend implements /api/ai/anomalies/
-        return {} as Record<string, unknown>;
+    getAnomalies: async (days = 7, threshold = 3.0) => {
+        return await wawiFetch<Record<string, unknown>>(`/api/ai/anomalies/?days=${days}&threshold=${threshold}`);
     },
 
     // ── Feature 14: Dashboard Briefing (AI) ──────────────────
     getBriefing: async () => {
-        // TODO: Re-enable when backend implements /api/ai/briefing/
-        return {} as Record<string, unknown>;
+        return await wawiFetch<Record<string, unknown>>('/api/ai/briefing/');
     },
 };

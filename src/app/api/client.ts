@@ -46,9 +46,14 @@ export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): 
     const token = getAuthToken();
     const deviceId = getDeviceId();
 
+    // Read CSRF token from cookie for Double-Submit pattern
+    const csrfToken = document.cookie.split('; ')
+        .find(c => c.startsWith('csrf_token='))?.split('=')[1] || '';
+
     const headers: Record<string, string> = {
         'Content-Type': 'application/json',
         'X-Device-ID': deviceId,
+        'X-CSRF-Token': csrfToken,
         ...(tenantId ? { 'X-Tenant-ID': tenantId } : {}),
         // Keep Authorization header for backwards compat — remove once all clients use cookies
         ...(token ? { 'Authorization': `Token ${token}` } : {}),
@@ -76,6 +81,17 @@ export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): 
             const waitMs = Math.pow(2, attempt) * 1000; // 1s, 2s, 4s
             await new Promise(resolve => setTimeout(resolve, waitMs));
             continue;
+        }
+
+        // 401 Unauthorized — session expired or token invalid, force re-login
+        if (response.status === 401) {
+            localStorage.removeItem('auth_session');
+            localStorage.removeItem('auth_access_token');
+            localStorage.removeItem('selectedTenantId');
+            sessionStorage.clear();
+            // Reload triggers the auth check and shows LoginView
+            window.location.reload();
+            throw new ApiError('Session expired', 401);
         }
 
         if (!response.ok) {
