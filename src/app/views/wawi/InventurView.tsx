@@ -27,7 +27,7 @@ interface InventorySession {
 type Phase = 'idle' | 'counting' | 'review';
 
 export function InventurView() {
-  const { t } = useI18n();
+  const _i18n = useI18n();
   const [phase, setPhase] = useState<Phase>('idle');
   const [session, setSession] = useState<InventorySession | null>(null);
   const [parts, setParts] = useState<{ id: string; name: string; oem_number: string; expected_qty: number; category: string }[]>([]);

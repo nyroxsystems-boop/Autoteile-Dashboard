@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Building2, Users, Package, Tag, MessageCircle, Check, ArrowRight, SkipForward, Sparkles } from 'lucide-react';
-import { Button } from '../../components/ui/button';
-import { useI18n } from '../../../i18n';
+import { Button } from '../components/ui/button';
+import { useI18n } from '../../i18n';
 import { apiFetch } from '../api/client';
 import { useNavigate } from 'react-router-dom';
 
@@ -15,7 +15,7 @@ interface OnboardingStep {
 }
 
 export function OnboardingWizard() {
-  const { t } = useI18n();
+  const _i18n = useI18n();
   const navigate = useNavigate();
   const [steps, setSteps] = useState<OnboardingStep[]>([]);
   const [loading, setLoading] = useState(true);

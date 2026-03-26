@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { History, Filter, Download, ChevronLeft, ChevronRight, Clock, User, FileText } from 'lucide-react';
-import { Button } from '../../components/ui/button';
-import { useI18n } from '../../../i18n';
+import { Button } from '../components/ui/button';
+import { useI18n } from '../../i18n';
 import { apiFetch } from '../api/client';
 
 interface AuditEntry {
