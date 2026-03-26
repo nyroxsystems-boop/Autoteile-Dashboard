@@ -246,7 +246,7 @@ function AppShell() {
         onThemeChange={handleThemeChange}
         userName={me?.user?.first_name ? `${me.user.first_name} ${me.user.last_name}` : me?.user?.username || "Admin"}
         userEmail={me?.user?.email || ""}
-        companyName={currentTenant?.tenant_name || (isWawi ? "WAWI Port" : "Partsunion ERP")}
+        companyName={currentTenant?.tenant_name || (isWawi ? "Warenwirtschaft" : "Partsunion")}
         onOpenCommandPalette={() => setCommandPaletteOpen(true)}
         onNavigate={handleNavigate}
         tenants={tenants}
@@ -260,7 +260,6 @@ function AppShell() {
         <div className="max-w-[1440px] mx-auto px-4 md:px-12 py-6 md:py-12">
           {isWawi && (
             <div className="mb-8">
-              <h2 className="text-sm font-medium text-primary mb-1 uppercase tracking-wider">WAWI Workspace</h2>
               <div className="h-1 w-12 bg-primary rounded-full" />
             </div>
           )}
@@ -356,7 +355,7 @@ export default function App() {
             <Route path="/bot/tax/profile/create" element={<TaxProfileCreateView />} />
             <Route path="/bot/tax/invoices" element={<InvoiceListView />} />
 
-            {/* WAWI Workspace */}
+            {/* Warenwirtschaft */}
             <Route path="/wawi" element={<Navigate to="/wawi/dashboard" replace />} />
             <Route path="/wawi/dashboard" element={<WawiDashboardView />} />
             <Route path="/wawi/artikel" element={<ArticleListView />} />

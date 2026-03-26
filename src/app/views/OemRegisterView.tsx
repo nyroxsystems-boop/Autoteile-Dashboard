@@ -326,7 +326,7 @@ function SeederTab({ onStatsRefresh }: { onStatsRefresh: () => void }) {
                 {!status?.running ? (
                     <div className="space-y-4">
                         <p className="text-sm text-muted-foreground">
-                            Der Seeder befüllt die OEM-Datenbank über Gemini Grounded Search.
+                            Der Seeder befüllt die OEM-Datenbank über KI-gestützte Websuche.
                             Wähle eine Marke oder starte für alle {vehicleData?.brands.length || 0} Marken.
                         </p>
 
@@ -575,8 +575,8 @@ function CustomSearchTab() {
 
             <p className="text-sm text-muted-foreground">
                 {mode === 'forward'
-                    ? '🔍 Volle Hydra v2 Pipeline: DB → CrossRef → AI Search (Gemini) → Validation → Self-Learning'
-                    : '🔄 KI-gestützte Rückwärtssuche: OEM-Nummer → Teil + kompatible Fahrzeuge (via Gemini)'
+                    ? '🔍 Volle Pipeline: Datenbank → Querverweise → KI-Suche → Validierung → Self-Learning'
+                    : '🔄 KI-gestützte Rückwärtssuche: OEM-Nummer → Teil + kompatible Fahrzeuge'
                 }
             </p>
 
@@ -793,7 +793,7 @@ function CustomSearchTab() {
                         disabled={reverseLoading}
                     >
                         {reverseLoading ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <Search className="w-4 h-4 mr-2" />}
-                        Teil identifizieren (Gemini AI)
+                        Teil identifizieren
                     </Button>
 
                     {/* Reverse Result */}
