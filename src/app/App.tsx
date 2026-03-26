@@ -89,6 +89,11 @@ const TaxDashboardView = lazyRetry(() => import('./views/tax/TaxDashboardView'))
 const InvoiceListView = lazyRetry(() => import('./views/tax/InvoiceListView'));
 const TaxProfileCreateView = lazyRetry(() => import('./views/tax/TaxProfileCreateView'));
 
+// Enterprise Views
+const AuditLogView = lazyRetry(() => import('./views/AuditLogView'), 'AuditLogView');
+const OnboardingWizard = lazyRetry(() => import('./views/OnboardingWizard'), 'OnboardingWizard');
+const InventurView = lazyRetry(() => import('./views/wawi/InventurView'), 'InventurView');
+
 
 // ── View loading fallback ──
 function ViewSuspenseFallback() {
@@ -368,7 +373,12 @@ export default function App() {
             <Route path="/wawi/bewertungen" element={<SupplierRatingView />} />
             <Route path="/wawi/ki-insights" element={<AIInsightsView />} />
             <Route path="/wawi/berichte" element={<ReportsView />} />
+            <Route path="/wawi/inventur" element={<InventurView />} />
             <Route path="/wawi/setup" element={<SettingsView />} />
+
+            {/* Enterprise Views */}
+            <Route path="/audit-log" element={<AuditLogView />} />
+            <Route path="/onboarding" element={<OnboardingWizard />} />
           </Route>
 
           {/* Catch all */}
