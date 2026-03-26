@@ -43,5 +43,5 @@ jobs:
         continue-on-error: true
         with:
           name: 'Vitest Test Report'
-          path: 'test-results.json'
-          reporter: 'vitest-json'
+          path: 'test-results.xml'
+          reporter: 'java-junit'

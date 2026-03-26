@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ClipboardCheck, Search, AlertTriangle, CheckCircle2, XCircle, ArrowRight, RotateCcw, Package } from 'lucide-react';
 import { Button } from '../../components/ui/button';
-import { useI18n } from '../../../i18n';
 import { apiFetch } from '../../api/client';
 import { toast } from 'sonner';
 
@@ -27,7 +26,7 @@ interface InventorySession {
 type Phase = 'idle' | 'counting' | 'review';
 
 export function InventurView() {
-  const _i18n = useI18n();
+
   const [phase, setPhase] = useState<Phase>('idle');
   const [session, setSession] = useState<InventorySession | null>(null);
   const [parts, setParts] = useState<{ id: string; name: string; oem_number: string; expected_qty: number; category: string }[]>([]);
