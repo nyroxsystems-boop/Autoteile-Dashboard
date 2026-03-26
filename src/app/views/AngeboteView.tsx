@@ -99,7 +99,7 @@ export function AngeboteView() {
         </div>
         <div className="h-10 w-32 bg-muted rounded-lg animate-shimmer" />
       </div>
-      <div className="grid grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
         {[...Array(4)].map((_, i) => (
           <div key={i} className="p-4 rounded-xl border border-border bg-card animate-shimmer" style={{ animationDelay: `${i * 100}ms` }}>
             <div className="w-10 h-10 rounded-xl bg-muted mb-3" />
@@ -153,7 +153,7 @@ export function AngeboteView() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
         <div
           onClick={() => setActiveFilter(activeFilter === 'offers_ready' ? null : 'offers_ready')}
           className={`group p-4 rounded-xl border transition-all cursor-pointer ${activeFilter === 'offers_ready' ? 'border-amber-500 bg-amber-500/10' : 'border-border bg-card'}`}

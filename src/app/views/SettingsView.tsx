@@ -4,7 +4,6 @@ import {
   CreditCard, Headphones, FileText, Package
 } from 'lucide-react';
 import { LucideIcon } from 'lucide-react';
-import { Loader2 } from 'lucide-react';
 import { useMe } from '../hooks/useMe';
 import { useTenants } from '../hooks/useTenants';
 import { useI18n } from '../../i18n';
@@ -52,8 +51,39 @@ export function SettingsView() {
   ];
 
   if (meLoading || tenantsLoading) return (
-    <div className="h-[calc(100vh-12rem)] flex items-center justify-center">
-      <Loader2 className="w-8 h-8 animate-spin text-primary" />
+    <div className="space-y-6 animate-in fade-in duration-300">
+      <div>
+        <div className="h-8 w-40 bg-muted rounded-lg animate-shimmer" />
+        <div className="h-4 w-72 bg-muted/60 rounded mt-3 animate-shimmer" />
+      </div>
+      <div className="flex flex-col md:flex-row gap-6">
+        {/* Sidebar skeleton */}
+        <div className="hidden md:block w-20 flex-shrink-0">
+          <div className="bg-card border border-border rounded-xl p-2">
+            <div className="flex flex-col gap-1">
+              {[...Array(9)].map((_, i) => (
+                <div key={i} className="flex flex-col items-center gap-1.5 py-4 animate-shimmer" style={{ animationDelay: `${i * 60}ms` }}>
+                  <div className="w-5 h-5 bg-muted rounded" />
+                  <div className="w-10 h-2 bg-muted/60 rounded" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        {/* Content skeleton */}
+        <div className="flex-1 min-w-0 space-y-6">
+          <div className="bg-card border border-border rounded-xl p-6 space-y-5">
+            <div className="h-6 w-36 bg-muted rounded animate-shimmer" />
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="space-y-2 animate-shimmer" style={{ animationDelay: `${i * 80}ms` }}>
+                <div className="h-3 w-24 bg-muted/60 rounded" />
+                <div className="h-10 w-full bg-muted/40 rounded-lg" />
+              </div>
+            ))}
+            <div className="h-10 w-40 bg-muted rounded-lg animate-shimmer" style={{ animationDelay: '400ms' }} />
+          </div>
+        </div>
+      </div>
     </div>
   );
 

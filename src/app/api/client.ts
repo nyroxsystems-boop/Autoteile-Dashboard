@@ -89,8 +89,8 @@ export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): 
             localStorage.removeItem('auth_access_token');
             localStorage.removeItem('selectedTenantId');
             sessionStorage.clear();
-            // Reload triggers the auth check and shows LoginView
-            window.location.reload();
+            // Dispatch event so auth provider can handle gracefully (no hard reload)
+            window.dispatchEvent(new CustomEvent('auth:expired', { detail: { endpoint } }));
             throw new ApiError('Session expired', 401);
         }
 

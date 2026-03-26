@@ -83,7 +83,7 @@ export function GoodsReceiptView() {
             setReceiptItems([]);
             loadOrders();
         } catch (err) {
-            toast.error(t('error'));
+            toast.error(t('error_goods_receipt'));
         }
     };
 

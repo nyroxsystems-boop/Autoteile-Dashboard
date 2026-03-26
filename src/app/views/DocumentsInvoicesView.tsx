@@ -62,7 +62,7 @@ export function DocumentsInvoicesView() {
       setInvoices(data);
     } catch (error) {
       console.error('Failed to load invoices:', error);
-      toast.error(t('error'));
+      toast.error(t('error_load_invoices'));
     } finally {
       setLoading(false);
     }
@@ -74,7 +74,7 @@ export function DocumentsInvoicesView() {
       toast.success(t('docs_marked_paid'));
       loadInvoices();
     } catch (error: unknown) {
-      toast.error(t('error'));
+      toast.error(t('error_mark_paid'));
     }
   };
 
@@ -87,7 +87,7 @@ export function DocumentsInvoicesView() {
       toast.success(t('docs_canceled'));
       loadInvoices();
     } catch (error: unknown) {
-      toast.error(t('error'));
+      toast.error(t('error_cancel_invoice'));
     }
   };
 
@@ -279,7 +279,7 @@ export function DocumentsInvoicesView() {
                           openBlobPreview(blob);
                         } catch (error) {
                           console.error('PDF preview failed:', error);
-                          toast.error(t('error'));
+                          toast.error(t('error_download_pdf'));
                         }
                       }}
                       className="p-1.5 text-primary hover:bg-primary/10 rounded"
@@ -302,7 +302,7 @@ export function DocumentsInvoicesView() {
                           toast.success(t('docs_downloading'));
                         } catch (error) {
                           console.error('PDF download failed:', error);
-                          toast.error(t('error'));
+                          toast.error(t('error_download_pdf'));
                         }
                       }}
                       className="p-1.5 text-muted-foreground hover:bg-muted rounded"

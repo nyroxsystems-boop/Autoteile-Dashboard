@@ -40,7 +40,7 @@ export function AuftraegeView() {
       const data = await getOrderOffers(id);
       setOffers(data || []);
     } catch {
-      toast.error(t('error'));
+      toast.error(t('error_load_orders'));
     } finally {
       setOffersLoading(false);
     }
@@ -51,7 +51,7 @@ export function AuftraegeView() {
       const msgs = await getOrderMessages(id);
       setMessages(msgs || []);
     } catch {
-      toast.error(t('error'));
+      toast.error(t('error_load_orders'));
     }
   };
 
@@ -63,7 +63,7 @@ export function AuftraegeView() {
       setNewMessageText('');
       toast.success(t('orders_message_sent'));
     } catch {
-      toast.error(t('error'));
+      toast.error(t('error_send_message'));
     }
   };
 
@@ -80,7 +80,7 @@ export function AuftraegeView() {
       toast.success(t('orders_offers_sent'));
       loadOffers(selectedOrderId as number);
     } catch (err) {
-      toast.error(t('error'));
+      toast.error(t('error_send_offers'));
     }
   };
 

@@ -44,7 +44,7 @@ export function ArticleListView() {
             toast.success(t('wawi_article_created'));
             loadArticles();
         } catch {
-            toast.error(t('error'));
+            toast.error(t('error_load_articles'));
         }
     };
 

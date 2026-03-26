@@ -80,7 +80,7 @@ export function AIInsightsView() {
             setBriefing(data as Briefing);
         } catch (err) {
             console.error('Briefing load failed:', err);
-            toast.error(t('error'));
+            toast.error(t('error_load_insights'));
         }
         finally { setLoading(l => ({ ...l, briefing: false })); }
     };
@@ -92,7 +92,7 @@ export function AIInsightsView() {
             setReorder(data as unknown as ReorderData);
         } catch (err) {
             console.error('Reorder load failed:', err);
-            toast.error(t('error'));
+            toast.error(t('error_load_insights'));
         }
         finally { setLoading(l => ({ ...l, reorder: false })); }
     };
@@ -104,7 +104,7 @@ export function AIInsightsView() {
             setPriceOpt(data);
         } catch (err) {
             console.error('Price opt load failed:', err);
-            toast.error(t('error'));
+            toast.error(t('error_load_insights'));
         }
         finally { setLoading(l => ({ ...l, priceOpt: false })); }
     };
@@ -116,7 +116,7 @@ export function AIInsightsView() {
             setAnomalies(data as unknown as AnomalyData);
         } catch (err) {
             console.error('Anomaly load failed:', err);
-            toast.error(t('error'));
+            toast.error(t('error_load_insights'));
         }
         finally { setLoading(l => ({ ...l, anomaly: false })); }
     };
@@ -129,7 +129,7 @@ export function AIInsightsView() {
             setOemResults(data);
         } catch (err) {
             console.error('OEM search failed:', err);
-            toast.error(t('error'));
+            toast.error(t('error_load_insights'));
         }
         finally { setLoading(l => ({ ...l, oem: false })); }
     };

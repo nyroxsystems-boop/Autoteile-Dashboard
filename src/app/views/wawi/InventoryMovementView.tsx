@@ -77,7 +77,7 @@ export function InventoryMovementView() {
             setReference('');
             setSelectedLocation('');
         } catch {
-            toast.error(t('error'));
+            toast.error(t('error_save_booking'));
         } finally {
             setSaving(false);
         }

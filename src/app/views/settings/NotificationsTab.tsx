@@ -23,7 +23,7 @@ export function NotificationsTab() {
         try {
             await updateMerchantSettings({ notifications });
             toast.success(t('settings_saved'));
-        } catch { toast.error(t('error')); }
+        } catch { toast.error(t('error_save_settings')); }
         finally { setSaving(false); }
     };
 

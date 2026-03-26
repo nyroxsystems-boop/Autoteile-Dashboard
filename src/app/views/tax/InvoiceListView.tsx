@@ -36,7 +36,7 @@ export default function InvoiceListView() {
             setInvoices(data);
         } catch (error) {
             console.error('Failed to load invoices:', error);
-            toast.error(t('error'));
+            toast.error(t('error_load_invoices'));
         } finally {
             setLoading(false);
         }
@@ -51,7 +51,7 @@ export default function InvoiceListView() {
             await loadInvoices();
         } catch (error) {
             console.error('Failed to mark as paid:', error);
-            toast.error(t('error'));
+            toast.error(t('error_mark_paid'));
         }
     };
 
@@ -64,7 +64,7 @@ export default function InvoiceListView() {
             await loadInvoices();
         } catch (error) {
             console.error('Failed to cancel invoice:', error);
-            toast.error(t('error'));
+            toast.error(t('error_cancel_invoice'));
         }
     };
 

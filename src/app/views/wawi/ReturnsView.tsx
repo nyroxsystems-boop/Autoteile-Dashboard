@@ -43,7 +43,7 @@ export function ReturnsView() {
             if (action === 'reject') await wawiService.rejectReturn(id);
             toast.success(t(action === 'approve' ? 'wawi_ret_approved' : action === 'receive' ? 'wawi_ret_received' : action === 'refund' ? 'wawi_ret_refunded' : 'wawi_ret_rejected'));
             loadReturns();
-        } catch { toast.error(t('error')); }
+        } catch { toast.error(t('error_load_returns')); }
     };
 
     if (error && !loading) return <ErrorState onRetry={loadReturns} />;
@@ -90,7 +90,7 @@ export function ReturnsView() {
                                 toast.success(t('wawi_return_created'));
                                 setShowCreate(false);
                                 loadReturns();
-                            } catch { toast.error(t('error')); }
+                            } catch { toast.error(t('error_load_returns')); }
                         }}>{t('wawi_new_return')}</Button>
                     </div>
                 </div>
