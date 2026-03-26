@@ -83,14 +83,16 @@ export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): 
             continue;
         }
 
-        // 401 Unauthorized — session expired or token invalid, force re-login
+        // 401 Unauthorized — only force re-login for auth-validation endpoints
         if (response.status === 401) {
-            localStorage.removeItem('auth_session');
-            localStorage.removeItem('auth_access_token');
-            localStorage.removeItem('selectedTenantId');
-            sessionStorage.clear();
-            // Dispatch event so auth provider can handle gracefully (no hard reload)
-            window.dispatchEvent(new CustomEvent('auth:expired', { detail: { endpoint } }));
+            const isAuthEndpoint = endpoint.includes('/auth/me') || endpoint.includes('/auth/login') || endpoint.includes('/admin-auth/me');
+            if (isAuthEndpoint) {
+                localStorage.removeItem('auth_session');
+                localStorage.removeItem('auth_access_token');
+                localStorage.removeItem('selectedTenantId');
+                sessionStorage.clear();
+                window.dispatchEvent(new CustomEvent('auth:expired', { detail: { endpoint } }));
+            }
             throw new ApiError('Session expired', 401);
         }
 

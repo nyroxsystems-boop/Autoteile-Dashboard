@@ -274,7 +274,17 @@ function HaendlerTab({ stats, onRefresh }: { stats: AdminStats | null; onRefresh
             setNewTenantName(''); setNewTenantEmail(''); setNewTenantPhone(''); setNewTenantPassword('');
             onRefresh();
         } catch (err: unknown) {
-            toast.error(t('admin_error_create_user'));
+            const e = err as any;
+            const status = e?.status || 0;
+            if (status === 401) {
+                toast.error('Sitzung abgelaufen – bitte erneut einloggen.');
+            } else if (status === 403) {
+                toast.error('Keine Berechtigung. Admin-Zugang erforderlich.');
+            } else if (status === 400) {
+                toast.error(e?.message || 'Ungültige Eingabedaten. Bitte prüfen Sie Ihre Angaben.');
+            } else {
+                toast.error('Fehler beim Anlegen des Händlers. Bitte versuchen Sie es erneut.');
+            }
         } finally {
             setCreatingTenant(false);
         }
