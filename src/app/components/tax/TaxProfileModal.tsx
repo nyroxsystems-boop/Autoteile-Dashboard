@@ -50,7 +50,7 @@ export default function TaxProfileModal({ isOpen, onClose, existingProfile, onSu
             onClose();
         } catch (error: unknown) {
             console.error('Failed to save tax profile:', error);
-            toast.error(t('tax_profile_error') + ': ' + (error instanceof Error ? error.message : 'Unbekannter Fehler'));
+            toast.error(t('error_save_settings'));
         } finally {
             setLoading(false);
         }

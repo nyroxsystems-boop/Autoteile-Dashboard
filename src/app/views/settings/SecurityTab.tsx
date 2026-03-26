@@ -21,7 +21,7 @@ export function SecurityTab() {
             toast.success(t('settings_password_changed'));
             setCurrentPw(''); setNewPw(''); setConfirmPw('');
         } catch (err: unknown) {
-            toast.error(err instanceof Error ? err.message : t('error'));
+            toast.error(t('error_save_settings'));
         } finally { setSaving(false); }
     };
 

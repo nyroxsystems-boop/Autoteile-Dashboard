@@ -318,7 +318,14 @@ export function RequireAuth({ children }: { children: JSX.Element }) {
     const { isAuthenticated, loading } = useAuth();
     const location = useLocation();
 
-    if (loading) return <div>Loading...</div>;
+    if (loading) return (
+        <div className="min-h-screen flex items-center justify-center bg-background">
+            <div className="flex flex-col items-center gap-4">
+                <div className="w-10 h-10 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                <div className="h-3 w-24 bg-muted rounded animate-shimmer" />
+            </div>
+        </div>
+    );
 
     if (!isAuthenticated) {
         return <Navigate to="/" state={{ from: location }} replace />;

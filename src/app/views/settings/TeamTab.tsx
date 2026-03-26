@@ -84,8 +84,7 @@ export function TeamTab() {
             setNewMemberRole('member');
             await loadTeam(); // Refresh team list
         } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : t('settings_invite_error');
-            toast.error(message);
+            toast.error(t('settings_invite_error'));
         } finally {
             setInviting(false);
         }
@@ -100,7 +99,7 @@ export function TeamTab() {
             setEditingMember(null);
             await loadTeam();
         } catch (err: unknown) {
-            toast.error(err instanceof Error ? err.message : t('error'));
+            toast.error(t('error_save_settings'));
         } finally {
             setSavingEdit(false);
         }
@@ -115,7 +114,7 @@ export function TeamTab() {
             setEditingMember(null);
             await loadTeam();
         } catch (err: unknown) {
-            toast.error(err instanceof Error ? err.message : t('error'));
+            toast.error(t('error_save_settings'));
         }
     };
 

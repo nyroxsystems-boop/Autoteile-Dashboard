@@ -69,7 +69,7 @@ export function NewInquiryModal({ open, onOpenChange, onSuccess }: NewInquiryMod
                 oemNumber: '',
             });
         } catch (err: unknown) {
-            toast.error(err instanceof Error ? err.message : t('inquiry_error'));
+            toast.error(t('inquiry_error'));
         } finally {
             setLoading(false);
         }

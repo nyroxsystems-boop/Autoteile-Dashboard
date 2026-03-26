@@ -91,7 +91,7 @@ export function LoginView({ onLoginSuccess }: LoginViewProps) {
                 } else if (msg.includes('not found') || msg.includes('no user')) {
                     setFieldError({ field: 'identifier', message: t('login_error_not_found') });
                 } else {
-                    setFieldError({ field: 'general', message: errMsg || t('login_error_generic') });
+                    setFieldError({ field: 'general', message: t('login_error_generic') });
                 }
             }
         } finally {

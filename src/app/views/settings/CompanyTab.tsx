@@ -38,7 +38,7 @@ export function CompanyTab() {
             });
             toast.success(t('settings_saved'));
         } catch (err: unknown) {
-            toast.error(err instanceof Error ? err.message : t('error'));
+            toast.error(t('error_save_settings'));
         } finally { setSaving(false); }
     };
 

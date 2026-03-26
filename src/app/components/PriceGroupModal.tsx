@@ -104,7 +104,7 @@ export function PriceGroupModal({ open, onOpenChange, onSuccess, editProfile }: 
                 appliesTo: 'all',
             });
         } catch (err: unknown) {
-            toast.error(err instanceof Error ? err.message : t('price_modal_error'));
+            toast.error(t('price_modal_error'));
         } finally {
             setLoading(false);
         }

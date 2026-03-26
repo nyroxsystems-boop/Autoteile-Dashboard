@@ -34,8 +34,7 @@ export function ProfileTab() {
             });
             toast.success(t('settings_saved'));
         } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : t('error');
-            toast.error(message);
+            toast.error(t('error_save_settings'));
         } finally {
             setSaving(false);
         }

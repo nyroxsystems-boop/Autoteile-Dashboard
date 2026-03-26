@@ -198,7 +198,7 @@ function HaendlerTab({ stats, onRefresh }: { stats: AdminStats | null; onRefresh
             const data = await listActiveDevices(tenantId);
             setActiveDevices(data);
         } catch {
-            toast.error('Geräte konnten nicht geladen werden');
+            toast.error(t('admin_error_devices'));
         }
     };
 
@@ -218,7 +218,7 @@ function HaendlerTab({ stats, onRefresh }: { stats: AdminStats | null; onRefresh
             loadDevices(tenantId);
             onRefresh();
         } catch {
-            toast.error('Gerät konnte nicht entfernt werden');
+            toast.error(t('admin_error_remove_device'));
         }
     };
 
@@ -230,7 +230,7 @@ function HaendlerTab({ stats, onRefresh }: { stats: AdminStats | null; onRefresh
             setShowLimitsModal(false);
             onRefresh();
         } catch {
-            toast.error('Limits konnten nicht aktualisiert werden');
+            toast.error(t('admin_error_update_limits'));
         }
     };
 
@@ -248,7 +248,7 @@ function HaendlerTab({ stats, onRefresh }: { stats: AdminStats | null; onRefresh
             setNewUserEmail(''); setNewUsername(''); setNewUserPassword('');
             onRefresh();
         } catch (err: unknown) {
-            toast.error(err instanceof Error ? err.message : 'Fehler beim Erstellen');
+            toast.error(t('admin_error_create_user'));
         }
     };
 
@@ -274,7 +274,7 @@ function HaendlerTab({ stats, onRefresh }: { stats: AdminStats | null; onRefresh
             setNewTenantName(''); setNewTenantEmail(''); setNewTenantPhone(''); setNewTenantPassword('');
             onRefresh();
         } catch (err: unknown) {
-            toast.error(err instanceof Error ? err.message : 'Fehler beim Erstellen');
+            toast.error(t('admin_error_create_user'));
         } finally {
             setCreatingTenant(false);
         }
