@@ -2,10 +2,10 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import {
     RefreshCw, Car, Wrench, Zap, CheckCircle2, XCircle,
     ChevronDown, Shield, ShieldAlert, ShieldCheck, Cpu, Globe, Timer, Info, Sparkles, Loader2,
-    Upload, FileText, X, Camera
+    Upload, FileText, X, Camera, ToggleRight, ExternalLink, AlertTriangle
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
-import { testOemPipeline, getOemVehicles, OemVehiclesData, scanFahrzeugschein, FahrzeugscheinResult } from '../api/wws';
+import { testOemPipeline, getOemVehicles, OemVehiclesData, scanFahrzeugschein, FahrzeugscheinResult, lookupPartsLink24, PartsLink24Result, getPartsLink24Health } from '../api/wws';
 import { toast } from 'sonner';
 
 // ─── Vehicle Database (identical to Landing Page Live Demo) ──────────
@@ -94,10 +94,22 @@ export function OemPlayground() {
     const [preview, setPreview] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // PartsLink24 toggle
+    const [usePartsLink, setUsePartsLink] = useState(false);
+    const [pl24Health, setPl24Health] = useState<{ status: string; browser: { running: boolean } } | null>(null);
+    const [pl24Result, setPl24Result] = useState<PartsLink24Result | null>(null);
+
     // Results
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<any>(null);
     const [showTrace, setShowTrace] = useState(true);
+
+    // Check PL24 health when toggle is enabled
+    useEffect(() => {
+        if (usePartsLink) {
+            getPartsLink24Health().then(setPl24Health).catch(() => setPl24Health(null));
+        }
+    }, [usePartsLink]);
 
     // Also load server vehicle data for custom models
     const [_serverVehicles, setServerVehicles] = useState<OemVehiclesData | null>(null);
@@ -204,6 +216,37 @@ export function OemPlayground() {
         }
         setLoading(true);
         setResult(null);
+        setPl24Result(null);
+
+        // ── PartsLink24 Mode ──
+        if (usePartsLink) {
+            const vinValue = vin || scannedVehicle?.vin;
+            if (!vinValue) {
+                toast.error('PartsLink24 benötigt eine VIN/Fahrgestellnummer');
+                setLoading(false);
+                return;
+            }
+            try {
+                const r = await lookupPartsLink24({
+                    vin: vinValue,
+                    part: partDesc.trim(),
+                    brand: getMakeForApi() || undefined,
+                });
+                setPl24Result(r);
+                if (r.success && r.results.length > 0) {
+                    toast.success(`PartsLink24: ${r.results.length} OEM-Nummern gefunden`);
+                } else {
+                    toast.error(r.error || 'Keine Ergebnisse von PartsLink24');
+                }
+            } catch (err: any) {
+                toast.error(err?.message || 'PartsLink24-Abfrage fehlgeschlagen');
+            } finally {
+                setLoading(false);
+            }
+            return;
+        }
+
+        // ── Hydra AI Mode (default) ──
         try {
             const engineCode = engine.match(/\(([^,]+)/)?.[1] || scannedVehicle?.motorcode || '';
             const r = await testOemPipeline({
@@ -225,11 +268,11 @@ export function OemPlayground() {
         } finally {
             setLoading(false);
         }
-    }, [make, model, year, engine, vin, partDesc, scannedVehicle]);
+    }, [make, model, year, engine, vin, partDesc, scannedVehicle, usePartsLink]);
 
     const resetAll = () => {
         setMake(''); setModel(''); setYear(''); setEngine('');
-        setVin(''); setPartDesc(''); setResult(null);
+        setVin(''); setPartDesc(''); setResult(null); setPl24Result(null);
         clearScan();
     };
 
@@ -514,14 +557,66 @@ export function OemPlayground() {
                         </div>
                     </div>
 
+                    {/* ── PartsLink24 Toggle ── */}
+                    <div className="flex items-center justify-between p-4 rounded-2xl border border-border bg-card/50">
+                        <div className="flex items-center gap-3">
+                            <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${
+                                usePartsLink
+                                    ? 'bg-amber-100 dark:bg-amber-900/30'
+                                    : 'bg-muted/50'
+                            }`}>
+                                <ExternalLink className={`w-4 h-4 ${
+                                    usePartsLink ? 'text-amber-600 dark:text-amber-400' : 'text-muted-foreground'
+                                }`} />
+                            </div>
+                            <div>
+                                <div className="text-sm font-bold">PartsLink24 Katalog</div>
+                                <div className="text-[11px] text-muted-foreground">
+                                    {usePartsLink
+                                        ? pl24Health?.status === 'healthy'
+                                            ? '✅ Service verbunden · Echte OEM-Daten'
+                                            : pl24Health === null
+                                                ? '⏳ Verbindung prüfen…'
+                                                : '⚠️ Service nicht erreichbar'
+                                        : 'Statt Hydra AI direkt im PL24-Katalog nachschlagen (VIN nötig)'
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => setUsePartsLink(!usePartsLink)}
+                            className={`relative w-12 h-7 rounded-full transition-colors ${
+                                usePartsLink ? 'bg-amber-500' : 'bg-muted'
+                            }`}
+                        >
+                            <div className={`absolute top-1 w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${
+                                usePartsLink ? 'translate-x-6' : 'translate-x-1'
+                            }`} />
+                        </button>
+                    </div>
+
+                    {/* VIN Warning for PartsLink Mode */}
+                    {usePartsLink && !vin && !scannedVehicle?.vin && (
+                        <div className="flex items-center gap-2 text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/20 rounded-xl px-4 py-2.5 border border-amber-200 dark:border-amber-800">
+                            <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
+                            <span>PartsLink24 benötigt eine VIN/Fahrgestellnummer — bitte oben eingeben oder Fahrzeugschein scannen</span>
+                        </div>
+                    )}
+
                     {/* Submit */}
                     <Button
-                        className="w-full rounded-xl py-6 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg text-sm font-bold"
+                        className={`w-full rounded-xl py-6 shadow-lg text-sm font-bold text-white ${
+                            usePartsLink
+                                ? 'bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700'
+                                : 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700'
+                        }`}
                         onClick={handleSearch}
-                        disabled={loading || !partDesc.trim()}
+                        disabled={loading || !partDesc.trim() || (usePartsLink && !vin && !scannedVehicle?.vin)}
                     >
                         {loading ? (
-                            <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Hydra analysiert…</>
+                            <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> {usePartsLink ? 'PartsLink24 sucht…' : 'Hydra analysiert…'}</>
+                        ) : usePartsLink ? (
+                            <><ExternalLink className="w-4 h-4 mr-2" /> OEM via PartsLink24 Katalog nachschlagen</>
                         ) : (
                             <><Zap className="w-4 h-4 mr-2" /> OEM-Nummer ermitteln (Hydra v2 Pipeline)</>
                         )}
@@ -529,7 +624,68 @@ export function OemPlayground() {
                 </div>
             </div>
 
-            {/* ═══ RESULTS ═══ */}
+            {/* ═══ PARTSLINK24 RESULTS ═══ */}
+            {pl24Result && (
+                <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className={`rounded-3xl p-6 border-2 ${
+                        pl24Result.success && pl24Result.results.length > 0
+                            ? 'bg-amber-50 dark:bg-amber-950/20 border-amber-300 dark:border-amber-700'
+                            : 'bg-red-50 dark:bg-red-950/20 border-red-300 dark:border-red-700'
+                    }`}>
+                        {pl24Result.success && pl24Result.results.length > 0 ? (
+                            <div className="space-y-4">
+                                <div className="flex items-start gap-4">
+                                    <div className="w-10 h-10 rounded-2xl bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center flex-shrink-0">
+                                        <ExternalLink className="w-5 h-5 text-amber-600" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 mb-1">
+                                            PartsLink24 · {pl24Result.results.length} Ergebnisse
+                                            {pl24Result.fromCache && <span className="ml-2 text-muted-foreground">(Cache)</span>}
+                                        </div>
+                                        <div className="text-xs text-muted-foreground">
+                                            {pl24Result.elapsedMs && `${(pl24Result.elapsedMs / 1000).toFixed(1)}s`}
+                                            {' · VIN: '}{pl24Result.vin}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-3">
+                                    {pl24Result.results.map((r, i) => (
+                                        <div key={i} className="flex items-center justify-between bg-white dark:bg-card rounded-2xl px-5 py-4 border border-amber-200 dark:border-amber-800 shadow-sm">
+                                            <div className="flex items-center gap-4">
+                                                <span className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold ${
+                                                    i === 0
+                                                        ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300'
+                                                        : 'bg-muted text-muted-foreground'
+                                                }`}>#{i + 1}</span>
+                                                <div>
+                                                    <div className="font-mono font-black text-lg tracking-wider">{r.oem}</div>
+                                                    <div className="text-sm text-muted-foreground">{r.description}</div>
+                                                </div>
+                                            </div>
+                                            <div className="flex flex-col items-end gap-1 text-xs text-muted-foreground">
+                                                {r.bildtafel && <span>Bildtafel: {r.bildtafel}</span>}
+                                                {r.hg && r.fg && <span>HG {r.hg} / FG {r.fg}</span>}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="flex items-start gap-4">
+                                <XCircle className="w-10 h-10 text-red-500 flex-shrink-0" />
+                                <div>
+                                    <div className="font-bold text-red-700 dark:text-red-400 text-lg mb-1">Keine Ergebnisse</div>
+                                    <div className="text-sm text-muted-foreground">{pl24Result.error || 'PartsLink24 hat keine Treffer gefunden.'}</div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* ═══ HYDRA AI RESULTS ═══ */}
             {result && (
                 <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
                     {/* Main Result Card */}

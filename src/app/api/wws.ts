@@ -696,3 +696,58 @@ export async function scanFahrzeugschein(imageBase64: string): Promise<Fahrzeugs
         body: JSON.stringify({ image: imageBase64 }),
     });
 }
+
+// ── PartsLink24 OEM Detect Service ───────────────────────────────────────────
+
+/** PartsLink24 scraper service URL — set via env or fallback */
+const PL24_SERVICE_URL = (import.meta as any).env?.VITE_PL24_SERVICE_URL || 'https://oemdetectservice-production.up.railway.app';
+
+export interface PartsLink24Result {
+    success: boolean;
+    vin: string;
+    part: string;
+    brand: string | null;
+    results: Array<{
+        oem: string;
+        description: string;
+        bildtafel?: string;
+        hg?: string;
+        fg?: string;
+    }>;
+    fromCache: boolean;
+    elapsedMs?: number;
+    error?: string;
+}
+
+/**
+ * Look up OEM numbers via the PartsLink24 automation service.
+ * Calls the external scraper deployed on Railway.
+ */
+export async function lookupPartsLink24(params: {
+    vin: string;
+    part: string;
+    brand?: string;
+}): Promise<PartsLink24Result> {
+    const res = await fetch(`${PL24_SERVICE_URL}/api/lookup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params),
+    });
+
+    if (!res.ok) {
+        const errorBody = await res.json().catch(() => ({}));
+        throw new Error(errorBody.error || `PartsLink24 service error: ${res.status}`);
+    }
+
+    return res.json();
+}
+
+/** Check PartsLink24 service health */
+export async function getPartsLink24Health(): Promise<{
+    status: string;
+    browser: { running: boolean; loggedIn: boolean };
+    queue: { pending: number; circuitBreakerOpen: boolean };
+}> {
+    const res = await fetch(`${PL24_SERVICE_URL}/api/health`);
+    return res.json();
+}
