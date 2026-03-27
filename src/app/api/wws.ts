@@ -669,3 +669,30 @@ export async function getOemSystemInfo(): Promise<{
 }> {
     return apiFetch('/api/admin/oem/system-info');
 }
+
+/** Scan a Fahrzeugschein (vehicle registration document) image to extract vehicle data */
+export interface FahrzeugscheinResult {
+    success: boolean;
+    elapsed: string;
+    vehicle: {
+        make: string | null;
+        model: string | null;
+        year: number | null;
+        month: number | null;
+        vin: string | null;
+        hsn: string | null;
+        tsn: string | null;
+        kw: number | null;
+        displacement: number | null;
+        motorcode: string | null;
+        co2: number | null;
+        notes: string | null;
+    };
+}
+
+export async function scanFahrzeugschein(imageBase64: string): Promise<FahrzeugscheinResult> {
+    return apiFetch('/api/admin/oem/scan-fahrzeugschein', {
+        method: 'POST',
+        body: JSON.stringify({ image: imageBase64 }),
+    });
+}

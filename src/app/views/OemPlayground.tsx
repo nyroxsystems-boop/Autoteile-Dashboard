@@ -1,10 +1,11 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
     RefreshCw, Car, Wrench, Zap, CheckCircle2, XCircle,
-    ChevronDown, Shield, ShieldAlert, ShieldCheck, Cpu, Globe, Timer, Info, Sparkles, Loader2
+    ChevronDown, Shield, ShieldAlert, ShieldCheck, Cpu, Globe, Timer, Info, Sparkles, Loader2,
+    Upload, FileText, X, Camera
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
-import { testOemPipeline, getOemVehicles, OemVehiclesData } from '../api/wws';
+import { testOemPipeline, getOemVehicles, OemVehiclesData, scanFahrzeugschein, FahrzeugscheinResult } from '../api/wws';
 import { toast } from 'sonner';
 
 // ─── Vehicle Database (identical to Landing Page Live Demo) ──────────
@@ -86,6 +87,13 @@ export function OemPlayground() {
     const [vin, setVin] = useState('');
     const [partDesc, setPartDesc] = useState('');
 
+    // Fahrzeugschein scan state
+    const [scanning, setScanning] = useState(false);
+    const [scannedVehicle, setScannedVehicle] = useState<FahrzeugscheinResult['vehicle'] | null>(null);
+    const [dragActive, setDragActive] = useState(false);
+    const [preview, setPreview] = useState<string | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
     // Results
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<any>(null);
@@ -104,10 +112,89 @@ export function OemPlayground() {
 
     // Resolve Make name for API (handle "Volkswagen" → "VOLKSWAGEN")
     const getMakeForApi = () => {
+        if (scannedVehicle?.make) return scannedVehicle.make;
         if (make === 'Volkswagen') return 'VW';
         if (make === 'Mercedes-Benz') return 'MERCEDES';
         return make.toUpperCase();
     };
+
+    // ── Fahrzeugschein Upload Handlers ─────────────────────────────────
+    const processFile = useCallback(async (file: File) => {
+        if (!file.type.startsWith('image/')) {
+            toast.error('Nur Bilddateien (JPG, PNG) erlaubt');
+            return;
+        }
+        if (file.size > 10 * 1024 * 1024) {
+            toast.error('Bild zu groß (max 10MB)');
+            return;
+        }
+
+        // Preview
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const base64 = e.target?.result as string;
+            setPreview(base64);
+            setScanning(true);
+            setScannedVehicle(null);
+
+            try {
+                const result = await scanFahrzeugschein(base64);
+                if (result.success && result.vehicle) {
+                    setScannedVehicle(result.vehicle);
+
+                    // Auto-fill form fields from scan
+                    if (result.vehicle.vin) setVin(result.vehicle.vin);
+                    if (result.vehicle.make) {
+                        // Map VOLKSWAGEN back to display name
+                        const makeMap: Record<string, string> = {
+                            'VOLKSWAGEN': 'Volkswagen', 'BMW': 'BMW', 'AUDI': 'Audi',
+                            'MERCEDES-BENZ': 'Mercedes-Benz', 'OPEL': 'Opel', 'FORD': 'Ford',
+                            'HYUNDAI': 'Hyundai', 'TOYOTA': 'Toyota', 'RENAULT': 'Renault',
+                            'PORSCHE': 'Porsche', 'TESLA': 'Tesla',
+                        };
+                        const displayMake = makeMap[result.vehicle.make.toUpperCase()] || result.vehicle.make;
+                        if (MAKES.includes(displayMake)) {
+                            setMake(displayMake);
+                        }
+                    }
+
+                    toast.success(`Fahrzeugschein erkannt: ${result.vehicle.make} ${result.vehicle.model || ''} (${result.elapsed})`);
+                } else {
+                    toast.error('Keine Fahrzeugdaten erkannt');
+                }
+            } catch (err: any) {
+                toast.error(err?.message || 'Fahrzeugschein-Scan fehlgeschlagen');
+            } finally {
+                setScanning(false);
+            }
+        };
+        reader.readAsDataURL(file);
+    }, []);
+
+    const handleDrop = useCallback((e: React.DragEvent) => {
+        e.preventDefault();
+        setDragActive(false);
+        const file = e.dataTransfer.files[0];
+        if (file) processFile(file);
+    }, [processFile]);
+
+    const handleDragOver = useCallback((e: React.DragEvent) => {
+        e.preventDefault();
+        setDragActive(true);
+    }, []);
+
+    const handleDragLeave = useCallback(() => setDragActive(false), []);
+
+    const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) processFile(file);
+    }, [processFile]);
+
+    const clearScan = useCallback(() => {
+        setScannedVehicle(null);
+        setPreview(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+    }, []);
 
     // Search
     const handleSearch = useCallback(async () => {
@@ -118,13 +205,13 @@ export function OemPlayground() {
         setLoading(true);
         setResult(null);
         try {
-            const engineCode = engine.match(/\(([^,]+)/)?.[1] || '';
+            const engineCode = engine.match(/\(([^,]+)/)?.[1] || scannedVehicle?.motorcode || '';
             const r = await testOemPipeline({
                 make: getMakeForApi() || 'UNKNOWN',
-                model: model || undefined,
-                year: year ? Number(year) : undefined,
+                model: scannedVehicle?.model || model || undefined,
+                year: scannedVehicle?.year || (year ? Number(year) : undefined),
                 part: partDesc.trim(),
-                vin: vin || undefined,
+                vin: vin || scannedVehicle?.vin || undefined,
                 motorcode: engineCode || undefined,
             });
             setResult(r);
@@ -138,11 +225,12 @@ export function OemPlayground() {
         } finally {
             setLoading(false);
         }
-    }, [make, model, year, engine, vin, partDesc]);
+    }, [make, model, year, engine, vin, partDesc, scannedVehicle]);
 
     const resetAll = () => {
         setMake(''); setModel(''); setYear(''); setEngine('');
         setVin(''); setPartDesc(''); setResult(null);
+        clearScan();
     };
 
     return (
@@ -170,6 +258,131 @@ export function OemPlayground() {
                     <div className="flex items-center gap-2 text-sm">
                         <Car className="w-4 h-4 text-blue-500" />
                         <span className="font-bold">Schritt 1: Fahrzeug identifizieren</span>
+                    </div>
+
+                    {/* ── Fahrzeugschein Upload Zone ─────────────── */}
+                    <div
+                        className={`relative rounded-2xl border-2 border-dashed transition-all duration-300 ${
+                            dragActive
+                                ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30 scale-[1.01]'
+                                : scanning
+                                ? 'border-amber-400 bg-amber-50 dark:bg-amber-950/20'
+                                : scannedVehicle
+                                ? 'border-emerald-400 bg-emerald-50 dark:bg-emerald-950/20'
+                                : 'border-border hover:border-blue-300 hover:bg-blue-50/50 dark:hover:bg-blue-950/10'
+                        }`}
+                        onDrop={handleDrop}
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                    >
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFileSelect}
+                            className="hidden"
+                            id="fahrzeugschein-upload"
+                        />
+
+                        {scanning ? (
+                            /* Scanning Animation */
+                            <div className="flex flex-col items-center justify-center py-8 gap-3">
+                                <div className="relative">
+                                    <div className="w-14 h-14 rounded-2xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                                        <Camera className="w-7 h-7 text-amber-600 animate-pulse" />
+                                    </div>
+                                    <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-amber-400 flex items-center justify-center">
+                                        <Loader2 className="w-3 h-3 text-white animate-spin" />
+                                    </div>
+                                </div>
+                                <div className="text-center">
+                                    <p className="text-sm font-bold text-amber-700 dark:text-amber-400">Gemini Vision analysiert…</p>
+                                    <p className="text-xs text-muted-foreground mt-0.5">Fahrzeugdaten werden extrahiert</p>
+                                </div>
+                            </div>
+                        ) : scannedVehicle ? (
+                            /* Scanned Result */
+                            <div className="p-4">
+                                <div className="flex items-start gap-4">
+                                    {/* Preview Thumbnail */}
+                                    {preview && (
+                                        <div className="relative flex-shrink-0">
+                                            <img
+                                                src={preview}
+                                                alt="Fahrzeugschein"
+                                                className="w-20 h-20 rounded-xl object-cover border border-emerald-200 dark:border-emerald-800"
+                                            />
+                                            <div className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center shadow-sm">
+                                                <CheckCircle2 className="w-3 h-3 text-white" />
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Vehicle Info */}
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <span className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                                                ✅ Fahrzeugschein erkannt
+                                            </span>
+                                            <button onClick={clearScan} className="ml-auto p-1 rounded-lg hover:bg-red-100 dark:hover:bg-red-950/30 text-muted-foreground hover:text-red-500 transition-colors">
+                                                <X className="w-3.5 h-3.5" />
+                                            </button>
+                                        </div>
+
+                                        <div className="text-lg font-bold mb-2">
+                                            {scannedVehicle.make} {scannedVehicle.model}
+                                        </div>
+
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-1.5 text-xs">
+                                            {scannedVehicle.year && (
+                                                <div><span className="text-muted-foreground">Baujahr:</span> <span className="font-medium">{scannedVehicle.month ? `${scannedVehicle.month}/${scannedVehicle.year}` : scannedVehicle.year}</span></div>
+                                            )}
+                                            {scannedVehicle.vin && (
+                                                <div className="col-span-2"><span className="text-muted-foreground">VIN:</span> <span className="font-mono font-medium">{scannedVehicle.vin}</span></div>
+                                            )}
+                                            {scannedVehicle.hsn && scannedVehicle.tsn && (
+                                                <div><span className="text-muted-foreground">HSN/TSN:</span> <span className="font-mono font-medium">{scannedVehicle.hsn}/{scannedVehicle.tsn}</span></div>
+                                            )}
+                                            {scannedVehicle.motorcode && (
+                                                <div><span className="text-muted-foreground">Motorcode:</span> <span className="font-mono font-medium">{scannedVehicle.motorcode}</span></div>
+                                            )}
+                                            {scannedVehicle.kw && (
+                                                <div><span className="text-muted-foreground">Leistung:</span> <span className="font-medium">{scannedVehicle.kw} kW ({Math.round(scannedVehicle.kw * 1.36)} PS)</span></div>
+                                            )}
+                                            {scannedVehicle.displacement && (
+                                                <div><span className="text-muted-foreground">Hubraum:</span> <span className="font-medium">{scannedVehicle.displacement} ccm</span></div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            /* Upload Zone */
+                            <label htmlFor="fahrzeugschein-upload" className="flex flex-col items-center justify-center py-6 cursor-pointer gap-2">
+                                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 flex items-center justify-center">
+                                    <Upload className="w-6 h-6 text-blue-500" />
+                                </div>
+                                <div className="text-center">
+                                    <p className="text-sm font-bold">
+                                        <span className="text-blue-600 dark:text-blue-400">Fahrzeugschein hochladen</span>
+                                    </p>
+                                    <p className="text-xs text-muted-foreground mt-0.5">
+                                        Foto ziehen oder klicken · JPG/PNG · Gemini Vision extrahiert alle Fahrzeugdaten
+                                    </p>
+                                </div>
+                                <div className="flex items-center gap-1.5 mt-1">
+                                    <FileText className="w-3 h-3 text-muted-foreground" />
+                                    <span className="text-[10px] text-muted-foreground">Zulassungsbescheinigung Teil I</span>
+                                </div>
+                            </label>
+                        )}
+                    </div>
+
+                    {/* OR divider */}
+                    <div className="flex items-center gap-3">
+                        <div className="flex-1 border-t border-border" />
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">oder manuell</span>
+                        <div className="flex-1 border-t border-border" />
                     </div>
 
                     {/* VIN Field (optional) */}
@@ -242,8 +455,8 @@ export function OemPlayground() {
                         </div>
                     </div>
 
-                    {/* Vehicle Badge */}
-                    {make && model && (
+                    {/* Vehicle Badge (from scan or manual) */}
+                    {(scannedVehicle || (make && model)) && !scannedVehicle && (
                         <div className="flex items-center gap-3 p-3 rounded-xl bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800">
                             <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center">
                                 <Car className="w-4 h-4 text-blue-600 dark:text-blue-400" />
