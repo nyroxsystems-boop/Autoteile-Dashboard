@@ -699,8 +699,8 @@ export async function scanFahrzeugschein(imageBase64: string): Promise<Fahrzeugs
 
 // ── PartsLink24 OEM Detect Service ───────────────────────────────────────────
 
-/** PartsLink24 scraper service URL — set via env or fallback */
-const PL24_SERVICE_URL = (import.meta as any).env?.VITE_PL24_SERVICE_URL || 'https://oemdetectservice-production.up.railway.app';
+/** PartsLink24 scraper service URL */
+const PL24_SERVICE_URL = 'https://oemdetectservice-production.up.railway.app';
 
 export interface PartsLink24Result {
     success: boolean;
