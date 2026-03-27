@@ -1,13 +1,11 @@
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
-    RefreshCw, Car, Wrench, Zap, CheckCircle2, XCircle,
-    ChevronDown, Shield, ShieldAlert, ShieldCheck, Cpu, Globe, Timer, Info, Sparkles, Loader2,
-    FileSpreadsheet
+    Search, RefreshCw, Car, Wrench, Zap, CheckCircle2, XCircle,
+    ChevronDown, Hash, Shield, ShieldAlert, ShieldCheck, Cpu, Globe, Timer, Info, Sparkles, Loader2
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
-import { testOemPipeline } from '../api/wws';
+import { testOemPipeline, reverseOemLookup, getOemVehicles, OemVehiclesData } from '../api/wws';
 import { toast } from 'sonner';
-import { OemBatchTest } from './OemBatchTest';
 
 // ─── Vehicle Database (identical to Landing Page Live Demo) ──────────
 const VEHICLE_DB: Record<string, Record<string, Record<string, string[]>>> = {
@@ -80,9 +78,6 @@ const QUICK_PARTS = [
 // OEM Pipeline Playground Component
 // ═══════════════════════════════════════════════════════════════════
 export function OemPlayground() {
-    // Tab state
-    const [mode, setMode] = useState<'single' | 'batch'>('single');
-
     // Dropdown state
     const [make, setMake] = useState('');
     const [model, setModel] = useState('');
@@ -96,7 +91,9 @@ export function OemPlayground() {
     const [result, setResult] = useState<any>(null);
     const [showTrace, setShowTrace] = useState(true);
 
-
+    // Also load server vehicle data for custom models
+    const [serverVehicles, setServerVehicles] = useState<OemVehiclesData | null>(null);
+    useEffect(() => { getOemVehicles().then(setServerVehicles).catch(() => {}); }, []);
 
     // Derived dropdown data from embedded VEHICLE_DB
     const models = make && VEHICLE_DB[make] ? Object.keys(VEHICLE_DB[make]).sort() : [];
@@ -150,73 +147,22 @@ export function OemPlayground() {
 
     return (
         <div className="space-y-6">
-            {/* Header with Mode Tabs */}
-            <div className="flex items-center justify-between flex-wrap gap-3">
+            {/* Header */}
+            <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-lg transition-all duration-300 ${
-                        mode === 'batch'
-                            ? 'bg-gradient-to-br from-violet-500 to-purple-600'
-                            : 'bg-gradient-to-br from-blue-500 to-indigo-600'
-                    }`}>
-                        {mode === 'batch'
-                            ? <FileSpreadsheet className="w-5 h-5 text-white" />
-                            : <Sparkles className="w-5 h-5 text-white" />
-                        }
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
+                        <Sparkles className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                        <h2 className="text-xl font-bold tracking-tight">
-                            {mode === 'batch' ? 'Batch OEM Test' : 'OEM Pipeline Playground'}
-                        </h2>
-                        <p className="text-xs text-muted-foreground">
-                            {mode === 'batch'
-                                ? 'Mehrere Fahrzeuge gleichzeitig testen · CSV Import/Export'
-                                : 'Hydra v2 + Pattern Decoder · Identisch zum Live-Demo Bot'
-                            }
-                        </p>
+                        <h2 className="text-xl font-bold tracking-tight">OEM Pipeline Playground</h2>
+                        <p className="text-xs text-muted-foreground">Hydra v2 + Pattern Decoder · Identisch zum Live-Demo Bot</p>
                     </div>
                 </div>
-
-                <div className="flex items-center gap-2">
-                    {/* Mode Toggle */}
-                    <div className="flex bg-muted/50 rounded-xl p-1 border border-border">
-                        <button
-                            onClick={() => setMode('single')}
-                            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                                mode === 'single'
-                                    ? 'bg-white dark:bg-card text-foreground shadow-sm'
-                                    : 'text-muted-foreground hover:text-foreground'
-                            }`}
-                        >
-                            <Sparkles className="w-3 h-3 inline mr-1" />
-                            Einzeltest
-                        </button>
-                        <button
-                            onClick={() => setMode('batch')}
-                            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                                mode === 'batch'
-                                    ? 'bg-white dark:bg-card text-foreground shadow-sm'
-                                    : 'text-muted-foreground hover:text-foreground'
-                            }`}
-                        >
-                            <FileSpreadsheet className="w-3 h-3 inline mr-1" />
-                            Batch-Test
-                        </button>
-                    </div>
-
-                    {mode === 'single' && (
-                        <Button variant="outline" className="rounded-xl text-xs" onClick={resetAll}>
-                            <RefreshCw className="w-3.5 h-3.5 mr-1.5" /> Zurücksetzen
-                        </Button>
-                    )}
-                </div>
+                <Button variant="outline" className="rounded-xl text-xs" onClick={resetAll}>
+                    <RefreshCw className="w-3.5 h-3.5 mr-1.5" /> Zurücksetzen
+                </Button>
             </div>
 
-            {/* ═══ BATCH MODE ═══ */}
-            {mode === 'batch' && <OemBatchTest />}
-
-            {/* ═══ SINGLE MODE ═══ */}
-            {mode === 'single' && (
-            <>
             {/* Main Card */}
             <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-sm">
                 <div className="p-6 space-y-5">
@@ -537,8 +483,6 @@ export function OemPlayground() {
                         </div>
                     )}
                 </div>
-            )}
-            </>
             )}
         </div>
     );
