@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import {
-    Database, Search, Play, Square, RefreshCw,
+    Database, Search, Play, Square, RefreshCw, Sparkles,
     ChevronDown, Car, Wrench, Zap, CheckCircle2, XCircle, Clock,
     Filter, Hash, Shield, ShieldAlert, ShieldCheck, Cpu, Globe, Timer, Info
 } from 'lucide-react';
@@ -12,15 +12,16 @@ import {
     OemDbStats, OemRecord, SeederStatus, OemVehiclesData
 } from '../api/wws';
 import { toast } from 'sonner';
+import { OemPlayground } from './OemPlayground';
 
 // ── Tab Navigation ──
 
-type TabId = 'register' | 'seeder' | 'custom';
+type TabId = 'playground' | 'register' | 'seeder' | 'custom';
 
 // ── Main Component ──
 
 export function OemRegisterView() {
-    const [activeTab, setActiveTab] = useState<TabId>('register');
+    const [activeTab, setActiveTab] = useState<TabId>('playground');
     const [dbStats, setDbStats] = useState<OemDbStats | null>(null);
     const [loadingStats, setLoadingStats] = useState(true);
 
@@ -39,6 +40,7 @@ export function OemRegisterView() {
     useEffect(() => { loadStats(); }, [loadStats]);
 
     const tabs = [
+        { id: 'playground' as TabId, label: 'Pipeline Test', icon: Sparkles },
         { id: 'register' as TabId, label: 'OEM Register', icon: Database, count: dbStats?.totalRecords },
         { id: 'seeder' as TabId, label: 'Catalog Seeder', icon: Zap },
         { id: 'custom' as TabId, label: 'Custom-Suche', icon: Search },
@@ -111,6 +113,7 @@ export function OemRegisterView() {
             </div>
 
             {/* Tab Content */}
+            {activeTab === 'playground' && <OemPlayground />}
             {activeTab === 'register' && <RegisterTab dbStats={dbStats} />}
             {activeTab === 'seeder' && <SeederTab onStatsRefresh={loadStats} />}
             {activeTab === 'custom' && <CustomSearchTab />}
