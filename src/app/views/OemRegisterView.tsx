@@ -2,12 +2,13 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import {
     Database, Search, Play, Square, RefreshCw,
     ChevronDown, Car, Wrench, Zap, CheckCircle2, XCircle, Clock,
-    Filter, Hash
+    Filter, Hash, Shield, ShieldAlert, ShieldCheck, Cpu, Globe, Timer, Info
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import {
     getOemDbStats, getOemRecords, getOemVehicles, startSeeder,
-    getSeederStatus, stopSeeder, resolveSingleOem, reverseOemLookup, resolveOemFull,
+    getSeederStatus, stopSeeder, reverseOemLookup,
+    testOemPipeline,
     OemDbStats, OemRecord, SeederStatus, OemVehiclesData
 } from '../api/wws';
 import { toast } from 'sonner';
@@ -445,11 +446,7 @@ function CustomSearchTab() {
     const [vin, setVin] = useState('');
     const [partDesc, setPartDesc] = useState('');
     const [loading, setLoading] = useState(false);
-    const [forwardResult, setForwardResult] = useState<{
-        success: boolean; oem?: string | null;
-        candidates?: Array<{ oem: string; brand: string; confidence: number; source: string; note?: string }>;
-        confidence?: number; notes?: string | null; source?: string; message?: string;
-    } | null>(null);
+    const [forwardResult, setForwardResult] = useState<any>(null);
 
     // Reverse mode state
     const [oemInput, setOemInput] = useState('');
@@ -473,41 +470,21 @@ function CustomSearchTab() {
         setLoading(true);
         setForwardResult(null);
         try {
-            // Try full Hydra v2 engine first (same as live demo / WhatsApp bot)
-            const hydraResult = await resolveOemFull({
-                vehicle: {
-                    make: brand || undefined,
-                    model: finalModel || undefined,
-                    vin: vin || undefined,
-                },
+            // Use the full pipeline test endpoint with Pattern Decoder trace
+            const result = await testOemPipeline({
+                make: brand || 'UNKNOWN',
+                model: finalModel || undefined,
                 part: partDesc,
+                vin: vin || undefined,
             });
-            setForwardResult(hydraResult);
-            if (hydraResult.success && hydraResult.oem) {
-                toast.success(`OEM gefunden: ${hydraResult.oem}`);
+            setForwardResult(result);
+            if (result.result?.bestOem) {
+                toast.success(`OEM gefunden: ${result.result.bestOem}`);
+            } else {
+                toast.error('Keine OEM-Nummer gefunden');
             }
-        } catch (_err) {
-            // Fallback to simple resolve
-            try {
-                if (!brand || !finalModel) {
-                    toast.error('Für Fallback: Marke und Modell benötigt');
-                    setLoading(false);
-                    return;
-                }
-                const fallback = await resolveSingleOem({ brand, model: finalModel, partDescription: partDesc });
-                setForwardResult({
-                    success: fallback.success,
-                    oem: fallback.oem,
-                    confidence: fallback.confidence ? Math.round(fallback.confidence * 100) : undefined,
-                    notes: fallback.message,
-                    source: fallback.source,
-                });
-                if (fallback.success && fallback.oem) {
-                    toast.success(`OEM gefunden: ${fallback.oem}`);
-                }
-            } catch (err: any) {
-                toast.error(err?.message || 'Suche fehlgeschlagen');
-            }
+        } catch (err: any) {
+            toast.error(err?.message || 'Pipeline-Test fehlgeschlagen');
         } finally {
             setLoading(false);
         }
@@ -702,65 +679,182 @@ function CustomSearchTab() {
 
                     {/* Forward Result */}
                     {forwardResult && (
-                        <div className={`rounded-2xl p-6 border ${
-                            forwardResult.success && forwardResult.oem
-                                ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800'
-                                : 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800'
-                        }`}>
-                            {forwardResult.success && forwardResult.oem ? (
-                                <div className="space-y-4">
-                                    <div className="flex items-start gap-4">
-                                        <CheckCircle2 className="w-8 h-8 text-emerald-500 flex-shrink-0 mt-0.5" />
-                                        <div>
-                                            <div className="flex items-center gap-3 mb-2">
-                                                <Hash className="w-4 h-4 text-muted-foreground" />
-                                                <span className="text-2xl font-mono font-bold text-foreground">{forwardResult.oem}</span>
+                        <div className="space-y-4">
+                            {/* Main Result */}
+                            <div className={`rounded-2xl p-6 border ${
+                                forwardResult.result?.bestOem
+                                    ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800'
+                                    : 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800'
+                            }`}>
+                                {forwardResult.result?.bestOem ? (
+                                    <div className="space-y-3">
+                                        <div className="flex items-start gap-4">
+                                            <CheckCircle2 className="w-8 h-8 text-emerald-500 flex-shrink-0 mt-0.5" />
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-3 mb-2">
+                                                    <Hash className="w-4 h-4 text-muted-foreground" />
+                                                    <span className="text-3xl font-mono font-bold text-foreground">{forwardResult.result.bestOem}</span>
+                                                </div>
+                                                <div className="flex gap-4 text-sm flex-wrap">
+                                                    <span className="flex items-center gap-1.5">
+                                                        <Timer className="w-3.5 h-3.5 text-muted-foreground" />
+                                                        <span className="text-muted-foreground">{forwardResult.elapsed}</span>
+                                                    </span>
+                                                    <span className="flex items-center gap-1.5">
+                                                        <Cpu className="w-3.5 h-3.5 text-muted-foreground" />
+                                                        <span className="text-muted-foreground">{forwardResult.result.resolvedBy}</span>
+                                                    </span>
+                                                    <span className={`font-bold ${
+                                                        forwardResult.result.confidence >= 0.9 ? 'text-emerald-600' :
+                                                        forwardResult.result.confidence >= 0.7 ? 'text-yellow-600' : 'text-red-600'
+                                                    }`}>
+                                                        {Math.round(forwardResult.result.confidence * 100)}% Confidence
+                                                    </span>
+                                                    {forwardResult.result.needsConfirmation && (
+                                                        <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full">⚠️ Bestätigung empfohlen</span>
+                                                    )}
+                                                </div>
                                             </div>
-                                            <div className="flex gap-3 text-sm text-muted-foreground flex-wrap">
-                                                {forwardResult.confidence !== undefined && (
-                                                    <span>Confidence: <strong className={Number(forwardResult.confidence) >= 80 ? 'text-emerald-600' : 'text-yellow-600'}>
-                                                        {forwardResult.confidence}%
-                                                    </strong></span>
-                                                )}
-                                                {forwardResult.notes && (
-                                                    <span>Info: {forwardResult.notes}</span>
-                                                )}
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-start gap-4">
+                                        <XCircle className="w-8 h-8 text-red-500 flex-shrink-0 mt-0.5" />
+                                        <div>
+                                            <div className="font-bold text-red-700 dark:text-red-400 mb-1">Keine OEM-Nummer gefunden</div>
+                                            <div className="text-sm text-muted-foreground">Hydra konnte keine passende Nummer finden. ({forwardResult.elapsed})</div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Pattern Decoder + Validation */}
+                            {forwardResult.patternDecoder && (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {/* Pattern Decoder Card */}
+                                    <div className="bg-card border border-border rounded-2xl p-5">
+                                        <div className="flex items-center gap-2 mb-3">
+                                            <Shield className="w-4 h-4 text-blue-500" />
+                                            <span className="font-bold text-sm">Pattern Decoder</span>
+                                        </div>
+                                        <div className="space-y-2 text-sm">
+                                            <div className="flex justify-between">
+                                                <span className="text-muted-foreground">Marke:</span>
+                                                <span className="font-medium">{forwardResult.patternDecoder.brand}</span>
+                                            </div>
+                                            {forwardResult.patternDecoder.partGroup && (
+                                                <div className="flex justify-between">
+                                                    <span className="text-muted-foreground">Teilegruppe:</span>
+                                                    <span className="font-mono font-medium">{forwardResult.patternDecoder.partGroup}</span>
+                                                </div>
+                                            )}
+                                            {forwardResult.patternDecoder.position && forwardResult.patternDecoder.position !== 'unspecified' && (
+                                                <div className="flex justify-between">
+                                                    <span className="text-muted-foreground">Position:</span>
+                                                    <span className="font-medium">{forwardResult.patternDecoder.position === 'front' ? '🔵 Vorne' : forwardResult.patternDecoder.position === 'rear' ? '🔴 Hinten' : forwardResult.patternDecoder.position}</span>
+                                                </div>
+                                            )}
+                                            {forwardResult.patternDecoder.platform && (
+                                                <div className="flex justify-between">
+                                                    <span className="text-muted-foreground">Plattform:</span>
+                                                    <span className="font-medium">{forwardResult.patternDecoder.platform}</span>
+                                                </div>
+                                            )}
+                                            <div className="flex justify-between">
+                                                <span className="text-muted-foreground">Decode-Confidence:</span>
+                                                <span className={`font-bold ${forwardResult.patternDecoder.decodeConfidence >= 0.8 ? 'text-emerald-500' : 'text-yellow-500'}`}>
+                                                    {Math.round(forwardResult.patternDecoder.decodeConfidence * 100)}%
+                                                </span>
+                                            </div>
+                                            <div className="text-xs text-muted-foreground bg-muted/30 rounded-lg p-2 mt-2">
+                                                {forwardResult.patternDecoder.explanation}
                                             </div>
                                         </div>
                                     </div>
 
-                                    {/* Candidates table */}
-                                    {forwardResult.candidates && forwardResult.candidates.length > 0 && (
-                                        <div className="mt-4">
-                                            <div className="text-xs font-medium text-muted-foreground mb-2">Alle Kandidaten:</div>
-                                            <div className="space-y-2">
-                                                {forwardResult.candidates.map((c, i) => (
-                                                    <div key={i} className="flex items-center justify-between bg-white dark:bg-white/5 rounded-xl px-4 py-3 border border-border/50">
-                                                        <div className="flex items-center gap-3">
-                                                            <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center">
-                                                                {i + 1}
-                                                            </span>
-                                                            <span className="font-mono font-bold">{c.oem}</span>
-                                                            <span className="text-xs text-muted-foreground">{c.brand}</span>
-                                                        </div>
-                                                        <div className="flex items-center gap-3">
-                                                            <span className="text-xs text-muted-foreground">{c.source}</span>
-                                                            <span className={`text-xs font-bold ${c.confidence >= 80 ? 'text-emerald-500' : c.confidence >= 50 ? 'text-yellow-500' : 'text-red-500'}`}>
-                                                                {c.confidence}%
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                ))}
+                                    {/* Validation Card */}
+                                    {forwardResult.validation && (
+                                        <div className={`border rounded-2xl p-5 ${
+                                            forwardResult.validation.isHallucination 
+                                                ? 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800'
+                                                : 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800'
+                                        }`}>
+                                            <div className="flex items-center gap-2 mb-3">
+                                                {forwardResult.validation.isHallucination 
+                                                    ? <ShieldAlert className="w-4 h-4 text-red-500" />
+                                                    : <ShieldCheck className="w-4 h-4 text-emerald-500" />}
+                                                <span className="font-bold text-sm">
+                                                    {forwardResult.validation.isHallucination ? '🚫 Hallucination!' : '✅ Validierung bestanden'}
+                                                </span>
                                             </div>
+                                            <p className="text-sm">{forwardResult.validation.reason}</p>
                                         </div>
                                     )}
                                 </div>
-                            ) : (
-                                <div className="flex items-start gap-4">
-                                    <XCircle className="w-8 h-8 text-red-500 flex-shrink-0 mt-0.5" />
-                                    <div>
-                                        <div className="font-bold text-red-700 dark:text-red-400 mb-1">Keine OEM-Nummer gefunden</div>
-                                        <div className="text-sm text-muted-foreground">{forwardResult.notes || 'Hydra konnte keine passende Nummer finden.'}</div>
+                            )}
+
+                            {/* Brand Intelligence */}
+                            {forwardResult.brandIntelligence && (
+                                <div className="bg-card border border-border rounded-2xl p-5">
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <Globe className="w-4 h-4 text-purple-500" />
+                                        <span className="font-bold text-sm">Brand Intelligence — {forwardResult.brandIntelligence.brand}</span>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                                        <div>
+                                            <div className="text-xs text-muted-foreground mb-1">OEM-Format</div>
+                                            <div className="text-xs">{forwardResult.brandIntelligence.oemFormat}</div>
+                                            <div className="text-xs text-muted-foreground mt-1">Beispiele: {forwardResult.brandIntelligence.examples?.join(', ')}</div>
+                                        </div>
+                                        <div>
+                                            <div className="text-xs text-muted-foreground mb-1">Katalog-Quellen</div>
+                                            <div className="flex flex-wrap gap-1">
+                                                {forwardResult.brandIntelligence.catalogUrls?.map((url: string) => (
+                                                    <span key={url} className="text-xs bg-muted px-2 py-0.5 rounded-full">{url}</span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        {forwardResult.brandIntelligence.partSharingGroup && (
+                                            <div>
+                                                <div className="text-xs text-muted-foreground mb-1">Teile-Sharing-Gruppe</div>
+                                                <div className="flex flex-wrap gap-1">
+                                                    {forwardResult.brandIntelligence.partSharingGroup.map((g: string) => (
+                                                        <span key={g} className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">{g}</span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* All Candidates Table */}
+                            {forwardResult.result?.allCandidates?.length > 0 && (
+                                <div className="bg-card border border-border rounded-2xl p-5">
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <Info className="w-4 h-4 text-muted-foreground" />
+                                        <span className="font-bold text-sm">Alle Kandidaten ({forwardResult.result.allCandidates.length})</span>
+                                    </div>
+                                    <div className="space-y-2">
+                                        {forwardResult.result.allCandidates.map((c: any, i: number) => (
+                                            <div key={i} className="flex items-center justify-between bg-muted/20 rounded-xl px-4 py-3">
+                                                <div className="flex items-center gap-3">
+                                                    <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center">
+                                                        {i + 1}
+                                                    </span>
+                                                    <span className="font-mono font-bold">{c.oem}</span>
+                                                </div>
+                                                <div className="flex items-center gap-3">
+                                                    <span className="text-xs bg-muted px-2 py-0.5 rounded-full">{c.source}</span>
+                                                    <span className={`text-xs font-bold ${
+                                                        c.confidence >= 0.9 ? 'text-emerald-500' : 
+                                                        c.confidence >= 0.7 ? 'text-yellow-500' : 'text-red-500'
+                                                    }`}>
+                                                        {Math.round(c.confidence * 100)}%
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
                             )}

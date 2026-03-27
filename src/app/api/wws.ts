@@ -615,3 +615,57 @@ export async function resolveOemFull(params: {
         body: JSON.stringify(params),
     });
 }
+
+/** Run full Hydra pipeline with Pattern Decoder trace */
+export async function testOemPipeline(params: {
+    make: string; model?: string; year?: number; part: string;
+    vin?: string; motorcode?: string;
+}): Promise<{
+    success: boolean; elapsed: string;
+    input: any;
+    result: {
+        bestOem: string | null; confidence: number; resolvedBy: string;
+        needsConfirmation?: boolean;
+        allCandidates: Array<{ oem: string; source: string; confidence: number }>;
+    };
+    patternDecoder: {
+        valid: boolean; brand: string; partGroup?: string; position?: string;
+        platform?: string; explanation: string; decodeConfidence: number;
+    } | null;
+    validation: {
+        isValid: boolean; isHallucination: boolean; reason: string;
+    } | null;
+    brandIntelligence: {
+        brand: string; catalogUrls: string[]; oemFormat: string;
+        examples: string[]; modelCodes: Record<string, string>;
+        partSharingGroup?: string[];
+    } | null;
+}> {
+    return apiFetch('/api/admin/oem/test-pipeline', {
+        method: 'POST',
+        body: JSON.stringify(params),
+    });
+}
+
+/** Decode an OEM number without running the full pipeline */
+export async function decodeOemNumber(params: {
+    oem: string; brand?: string; partQuery?: string;
+}): Promise<{
+    oem: string;
+    decoded: { valid: boolean; brand: string; partGroup?: string; position?: string; platform?: string; explanation: string; decodeConfidence: number };
+    validation: { isValid: boolean; isHallucination: boolean; reason: string } | null;
+}> {
+    return apiFetch('/api/admin/oem/decode', {
+        method: 'POST',
+        body: JSON.stringify(params),
+    });
+}
+
+/** Get OEM system info */
+export async function getOemSystemInfo(): Promise<{
+    verifiedOemCount: number; supportedBrands: string[];
+    brandCount: number; features: Record<string, boolean>;
+    pipelineSteps: string[];
+}> {
+    return apiFetch('/api/admin/oem/system-info');
+}
