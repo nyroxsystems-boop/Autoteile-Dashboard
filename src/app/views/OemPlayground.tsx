@@ -1,10 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import {
-    Search, RefreshCw, Car, Wrench, Zap, CheckCircle2, XCircle,
-    ChevronDown, Hash, Shield, ShieldAlert, ShieldCheck, Cpu, Globe, Timer, Info, Sparkles, Loader2
+    RefreshCw, Car, Wrench, Zap, CheckCircle2, XCircle,
+    ChevronDown, Shield, ShieldAlert, ShieldCheck, Cpu, Globe, Timer, Info, Sparkles, Loader2
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
-import { testOemPipeline, reverseOemLookup, getOemVehicles, OemVehiclesData } from '../api/wws';
+import { testOemPipeline } from '../api/wws';
 import { toast } from 'sonner';
 
 // ─── Vehicle Database (identical to Landing Page Live Demo) ──────────
@@ -91,9 +91,7 @@ export function OemPlayground() {
     const [result, setResult] = useState<any>(null);
     const [showTrace, setShowTrace] = useState(true);
 
-    // Also load server vehicle data for custom models
-    const [serverVehicles, setServerVehicles] = useState<OemVehiclesData | null>(null);
-    useEffect(() => { getOemVehicles().then(setServerVehicles).catch(() => {}); }, []);
+
 
     // Derived dropdown data from embedded VEHICLE_DB
     const models = make && VEHICLE_DB[make] ? Object.keys(VEHICLE_DB[make]).sort() : [];
