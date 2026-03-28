@@ -2,13 +2,14 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import {
     Database, Search, Play, Square, RefreshCw, Sparkles,
     ChevronDown, Car, Wrench, Zap, CheckCircle2, XCircle, Clock,
-    Filter, Hash, Shield, ShieldAlert, ShieldCheck, Cpu, Globe, Timer, Info
+    Filter, Hash, Shield, ShieldAlert, ShieldCheck, Cpu, Globe, Timer, Info,
+    ExternalLink, Loader2, Trash2, Plus, PlayCircle
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import {
     getOemDbStats, getOemRecords, getOemVehicles, startSeeder,
     getSeederStatus, stopSeeder, reverseOemLookup,
-    testOemPipeline,
+    testOemPipeline, lookupPartsLink24, PartsLink24Result, getPartsLink24Health,
     OemDbStats, OemRecord, SeederStatus, OemVehiclesData
 } from '../api/wws';
 import { toast } from 'sonner';
@@ -16,7 +17,7 @@ import { OemPlayground } from './OemPlayground';
 
 // ── Tab Navigation ──
 
-type TabId = 'playground' | 'register' | 'seeder' | 'custom';
+type TabId = 'playground' | 'register' | 'seeder' | 'custom' | 'pl24batch';
 
 // ── Main Component ──
 
@@ -43,6 +44,7 @@ export function OemRegisterView() {
         { id: 'playground' as TabId, label: 'Pipeline Test', icon: Sparkles },
         { id: 'register' as TabId, label: 'OEM Register', icon: Database, count: dbStats?.totalRecords },
         { id: 'seeder' as TabId, label: 'Catalog Seeder', icon: Zap },
+        { id: 'pl24batch' as TabId, label: 'PL24 Batch', icon: ExternalLink },
         { id: 'custom' as TabId, label: 'Custom-Suche', icon: Search },
     ];
 
@@ -116,6 +118,7 @@ export function OemRegisterView() {
             {activeTab === 'playground' && <OemPlayground />}
             {activeTab === 'register' && <RegisterTab dbStats={dbStats} />}
             {activeTab === 'seeder' && <SeederTab onStatsRefresh={loadStats} />}
+            {activeTab === 'pl24batch' && <PL24BatchTab />}
             {activeTab === 'custom' && <CustomSearchTab />}
         </div>
     );
@@ -959,3 +962,365 @@ function CustomSearchTab() {
     );
 }
 
+// ═══════════════════════════════════════════════════════════════
+// TAB 5: PartsLink24 Batch Test
+// ═══════════════════════════════════════════════════════════════
+
+interface BatchTestCase {
+    id: string;
+    vin: string;
+    part: string;
+    label?: string;
+    status: 'pending' | 'running' | 'success' | 'error' | 'no-results';
+    result?: PartsLink24Result;
+    elapsedMs?: number;
+    error?: string;
+}
+
+const DEFAULT_TEST_CASES: Omit<BatchTestCase, 'id' | 'status'>[] = [
+    { vin: 'WBAAT51010FW14413', part: 'Ölfilter', label: 'BMW 5er E39' },
+    { vin: 'WBAAT51010FW14413', part: 'Bremsscheibe vorne', label: 'BMW 5er E39' },
+    { vin: 'WBAAT51010FW14413', part: 'Luftfilter', label: 'BMW 5er E39' },
+    { vin: 'WBAAT51010FW14413', part: 'Zündkerze', label: 'BMW 5er E39' },
+    { vin: 'WBAAT51010FW14413', part: 'Wasserpumpe', label: 'BMW 5er E39' },
+];
+
+function PL24BatchTab() {
+    const [testCases, setTestCases] = useState<BatchTestCase[]>(
+        DEFAULT_TEST_CASES.map((tc, i) => ({ ...tc, id: `tc-${i}`, status: 'pending' as const }))
+    );
+    const [running, setRunning] = useState(false);
+    const [currentIdx, setCurrentIdx] = useState(-1);
+    const [pl24Health, setPl24Health] = useState<{ status: string; browser: { running: boolean } } | null>(null);
+    const abortRef = useRef(false);
+
+    // Check PL24 health on mount
+    useEffect(() => {
+        getPartsLink24Health().then(setPl24Health).catch(() => setPl24Health(null));
+    }, []);
+
+    // Add test case
+    const addTestCase = () => {
+        setTestCases(prev => [...prev, {
+            id: `tc-${Date.now()}`,
+            vin: '',
+            part: '',
+            label: '',
+            status: 'pending',
+        }]);
+    };
+
+    // Remove test case
+    const removeTestCase = (id: string) => {
+        setTestCases(prev => prev.filter(tc => tc.id !== id));
+    };
+
+    // Update test case field
+    const updateTestCase = (id: string, field: 'vin' | 'part' | 'label', value: string) => {
+        setTestCases(prev => prev.map(tc =>
+            tc.id === id ? { ...tc, [field]: field === 'vin' ? value.toUpperCase() : value } : tc
+        ));
+    };
+
+    // Run all test cases sequentially
+    const runBatch = async () => {
+        setRunning(true);
+        abortRef.current = false;
+
+        // Reset all statuses
+        setTestCases(prev => prev.map(tc => ({ ...tc, status: 'pending' as const, result: undefined, elapsedMs: undefined, error: undefined })));
+
+        for (let i = 0; i < testCases.length; i++) {
+            if (abortRef.current) break;
+
+            const tc = testCases[i];
+            if (!tc.vin || !tc.part) {
+                setTestCases(prev => prev.map((t, idx) =>
+                    idx === i ? { ...t, status: 'error', error: 'VIN oder Teil fehlt' } : t
+                ));
+                continue;
+            }
+
+            setCurrentIdx(i);
+            setTestCases(prev => prev.map((t, idx) =>
+                idx === i ? { ...t, status: 'running' } : t
+            ));
+
+            const start = Date.now();
+            try {
+                const result = await lookupPartsLink24({ vin: tc.vin, part: tc.part });
+                const elapsedMs = Date.now() - start;
+
+                setTestCases(prev => prev.map((t, idx) =>
+                    idx === i ? {
+                        ...t,
+                        status: result.success && result.results.length > 0 ? 'success' : 'no-results',
+                        result,
+                        elapsedMs,
+                    } : t
+                ));
+            } catch (err: any) {
+                setTestCases(prev => prev.map((t, idx) =>
+                    idx === i ? {
+                        ...t,
+                        status: 'error',
+                        error: err?.message || 'Unbekannter Fehler',
+                        elapsedMs: Date.now() - start,
+                    } : t
+                ));
+            }
+
+            // Small delay between requests to avoid overwhelming the scraper
+            if (i < testCases.length - 1 && !abortRef.current) {
+                await new Promise(r => setTimeout(r, 2000));
+            }
+        }
+
+        setCurrentIdx(-1);
+        setRunning(false);
+        toast.success('Batch-Test abgeschlossen!');
+    };
+
+    const stopBatch = () => {
+        abortRef.current = true;
+        toast.info('Batch wird gestoppt…');
+    };
+
+    // Stats
+    const done = testCases.filter(tc => tc.status !== 'pending' && tc.status !== 'running');
+    const successCount = testCases.filter(tc => tc.status === 'success').length;
+    const noResultCount = testCases.filter(tc => tc.status === 'no-results').length;
+    const errorCount = testCases.filter(tc => tc.status === 'error').length;
+    const avgMs = done.length > 0
+        ? Math.round(done.filter(tc => tc.elapsedMs).reduce((sum, tc) => sum + (tc.elapsedMs || 0), 0) / done.filter(tc => tc.elapsedMs).length)
+        : 0;
+    const totalOems = testCases.reduce((sum, tc) => sum + (tc.result?.results?.length || 0), 0);
+
+    return (
+        <div className="space-y-6">
+            {/* Header + Health */}
+            <div className="bg-card border border-border rounded-3xl p-6 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                            <ExternalLink className="w-4 h-4 text-amber-600" />
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-lg">PartsLink24 Batch Test</h3>
+                            <div className="text-xs text-muted-foreground">
+                                {pl24Health?.status === 'healthy'
+                                    ? '✅ Service verbunden'
+                                    : pl24Health === null
+                                        ? '⏳ Verbindung prüfen…'
+                                        : '⚠️ Service nicht erreichbar'
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <div className="flex gap-2">
+                        {!running ? (
+                            <Button
+                                className="rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white shadow-lg"
+                                onClick={runBatch}
+                                disabled={testCases.length === 0 || testCases.every(tc => !tc.vin || !tc.part)}
+                            >
+                                <PlayCircle className="w-4 h-4 mr-2" /> Batch starten ({testCases.length})
+                            </Button>
+                        ) : (
+                            <Button variant="destructive" className="rounded-xl" onClick={stopBatch}>
+                                <Square className="w-4 h-4 mr-2" /> Stoppen
+                            </Button>
+                        )}
+                    </div>
+                </div>
+
+                {/* Progress bar when running */}
+                {running && (
+                    <div className="mb-4">
+                        <div className="flex justify-between text-sm mb-2">
+                            <span className="font-medium">{currentIdx + 1} / {testCases.length} — {testCases[currentIdx]?.part}</span>
+                            <span className="text-muted-foreground">{Math.round(((currentIdx + 1) / testCases.length) * 100)}%</span>
+                        </div>
+                        <div className="h-2 bg-muted rounded-full overflow-hidden">
+                            <div
+                                className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full transition-all duration-500"
+                                style={{ width: `${((currentIdx + 1) / testCases.length) * 100}%` }}
+                            />
+                        </div>
+                    </div>
+                )}
+
+                {/* Stats cards */}
+                {done.length > 0 && (
+                    <div className="grid grid-cols-5 gap-3 mb-4">
+                        <div className="bg-muted/30 rounded-xl p-3 text-center">
+                            <div className="text-lg font-bold">{done.length}/{testCases.length}</div>
+                            <div className="text-[11px] text-muted-foreground">Abgeschlossen</div>
+                        </div>
+                        <div className="bg-emerald-50 dark:bg-emerald-950/20 rounded-xl p-3 text-center">
+                            <div className="text-lg font-bold text-emerald-600">{successCount}</div>
+                            <div className="text-[11px] text-emerald-600">Treffer</div>
+                        </div>
+                        <div className="bg-yellow-50 dark:bg-yellow-950/20 rounded-xl p-3 text-center">
+                            <div className="text-lg font-bold text-yellow-600">{noResultCount}</div>
+                            <div className="text-[11px] text-yellow-600">Keine Treffer</div>
+                        </div>
+                        <div className="bg-red-50 dark:bg-red-950/20 rounded-xl p-3 text-center">
+                            <div className="text-lg font-bold text-red-500">{errorCount}</div>
+                            <div className="text-[11px] text-red-500">Fehler</div>
+                        </div>
+                        <div className="bg-muted/30 rounded-xl p-3 text-center">
+                            <div className="text-lg font-bold">{totalOems}</div>
+                            <div className="text-[11px] text-muted-foreground">OEMs gefunden</div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Test Cases Editor */}
+                <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Test Cases</span>
+                        <button
+                            onClick={addTestCase}
+                            disabled={running}
+                            className="flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 disabled:opacity-30"
+                        >
+                            <Plus className="w-3.5 h-3.5" /> Hinzufügen
+                        </button>
+                    </div>
+
+                    {testCases.map((tc, idx) => (
+                        <div
+                            key={tc.id}
+                            className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
+                                tc.status === 'running'
+                                    ? 'border-amber-400 bg-amber-50 dark:bg-amber-950/20 animate-pulse'
+                                    : tc.status === 'success'
+                                    ? 'border-emerald-300 bg-emerald-50/50 dark:bg-emerald-950/10'
+                                    : tc.status === 'error'
+                                    ? 'border-red-300 bg-red-50/50 dark:bg-red-950/10'
+                                    : tc.status === 'no-results'
+                                    ? 'border-yellow-300 bg-yellow-50/50 dark:bg-yellow-950/10'
+                                    : 'border-border bg-background'
+                            }`}
+                        >
+                            {/* Status indicator */}
+                            <div className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0">
+                                {tc.status === 'running' ? (
+                                    <Loader2 className="w-4 h-4 text-amber-500 animate-spin" />
+                                ) : tc.status === 'success' ? (
+                                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                                ) : tc.status === 'error' ? (
+                                    <XCircle className="w-4 h-4 text-red-500" />
+                                ) : tc.status === 'no-results' ? (
+                                    <XCircle className="w-4 h-4 text-yellow-500" />
+                                ) : (
+                                    <span className="text-xs font-mono text-muted-foreground">{idx + 1}</span>
+                                )}
+                            </div>
+
+                            {/* VIN input */}
+                            <input
+                                className="flex-1 min-w-0 px-3 py-2 rounded-lg border border-border bg-background text-sm font-mono disabled:opacity-50"
+                                placeholder="VIN/FIN"
+                                value={tc.vin}
+                                onChange={e => updateTestCase(tc.id, 'vin', e.target.value)}
+                                disabled={running}
+                                maxLength={17}
+                            />
+
+                            {/* Part input */}
+                            <input
+                                className="flex-1 min-w-0 px-3 py-2 rounded-lg border border-border bg-background text-sm disabled:opacity-50"
+                                placeholder="Ersatzteil"
+                                value={tc.part}
+                                onChange={e => updateTestCase(tc.id, 'part', e.target.value)}
+                                disabled={running}
+                            />
+
+                            {/* Label (optional) */}
+                            <input
+                                className="w-32 px-3 py-2 rounded-lg border border-border bg-background text-xs text-muted-foreground disabled:opacity-50"
+                                placeholder="Label"
+                                value={tc.label || ''}
+                                onChange={e => updateTestCase(tc.id, 'label', e.target.value)}
+                                disabled={running}
+                            />
+
+                            {/* Result info */}
+                            <div className="w-24 text-right flex-shrink-0">
+                                {tc.status === 'success' && tc.result && (
+                                    <div>
+                                        <div className="text-xs font-bold text-emerald-600">{tc.result.results.length} OEMs</div>
+                                        <div className="text-[10px] text-muted-foreground">
+                                            {tc.elapsedMs ? `${(tc.elapsedMs / 1000).toFixed(1)}s` : ''}
+                                            {tc.result.fromCache && ' · Cache'}
+                                        </div>
+                                    </div>
+                                )}
+                                {tc.status === 'error' && (
+                                    <div className="text-[10px] text-red-500 truncate" title={tc.error}>{tc.error}</div>
+                                )}
+                                {tc.status === 'no-results' && (
+                                    <div className="text-[10px] text-yellow-600">0 Treffer</div>
+                                )}
+                            </div>
+
+                            {/* Remove button */}
+                            <button
+                                onClick={() => removeTestCase(tc.id)}
+                                disabled={running}
+                                className="p-1.5 rounded-lg hover:bg-red-100 dark:hover:bg-red-950/30 text-muted-foreground hover:text-red-500 transition-colors disabled:opacity-30"
+                            >
+                                <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* ── Results Detail ── */}
+            {testCases.some(tc => tc.result && tc.result.results.length > 0) && (
+                <div className="bg-card border border-border rounded-3xl p-6 shadow-sm space-y-4">
+                    <div className="flex items-center gap-2">
+                        <ExternalLink className="w-4 h-4 text-amber-500" />
+                        <h3 className="font-bold text-sm">Ergebnisse im Detail</h3>
+                        <span className="text-xs text-muted-foreground ml-auto">
+                            Ø {avgMs > 0 ? `${(avgMs / 1000).toFixed(1)}s` : '—'} pro Abfrage
+                        </span>
+                    </div>
+
+                    <div className="space-y-3">
+                        {testCases.filter(tc => tc.result && tc.result.results.length > 0).map(tc => (
+                            <div key={tc.id} className="border border-amber-200 dark:border-amber-800 rounded-2xl p-4">
+                                <div className="flex items-center gap-3 mb-3">
+                                    <span className="text-xs font-mono bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 px-2.5 py-1 rounded-lg">
+                                        {tc.vin}
+                                    </span>
+                                    <span className="text-sm font-medium">{tc.part}</span>
+                                    {tc.label && <span className="text-xs text-muted-foreground">({tc.label})</span>}
+                                    <span className="text-xs text-muted-foreground ml-auto">
+                                        {tc.result?.results.length} OEMs · {tc.elapsedMs ? `${(tc.elapsedMs / 1000).toFixed(1)}s` : ''}
+                                        {tc.result?.fromCache && ' · 🔄 Cache'}
+                                    </span>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                                    {tc.result?.results.map((r, i) => (
+                                        <div key={i} className="flex items-center gap-3 bg-white dark:bg-card/80 rounded-xl px-4 py-3 border border-border">
+                                            <span className="text-xs text-muted-foreground font-mono">#{i + 1}</span>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="font-mono font-bold text-sm tracking-wider">{r.oem}</div>
+                                                <div className="text-[11px] text-muted-foreground truncate">{r.description}</div>
+                                            </div>
+                                            {r.bildtafel && <span className="text-[10px] text-muted-foreground">{r.bildtafel}</span>}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
